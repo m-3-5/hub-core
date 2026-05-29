@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        // See https://ai.google.dev/gemini-api/docs/models and pricing (free tier)
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+        'fallback_models' => array_filter(array_map('trim', explode(',', env(
+            'GEMINI_FALLBACK_MODELS',
+            'gemini-2.5-flash-lite,gemini-3.5-flash'
+        )))),
+        // Image generation (may require billing on some accounts)
+        'image_model' => env('GEMINI_IMAGE_MODEL', 'gemini-2.5-flash-image'),
+    ],
+
 ];
