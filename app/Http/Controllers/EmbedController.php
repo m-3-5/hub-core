@@ -8,9 +8,9 @@ use Illuminate\Support\Str;
 
 class EmbedController extends Controller
 {
-    public function script(string $tenant): Response
+    public function script(string $tenantSlug): Response
     {
-        $tenantModel = Tenant::where('slug', $tenant)->firstOrFail();
+        $tenantModel = Tenant::where('slug', $tenantSlug)->firstOrFail();
         $promo = $tenantModel->activePromo();
 
         if (! $promo) {

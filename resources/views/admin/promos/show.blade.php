@@ -32,7 +32,8 @@
     <div style="margin-top:32px;padding:16px;background:#f9f9f9;border-radius:8px">
         <h3>Popup home — {{ $tenant->website }}</h3>
         <p style="font-size:14px;color:#666">Incolla prima di <code>&lt;/body&gt;</code> sulla homepage:</p>
-        <pre style="background:#1a1a2e;color:#fff;padding:12px;border-radius:8px;overflow:auto;font-size:13px">&lt;script src="{{ url('/embed/'.$tenant->slug.'.js') }}" defer&gt;&lt;/script&gt;</pre>
+        <pre style="background:#1a1a2e;color:#fff;padding:12px;border-radius:8px;overflow:auto;font-size:13px">&lt;script src="{{ route('embed.script', ['tenantSlug' => $tenant->slug]) }}" defer&gt;&lt;/script&gt;</pre>
+        <p style="font-size:12px;color:#888;margin-top:8px">URL script: <code>{{ route('embed.script', ['tenantSlug' => $tenant->slug]) }}</code></p>
 
         <h3 style="margin-top:24px">WordPress — pagina su {{ parse_url($tenant->website, PHP_URL_HOST) }}</h3>
         <p style="font-size:14px;color:#666"><strong>Opzione A (veloce):</strong> nuova pagina WP → blocco HTML personalizzato → incolla iframe:</p>

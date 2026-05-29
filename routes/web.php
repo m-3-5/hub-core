@@ -16,7 +16,9 @@ Route::get('/', function () {
 Route::get('/p/{tenant}/{promo}', [PromoPublicController::class, 'show'])
     ->name('promo.show')
     ->scopeBindings();
-Route::get('/embed/{tenant}.js', [EmbedController::class, 'script'])->name('embed.script');
+// Senza .js: su Plesk/nginx molte URL *.js non arrivano a Laravel (404).
+Route::get('/embed/{tenantSlug}', [EmbedController::class, 'script'])->name('embed.script');
+Route::get('/embed/{tenantSlug}.js', [EmbedController::class, 'script']);
 
 Route::get('/client/{tenant}/{promo}/embed', [ClientSiteController::class, 'embedPage'])
     ->name('client.promo.embed')
