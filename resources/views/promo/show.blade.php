@@ -136,6 +136,15 @@
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #fff; text-decoration: none; padding: 16px 32px; border-radius: 999px; font-weight: 700;
         }
+        .btn-outline {
+            background: #fff; color: var(--primary-dark); text-decoration: none; padding: 14px 24px;
+            border-radius: 999px; font-weight: 600; border: 2px solid var(--primary);
+        }
+        .btn-whatsapp {
+            background: #25D366; color: #fff; text-decoration: none; padding: 14px 24px;
+            border-radius: 999px; font-weight: 600;
+        }
+        .cta-bar__actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
         .deco-svg { position: absolute; opacity: .08; color: var(--primary); pointer-events: none; }
         .deco-svg--1 { top: 100px; right: 4%; width: 140px; height: 140px; }
         .deco-svg--2 { bottom: 60px; left: 2%; width: 110px; height: 110px; }
@@ -272,13 +281,27 @@
         @endif
     </section>
 
+    @php
+        $promoLinks = \App\Support\PromoLinks::forPromo($tenant, $promo);
+    @endphp
     <div class="cta-bar">
         <div class="cta-bar__inner">
             <div>
                 <strong>{{ $promo->title }}</strong>
                 <span style="color:var(--muted);font-size:.9rem"> · {{ $promo->always_active ? 'Sempre attiva' : 'Offerta limitata' }}</span>
             </div>
-            <a class="btn-primary" href="{{ $promo->cta_url ?? $tenant->website }}">{{ $promo->cta_label }}</a>
+            <div class="cta-bar__actions">
+                @foreach ($promoLinks as $link)
+                    @php
+                        $class = match ($link['key']) {
+                            'whatsapp' => 'btn-whatsapp',
+                            'all_promos' => 'btn-outline',
+                            default => 'btn-primary',
+                        };
+                    @endphp
+                    <a class="{{ $class }}" href="{{ $link['url'] }}" @if($link['key'] === 'whatsapp') target="_blank" rel="noopener" @endif>{{ $link['label'] }}</a>
+                @endforeach
+            </div>
         </div>
     </div>
 </div>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Promo;
 use App\Models\Tenant;
+use App\Support\PromoLinks;
 use App\Support\PromoPublicPresenter;
 use Illuminate\Http\JsonResponse;
 
@@ -28,6 +29,7 @@ class PromoApiController extends Controller
             'meta' => [
                 'count' => $promos->count(),
                 'embed_script' => route('embed.script', ['tenantSlug' => $tenant->slug]),
+                'promos_page_url' => PromoLinks::promosPageUrl($tenant),
                 'synced_at' => now()->toIso8601String(),
             ],
         ]);

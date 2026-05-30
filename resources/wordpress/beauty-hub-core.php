@@ -169,7 +169,11 @@ function beauty_hub_shortcode_promos($atts): string
         .beauty-hub-card__body{padding:20px}
         .beauty-hub-card h3{margin:0 0 8px;font-size:1.35rem;color:<?php echo $color; ?>}
         .beauty-hub-card p{margin:0 0 16px;color:#555;line-height:1.5;font-size:.95rem}
-        .beauty-hub-btn{display:inline-block;background:<?php echo $color; ?>;color:#fff!important;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:600;font-size:.95rem}
+        .beauty-hub-actions{display:flex;flex-wrap:wrap;gap:10px}
+        .beauty-hub-btn{display:inline-block;color:#fff!important;text-decoration:none;padding:10px 18px;border-radius:999px;font-weight:600;font-size:.9rem}
+        .beauty-hub-btn--primary{background:<?php echo $color; ?>}
+        .beauty-hub-btn--outline{background:#fff;color:<?php echo $color; ?>!important;border:2px solid <?php echo $color; ?>}
+        .beauty-hub-btn--whatsapp{background:#25D366}
     </style>
     <div class="beauty-hub-grid">
         <?php foreach ($promos as $promo) :
@@ -180,7 +184,7 @@ function beauty_hub_shortcode_promos($atts): string
             $desc = esc_html(wp_trim_words($promo['description'] ?? '', 22));
             $url = esc_url($promo['public_url'] ?? '#');
             $img = esc_url($promo['flyer_url'] ?? $promo['image_url'] ?? '');
-            $cta = esc_html($promo['cta_label'] ?? 'Scopri l\'offerta');
+            $links = $promo['links'] ?? [];
             ?>
             <article class="beauty-hub-card">
                 <?php if ($img) : ?>
@@ -189,7 +193,23 @@ function beauty_hub_shortcode_promos($atts): string
                 <div class="beauty-hub-card__body">
                     <h3><?php echo $title; ?></h3>
                     <?php if ($desc) : ?><p><?php echo $desc; ?></p><?php endif; ?>
-                    <a class="beauty-hub-btn" href="<?php echo $url; ?>"><?php echo $cta; ?></a>
+                    <div class="beauty-hub-actions">
+                        <?php foreach ($links as $link) :
+                            if (! is_array($link) || empty($link['url'])) {
+                                continue;
+                            }
+                            $class = 'beauty-hub-btn beauty-hub-btn--primary';
+                            if (($link['key'] ?? '') === 'all_promos') {
+                                $class = 'beauty-hub-btn beauty-hub-btn--outline';
+                            } elseif (($link['key'] ?? '') === 'whatsapp') {
+                                $class = 'beauty-hub-btn beauty-hub-btn--whatsapp';
+                            }
+                            ?>
+                            <a class="<?php echo esc_attr($class); ?>" href="<?php echo esc_url($link['url']); ?>" target="_blank" rel="noopener">
+                                <?php echo esc_html($link['label'] ?? 'Apri'); ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             </article>
         <?php endforeach; ?>
