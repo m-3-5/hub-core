@@ -58,86 +58,88 @@ class PromoThemeIcons
                 'key' => 'hair',
                 'label' => 'Parrucchiere',
                 'keywords' => ['piega', 'parrucch', 'capelli', 'hair', 'taglio', 'colore', 'acconci'],
-                'svg' => $this->wrap('hair', <<<'SVG'
-<path d="M41 6c16 2 28 14 29 30 1 18-12 34-28 35-16 1-30-14-31-32C10 22 24 7 41 6z" fill="currentColor" fill-opacity="0.11"/>
-<ellipse cx="40" cy="33" rx="10" ry="11" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.2"/>
-<path d="M27 30c-5 8-6 20-2 32" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none" opacity="0.85"/>
-<path d="M53 30c5 8 6 20 2 32" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none" opacity="0.85"/>
-<path d="M26 34c3-10 9-16 14-18M54 34c-3-10-9-16-14-18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.55"/>
-<path d="M28 24c5-6 12-9 20-8 7 1 13 5 16 12" fill="currentColor" fill-opacity="0.14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-<path d="M36 38c1 1 3 1 4 0M40 38c1 1 3 1 4 0" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45"/>
-<path d="M37 42c2 2 5 2 7 0" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+                'svg' => $this->icon('hair', <<<'SVG'
+<path fill="currentColor" fill-opacity="0.95" d="M46 17c6 0 10 4 11 9 1 4-1 8-4 10 2 2 3 5 3 8 0 6-4 11-9 13 3 2 5 5 6 9 1 3 0 6-2 8H34c-2-2-3-5-2-8 1-4 3-7 6-9-5-2-9-7-9-13 1-5 5-9 11-9z"/>
+<path fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" d="M32 22C20 26 12 36 10 48"/>
+<path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" opacity="0.72" d="M26 26C16 32 10 42 10 54"/>
+<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.52" d="M20 30C12 38 8 50 12 62"/>
 SVG),
             ],
             'body' => [
                 'key' => 'body',
                 'label' => 'Trattamenti corpo',
                 'keywords' => ['corpo', 'sedute', 'dimagr', 'massag', 'estetica', 'trattamento', 'cellulite'],
-                'svg' => $this->wrap('body', <<<'SVG'
-<path d="M39 7c14 1 26 12 28 27 2 16-10 31-26 33-15 2-29-12-30-28C10 23 23 8 39 7z" fill="currentColor" fill-opacity="0.11"/>
-<circle cx="40" cy="22" r="7" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.2"/>
-<path d="M40 29c-8 2-12 10-13 20-1 8 2 15 6 19M40 29c8 2 12 10 13 20 1 8-2 15-6 19" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/>
-<path d="M32 38c-6 4-9 12-9 20M48 38c6 4 9 12 9 20" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.7"/>
-<path d="M34 52c2 6 2 12 0 18M46 52c-2 6-2 12 0 18" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.55"/>
-<path d="M18 40c6-4 14-4 20 0M62 44c-6 3-12 3-18 0" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.25"/>
+                'svg' => $this->icon('body', <<<'SVG'
+<path fill="currentColor" fill-opacity="0.9" d="M40 12c-5 0-9 4-9 9 0 3 1 6 3 8-7 3-12 11-13 21-1 7 1 14 5 19 3 4 7 6 12 6h4c5 0 9-2 12-6 4-5 6-12 5-19-1-10-6-18-13-21 2-2 3-5 3-8 0-5-4-9-9-9z"/>
+<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity="0.45" d="M28 36c-4 6-6 14-5 22M52 36c4 6 6 14 5 22"/>
+<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.3" d="M18 42c8-4 18-4 26 0M62 46c-8 3-16 3-24 0"/>
 SVG),
             ],
             'nails' => [
                 'key' => 'nails',
                 'label' => 'Beauty & nails',
                 'keywords' => ['unghie', 'nail', 'manicure', 'pedicure'],
-                'svg' => $this->wrap('nails', <<<'SVG'
-<path d="M40 8c15 1 27 13 28 28 1 17-11 32-27 33-15 1-29-13-30-29C10 24 24 9 40 8z" fill="currentColor" fill-opacity="0.11"/>
-<path d="M22 52c0-16 11-26 24-22 11 3 18 14 16 26-2 10-10 16-20 16H28c-10 0-18-9-18-20z" fill="currentColor" fill-opacity="0.16" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M30 36c0-6 2-10 4-12M36 32c0-8 2-12 4-14M42 33c0-7 2-11 4-13M48 37c0-5 2-8 4-10" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/>
-<path d="M30 34h3v5h-3zM36 30h3v7h-3zM42 31h3v6h-3zM48 35h3v4h-3z" fill="currentColor" fill-opacity="0.28" stroke="none" rx="1"/>
-<path d="M26 58c3-2 6-3 9-2 3 1 6 0 9-2" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.35"/>
+                'svg' => $this->icon('nails', <<<'SVG'
+<path fill="currentColor" fill-opacity="0.88" d="M26 54c-2-14 6-26 18-28 10-2 18 6 20 18 1 8-3 15-10 18-4 2-9 2-14 0-8-3-12-10-14-8z"/>
+<path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M30 38c0-8 3-14 6-17M38 34c0-10 3-16 6-19M46 36c0-9 3-15 6-18M54 40c0-7 2-12 5-15"/>
+<path fill="currentColor" fill-opacity="0.5" d="M30 36h4v6c0 2-2 3-4 2s-2-3-1-5 1-3 1-3zM38 32h4v8c0 2-2 3-4 2s-2-4-1-6 1-4 1-4zM46 34h4v7c0 2-2 3-4 2s-2-3-1-5 1-4 1-4z"/>
 SVG),
             ],
             'spa' => [
                 'key' => 'spa',
                 'label' => 'Benessere',
                 'keywords' => ['benessere', 'spa', 'relax', 'viso', 'detox', 'rigener'],
-                'svg' => $this->wrap('spa', <<<'SVG'
-<path d="M42 6c16 2 28 14 29 30 1 18-12 34-28 35-16 1-30-14-31-32C10 22 24 7 42 6z" fill="currentColor" fill-opacity="0.11"/>
-<ellipse cx="38" cy="36" rx="13" ry="15" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.2"/>
-<path d="M30 35c2 2 4 2 6 0M40 35c2 2 4 2 6 0" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" opacity="0.65"/>
-<path d="M32 44c4 3 8 3 12 0" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" opacity="0.55"/>
-<path d="M54 22c-5 5-5 12 0 17 5-5 5-12 0-17z" fill="currentColor" fill-opacity="0.22" stroke="currentColor" stroke-width="1.1"/>
-<path d="M54 26v6M51 29h6" stroke="currentColor" stroke-width="0.9" stroke-linecap="round" opacity="0.4"/>
-<path d="M16 38c3-3 7-4 10-2M62 42c-3 2-6 2-9 0" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.2"/>
+                'svg' => $this->icon('spa', <<<'SVG'
+<path fill="currentColor" fill-opacity="0.9" d="M48 16c7 0 12 5 12 12 0 4-2 8-5 10 3 3 5 8 5 13 0 9-7 16-16 16s-16-7-16-16c0-5 2-10 5-13-3-2-5-6-5-10 0-7 5-12 12-12 2 0 4 0 6 1 2-5 7-9 13-9 4 0 7 2 9 5-2 1-4 2-6 2-5 0-9-3-11-7z"/>
+<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5" d="M36 38c2 2 4 2 6 0M44 38c2 2 4 2 6 0"/>
+<path fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.45" d="M38 46c3 3 7 3 10 0"/>
+<path fill="currentColor" fill-opacity="0.35" d="M58 22c-3 3-3 7 0 10s7 3 10 0-3-7 0-10-7-3-10 0z"/>
 SVG),
             ],
             'beauty' => [
                 'key' => 'beauty',
                 'label' => 'Centro bellezza',
                 'keywords' => ['bellezza', 'beauty', 'immagine', 'promoz', 'centro'],
-                'svg' => $this->wrap('beauty', <<<'SVG'
-<path d="M39 7c14 1 26 12 28 27 2 16-10 31-26 33-15 2-29-12-30-28C10 23 23 8 39 7z" fill="currentColor" fill-opacity="0.11"/>
-<circle cx="40" cy="40" r="5" fill="currentColor" fill-opacity="0.28"/>
-<path d="M40 22c-7 0-10 6-10 11s3 11 10 11 10-6 10-11-3-11-10-11z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.1"/>
-<path d="M40 53c-9-6-9-18 0-24 9 6 9 18 0 24z" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.1"/>
-<path d="M27 36c-6-4-6-12 0-16M53 36c6-4 6-12 0-16" fill="currentColor" fill-opacity="0.16" stroke="currentColor" stroke-width="1.1"/>
-<path d="M40 53c9-6 9-18 0-24" fill="currentColor" fill-opacity="0.14" stroke="currentColor" stroke-width="1.1"/>
-<path d="M22 22l3 3M58 22l-3 3M22 58l3-3M58 58l-3-3" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.22"/>
+                'svg' => $this->icon('beauty', <<<'SVG'
+<path fill="currentColor" fill-opacity="0.95" d="M46 17c6 0 10 4 11 9 1 4-1 8-4 10 2 2 3 5 3 8 0 6-4 11-9 13 3 2 5 5 6 9 1 3 0 6-2 8H34c-2-2-3-5-2-8 1-4 3-7 6-9-5-2-9-7-9-13 1-5 5-9 11-9z"/>
+<path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" opacity="0.65" d="M30 24C18 28 12 38 12 50"/>
+<path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity="0.48" d="M24 28C14 34 10 44 12 56"/>
+<circle cx="58" cy="24" r="3" fill="currentColor" fill-opacity="0.35"/>
+<path fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.35" d="M56 24l4-4M60 28l-4-2"/>
 SVG),
             ],
             'mirror' => [
                 'key' => 'mirror',
                 'label' => 'Stile & immagine',
                 'keywords' => ['stile', 'look', 'make', 'trucco'],
-                'svg' => $this->wrap('mirror', <<<'SVG'
-<path d="M41 6c16 2 28 14 29 30 1 18-12 34-28 35-16 1-30-14-31-32C10 22 24 7 41 6z" fill="currentColor" fill-opacity="0.11"/>
-<ellipse cx="40" cy="34" rx="14" ry="17" fill="currentColor" fill-opacity="0.14" stroke="currentColor" stroke-width="1.2"/>
-<ellipse cx="40" cy="34" rx="10" ry="12" fill="currentColor" fill-opacity="0.08"/>
-<path d="M34 32c2-2 4-3 6-3s4 1 6 3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
-<path d="M33 38c3 2 6 2 9 0" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.45"/>
-<path d="M32 56h16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-<path d="M36 56v4h8v-4" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" fill="none"/>
-<circle cx="52" cy="22" r="2" fill="currentColor" fill-opacity="0.35"/>
+                'svg' => $this->icon('mirror', <<<'SVG'
+<path fill="currentColor" fill-opacity="0.88" d="M42 15c7 0 12 5 12 11 0 3-1 6-3 8 2 2 3 5 3 8 0 7-5 12-12 12s-12-5-12-12c0-3 1-6 3-8-2-2-3-5-3-8 0-6 5-11 12-11z"/>
+<path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M14 34c3-9 10-15 18-17M12 40c2-11 9-19 18-23"/>
+<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.45" d="M36 38c2 2 4 2 6 0"/>
+<ellipse cx="54" cy="28" rx="8" ry="10" fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.4"/>
 SVG),
             ],
         ];
+    }
+
+    private function icon(string $key, string $inlinePaths): string
+    {
+        $file = resource_path("brand-icons/{$key}.svg");
+
+        if (is_readable($file)) {
+            $svg = trim((string) file_get_contents($file));
+
+            if (str_contains($svg, '<svg')) {
+                return (string) preg_replace(
+                    '/<svg\b/',
+                    '<svg class="promo-icon promo-icon--'.$key.'" aria-hidden="true"',
+                    $svg,
+                    1
+                );
+            }
+        }
+
+        return $this->wrap($key, $inlinePaths);
     }
 
     private function wrap(string $id, string $paths): string

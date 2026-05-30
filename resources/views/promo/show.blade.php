@@ -94,13 +94,12 @@
             position: relative; overflow: hidden;
         }
         .offer-card__icon {
-            width: 88px; height: 88px; color: var(--primary);
+            width: 96px; height: 96px; color: var(--primary);
             margin-bottom: 20px;
-            padding: 10px;
-            border-radius: 50%;
-            background: radial-gradient(circle, color-mix(in srgb, var(--primary) 14%, transparent) 0%, transparent 72%);
+            padding: 4px;
         }
-        .offer-card__icon svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--primary) 18%, transparent)); }
+        .offer-card__icon svg { width: 100%; height: 100%; display: block; }
+        .promo-icon { overflow: visible; }
         .themes-row svg { width: 72px; height: 72px; margin: 0 auto 12px; display: block; opacity: .92; }
         .deco-svg svg { width: 100%; height: 100%; opacity: .85; }
         .offer-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.65rem; color: var(--primary); margin-bottom: 8px; }
