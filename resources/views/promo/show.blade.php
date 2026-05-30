@@ -12,7 +12,7 @@
     <meta name="theme-color" content="{{ $tenant->primary_color }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700&family=Great+Vibes&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     @php
         // Sfondo solo gradiente SVG (senza testo duplicato del titolo)
         $heroVisual = $promo->variantUrl('hero_svg');
@@ -120,8 +120,23 @@
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #fff; border-radius: 24px; padding: 40px 32px; text-align: center;
         }
-        .contact-card h2 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; margin-bottom: 16px; }
-        .contact-card p { opacity: .92; margin-bottom: 8px; }
+        .contact-card h2 {
+            font-family: 'Great Vibes', 'Brush Script MT', cursive;
+            font-size: clamp(2.8rem, 7vw, 4.2rem);
+            font-weight: 400;
+            color: #fff;
+            line-height: 1.15;
+            margin-bottom: 12px;
+            letter-spacing: 0.02em;
+            text-shadow: 0 2px 12px rgba(0,0,0,.15);
+        }
+        .contact-card .contact-tagline {
+            font-family: 'Outfit', system-ui, sans-serif;
+            font-size: 1.05rem;
+            opacity: .95;
+            margin-bottom: 12px;
+        }
+        .contact-card p { opacity: .92; margin-bottom: 8px; color: #fff; }
         .contact-card a { color: #fff; font-weight: 600; }
         .cta-bar {
             position: sticky; bottom: 0; background: rgba(255,255,255,.96);
@@ -284,7 +299,7 @@
         @endphp
         <div class="contact-card">
             <h2>{{ $tenant->name }}</h2>
-            <p>Il tuo corpo, la nostra immagine.</p>
+            <p class="contact-tagline">Il tuo corpo, la nostra immagine.</p>
             @if ($tenant->address)<p>{{ $tenant->address }}</p>@endif
             @if ($tenant->phone)<p>Tel. {{ $tenant->phone }}</p>@endif
             <div class="contact-actions">
