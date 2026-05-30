@@ -31,16 +31,26 @@
 
     <div style="margin-top:32px;padding:16px;background:#f9f9f9;border-radius:8px">
         <h3>Popup home — {{ $tenant->website }}</h3>
-        <p style="font-size:14px;color:#666">Incolla prima di <code>&lt;/body&gt;</code> sulla homepage:</p>
+        <p style="font-size:14px;color:#666">Footer WordPress (Snippet / Header &amp; Footer):</p>
         <pre style="background:#1a1a2e;color:#fff;padding:12px;border-radius:8px;overflow:auto;font-size:13px">&lt;script src="{{ route('embed.script', ['tenantSlug' => $tenant->slug]) }}" defer&gt;&lt;/script&gt;</pre>
-        <p style="font-size:12px;color:#888;margin-top:8px">URL script: <code>{{ route('embed.script', ['tenantSlug' => $tenant->slug]) }}</code></p>
 
-        <h3 style="margin-top:24px">WordPress — pagina su {{ parse_url($tenant->website, PHP_URL_HOST) }}</h3>
-        <p style="font-size:14px;color:#666"><strong>Opzione A (veloce):</strong> nuova pagina WP → blocco HTML personalizzato → incolla iframe:</p>
-        <pre style="background:#1a1a2e;color:#fff;padding:12px;border-radius:8px;overflow:auto;font-size:12px;white-space:pre-wrap">&lt;iframe src="{{ route('client.promo.embed', [$tenant, $promo]) }}" title="{{ $promo->title }}" style="width:100%;min-height:920px;border:0" loading="lazy"&gt;&lt;/iframe&gt;</pre>
-        <p style="font-size:14px;color:#666;margin-top:16px"><strong>Opzione B (tema PHP):</strong> copia <code>resources/wordpress/page-promo-hub.php</code> nel tema attivo, sostituisci <code>HUB_PROMO_URL</code> con:</p>
-        <pre style="background:#1a1a2e;color:#fff;padding:12px;border-radius:8px;overflow:auto;font-size:12px">{{ route('client.promo.embed', [$tenant, $promo]) }}</pre>
-        <p style="font-size:13px;color:#888;margin-top:12px">Link hub (condivisione): <a href="{{ $promo->publicUrl() }}" target="_blank">{{ $promo->publicUrl() }}</a></p>
+        <h3 style="margin-top:24px">API promo (sync automatico WordPress)</h3>
+        <p style="font-size:14px;color:#666">JSON pubblico per mu-plugin / griglia nativa:</p>
+        <pre style="background:#1a1a2e;color:#fff;padding:12px;border-radius:8px;overflow:auto;font-size:12px">{{ route('api.promos.index', ['tenantSlug' => $tenant->slug]) }}</pre>
+
+        <h3 style="margin-top:24px">WordPress — sync automatico (consigliato)</h3>
+        <ol style="font-size:14px;color:#666;line-height:1.7">
+            <li>Copia <code>resources/wordpress/beauty-hub-core.php</code> in <code>wp-content/mu-plugins/</code></li>
+            <li>Imposta lo stesso <code>BEAUTY_HUB_WEBHOOK_SECRET</code> nel mu-plugin e in hub <code>HUB_WEBHOOK_SECRET</code></li>
+            <li>In hub <code>.env</code> aggiungi (stesso secret del mu-plugin):<br>
+                <code>HUB_WEBHOOK_URL=https://beautyofimage.com/wp-json/beauty-hub/v1/sync</code><br>
+                <code>HUB_WEBHOOK_SECRET=un_token_lungo_e_casuale</code>
+            </li>
+            <li>Crea pagina WP <strong>Promozioni</strong> con shortcode: <code>[beauty_promos]</code></li>
+        </ol>
+        <p style="font-size:13px;color:#888">Alla pubblicazione promo, hub invia webhook → WordPress aggiorna la griglia senza iframe.</p>
+
+        <p style="font-size:13px;color:#888;margin-top:12px">Landing completa: <a href="{{ $promo->publicUrl() }}" target="_blank">{{ $promo->publicUrl() }}</a></p>
     </div>
 </div>
 @endsection

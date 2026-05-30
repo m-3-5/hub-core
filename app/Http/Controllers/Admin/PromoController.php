@@ -81,6 +81,8 @@ class PromoController extends Controller
             'image_variants' => $visuals->build($tenant, $promo, $path, $absolutePath),
         ]);
 
+        app(\App\Services\WordPressWebhookDispatcher::class)->promoPublished($tenant, $promo->fresh());
+
         $redirect = redirect()
             ->route('admin.promos.show', [$tenant, $promo])
             ->with('success', $flashMessage);

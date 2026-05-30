@@ -37,19 +37,6 @@ class Tenant extends Model
 
     public function activePromo(): ?Promo
     {
-        return $this->promos()
-            ->where('status', 'published')
-            ->where(function ($query) {
-                $query->where('always_active', true)
-                    ->orWhere(function ($q) {
-                        $q->where(function ($inner) {
-                            $inner->whereNull('starts_at')->orWhere('starts_at', '<=', now());
-                        })->where(function ($inner) {
-                            $inner->whereNull('ends_at')->orWhere('ends_at', '>=', now());
-                        });
-                    });
-            })
-            ->latest('published_at')
-            ->first();
+        return $this->promos()->active()->latest('published_at')->first();
     }
 }

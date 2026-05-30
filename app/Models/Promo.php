@@ -65,6 +65,22 @@ class Promo extends Model
         return $this->belongsTo(Tenant::class);
     }
 
+    public function scopeActive($query)
+    {
+        return $query
+            ->where('status', 'published')
+            ->where(function ($query) {
+                $query->where('always_active', true)
+                    ->orWhere(function ($q) {
+                        $q->where(function ($inner) {
+                            $inner->whereNull('starts_at')->orWhere('starts_at', '<=', now());
+                        })->where(function ($inner) {
+                            $inner->whereNull('ends_at')->orWhere('ends_at', '>=', now());
+                        });
+                    });
+            });
+    }
+
     public function imageUrl(): ?string
     {
         if (! $this->image_path) {

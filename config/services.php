@@ -47,4 +47,9 @@ return [
         'image_model' => env('GEMINI_IMAGE_MODEL', 'gemini-2.5-flash-image'),
     ],
 
+    'hub' => [
+        'webhook_url' => env('HUB_WEBHOOK_URL'),
+        'webhook_secret' => env('HUB_WEBHOOK_SECRET'),
+    ],
+
 ];
