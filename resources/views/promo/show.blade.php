@@ -144,6 +144,16 @@
             background: #25D366; color: #fff; text-decoration: none; padding: 14px 24px;
             border-radius: 999px; font-weight: 600;
         }
+        .btn-website {
+            background: rgba(255,255,255,.18); color: #fff; text-decoration: none; padding: 14px 24px;
+            border-radius: 999px; font-weight: 600; border: 2px solid rgba(255,255,255,.55);
+        }
+        .btn-soon {
+            display: inline-block; padding: 14px 24px; border-radius: 999px; font-weight: 600;
+            background: rgba(255,255,255,.12); color: rgba(255,255,255,.65); border: 2px dashed rgba(255,255,255,.35);
+            font-size: .95rem; cursor: not-allowed;
+        }
+        .contact-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 24px; }
         .cta-bar__actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
         .deco-svg { position: absolute; opacity: .08; color: var(--primary); pointer-events: none; }
         .deco-svg--1 { top: 100px; right: 4%; width: 140px; height: 140px; }
@@ -268,26 +278,35 @@
     </section>
 
     <section class="section" style="padding-top:0">
+        @php
+            $landingLinks = \App\Support\PromoLinks::forLanding($tenant, $promo);
+            $whatsappLink = collect($landingLinks)->firstWhere('key', 'whatsapp');
+        @endphp
         <div class="contact-card">
             <h2>{{ $tenant->name }}</h2>
             <p>Il tuo corpo, la nostra immagine.</p>
             @if ($tenant->address)<p>{{ $tenant->address }}</p>@endif
             @if ($tenant->phone)<p>Tel. {{ $tenant->phone }}</p>@endif
-            @if ($tenant->website)
-                <p style="margin-top:16px">
-                    <a href="{{ $tenant->website }}" target="_blank" rel="noopener">{{ parse_url($tenant->website, PHP_URL_HOST) }}</a>
-                </p>
-            @endif
+            <div class="contact-actions">
+                @foreach ($landingLinks as $link)
+                    @if (!empty($link['disabled']))
+                        <span class="btn-soon" title="Agenda prenotazioni in arrivo">{{ $link['label'] }} — prossimamente</span>
+                    @elseif ($link['key'] === 'whatsapp')
+                        <a class="btn-whatsapp" href="{{ $link['url'] }}" target="_blank" rel="noopener">{{ $link['label'] }}</a>
+                    @elseif ($link['key'] === 'website')
+                        <a class="btn-website" href="{{ $link['url'] }}" target="_blank" rel="noopener">{{ $link['label'] }}</a>
+                    @elseif ($link['key'] === 'book')
+                        <a class="btn-primary" href="{{ $link['url'] }}">{{ $link['label'] }}</a>
+                    @else
+                        <a class="btn-website" href="{{ $link['url'] }}">{{ $link['label'] }}</a>
+                    @endif
+                @endforeach
+            </div>
         </div>
-        @if (empty($embedMode ?? false) && $tenant->website)
-            <p style="text-align:center;margin-top:20px">
-                <a href="{{ $tenant->website }}" style="color:var(--muted);text-decoration:none;font-size:.9rem">← Torna al sito principale</a>
-            </p>
-        @endif
     </section>
 
     @php
-        $promoLinks = \App\Support\PromoLinks::forPromo($tenant, $promo);
+        $promoLinks = $landingLinks;
     @endphp
     <div class="cta-bar">
         <div class="cta-bar__inner">
@@ -297,14 +316,17 @@
             </div>
             <div class="cta-bar__actions">
                 @foreach ($promoLinks as $link)
+                    @if (!empty($link['disabled']))
+                        @continue
+                    @endif
                     @php
                         $class = match ($link['key']) {
                             'whatsapp' => 'btn-whatsapp',
-                            'all_promos' => 'btn-outline',
+                            'all_promos', 'website' => 'btn-outline',
                             default => 'btn-primary',
                         };
                     @endphp
-                    <a class="{{ $class }}" href="{{ $link['url'] }}" @if($link['key'] === 'whatsapp') target="_blank" rel="noopener" @endif>{{ $link['label'] }}</a>
+                    <a class="{{ $class }}" href="{{ $link['url'] }}" @if(in_array($link['key'], ['whatsapp', 'website'], true)) target="_blank" rel="noopener" @endif>{{ $link['label'] }}</a>
                 @endforeach
             </div>
         </div>

@@ -35,6 +35,54 @@ class PromoLinks
         return $links;
     }
 
+    /** CTA per la landing promo (utente già sulla pagina). */
+    /** @return array<int, array{key: string, label: string, url: string|null, disabled?: bool}> */
+    public static function forLanding(Tenant $tenant, Promo $promo): array
+    {
+        $links = [];
+
+        $whatsapp = self::whatsappUrl($tenant, $promo);
+        if ($whatsapp) {
+            $links[] = [
+                'key' => 'whatsapp',
+                'label' => 'Contattaci ora',
+                'url' => $whatsapp,
+            ];
+        }
+
+        $bookingUrl = ($tenant->settings ?? [])['booking_url'] ?? null;
+        if ($bookingUrl) {
+            $links[] = [
+                'key' => 'book',
+                'label' => 'Prenota ora',
+                'url' => $bookingUrl,
+            ];
+        } else {
+            $links[] = [
+                'key' => 'book',
+                'label' => 'Prenota ora',
+                'url' => null,
+                'disabled' => true,
+            ];
+        }
+
+        $links[] = [
+            'key' => 'all_promos',
+            'label' => 'Tutte le promo',
+            'url' => self::promosPageUrl($tenant),
+        ];
+
+        if ($tenant->website) {
+            $links[] = [
+                'key' => 'website',
+                'label' => 'Torna al sito web',
+                'url' => $tenant->website,
+            ];
+        }
+
+        return $links;
+    }
+
     public static function promosPageUrl(Tenant $tenant): string
     {
         $settings = $tenant->settings ?? [];
