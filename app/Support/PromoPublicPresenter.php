@@ -47,6 +47,7 @@ class PromoPublicPresenter
             'starts_at' => $promo->starts_at?->toIso8601String(),
             'ends_at' => $promo->ends_at?->toIso8601String(),
             'published_at' => $promo->published_at?->toIso8601String(),
+            'status' => $promo->status,
         ];
     }
 }

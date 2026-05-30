@@ -167,6 +167,11 @@
     </script>
 </head>
 <body>
+@if (!empty($previewMode))
+<div style="background:#e65100;color:#fff;text-align:center;padding:14px 16px;font-weight:600;font-family:system-ui,sans-serif;position:sticky;top:0;z-index:100">
+    ANTEPRIMA — Questa promo non è ancora visibile al pubblico
+</div>
+@endif
 <div class="promo-page">
     <header class="promo-hero">
         <div class="promo-hero__visual">

@@ -9,10 +9,15 @@
         body { margin: 0; font-family: system-ui, sans-serif; background: #f6f7fb; color: #1a1a2e; }
         header { background: #1a1a2e; color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
         header a { color: #fff; text-decoration: none; }
-        main { max-width: 960px; margin: 24px auto; padding: 0 16px; }
+        main { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
         .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
         .btn { display: inline-block; background: #e91e8c; color: #fff; border: 0; padding: 10px 18px; border-radius: 8px; text-decoration: none; cursor: pointer; font-weight: 600; }
         .btn-secondary { background: #eee; color: #333; }
+        .btn-danger { background: #c62828; color: #fff; }
+        .admin-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
+        @media (max-width: 900px) { .admin-grid { grid-template-columns: 1fr; } }
+        .preview-frame { width: 100%; min-height: 720px; border: 1px solid #e0e0e0; border-radius: 12px; background: #fff; }
+        input[type=text], input[type=datetime-local], textarea { font-family: inherit; }
         .alert { background: #e8f5e9; color: #2e7d32; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
         .alert-warning { background: #fff3e0; color: #e65100; }
         .error { color: #c62828; font-size: 14px; }

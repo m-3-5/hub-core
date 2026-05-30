@@ -97,4 +97,14 @@ class Promo extends Model
             'promo' => $this->slug,
         ]);
     }
+
+    public function isPublished(): bool
+    {
+        return $this->status === 'published';
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
 }

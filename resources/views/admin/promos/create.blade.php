@@ -5,7 +5,7 @@
 @section('content')
 <div class="card">
     <h1>Nuova promo — {{ $tenant->name }}</h1>
-    <p style="color:#666">Carica il volantino/immagine promo. Gemini analizzerà l'immagine e genererà titolo, offerte e testi SEO.</p>
+    <p style="color:#666">Carica il volantino. Gemini genera i testi; la promo resta in <strong>bozza</strong> finché non la pubblichi.</p>
 
     <form method="POST" action="{{ route('admin.promos.store', $tenant) }}" enctype="multipart/form-data" style="margin-top:24px">
         @csrf
@@ -26,7 +26,7 @@
             <p class="error" style="color:#c62828;margin-bottom:16px">{{ $message }}</p>
         @enderror
 
-        <button type="submit" class="btn">Genera con Gemini</button>
+        <button type="submit" class="btn">Crea bozza e anteprima</button>
         <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary" style="margin-left:8px">Annulla</a>
     </form>
 </div>

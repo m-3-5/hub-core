@@ -15,7 +15,12 @@ class WordPressWebhookDispatcher
         $this->dispatch('promo.published', $tenant, $promo);
     }
 
-    public function dispatch(string $event, Tenant $tenant, Promo $promo): void
+    public function promosSync(Tenant $tenant): void
+    {
+        $this->dispatch('promos.sync', $tenant, $tenant->activePromo());
+    }
+
+    public function dispatch(string $event, Tenant $tenant, ?Promo $promo): void
     {
         $url = config('services.hub.webhook_url');
         $secret = config('services.hub.webhook_secret');
@@ -24,16 +29,18 @@ class WordPressWebhookDispatcher
             return;
         }
 
-        $promo->loadMissing('tenant');
-
         $payload = [
             'event' => $event,
             'tenant' => PromoPublicPresenter::tenant($tenant),
-            'promo' => PromoPublicPresenter::promo($promo),
-            'featured' => PromoPublicPresenter::promo($promo),
             'promos_index_url' => route('api.promos.index', ['tenantSlug' => $tenant->slug]),
             'synced_at' => now()->toIso8601String(),
         ];
+
+        if ($promo) {
+            $promo->loadMissing('tenant');
+            $payload['promo'] = PromoPublicPresenter::promo($promo);
+            $payload['featured'] = PromoPublicPresenter::promo($promo);
+        }
 
         $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $signature = hash_hmac('sha256', $body, $secret);
