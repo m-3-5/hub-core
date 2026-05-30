@@ -17,7 +17,7 @@ class PromoPublicController extends Controller
         return view('promo.show', [
             'tenant' => $tenant,
             'promo' => $promo,
-            'themeIcons' => $icons->iconsForPromo($promo->offers ?? [], $promo->description),
+            'themeIcons' => $icons->iconsForPromo($promo->offers ?? [], $promo->description, $tenant),
             'icons' => $icons,
         ]);
     }

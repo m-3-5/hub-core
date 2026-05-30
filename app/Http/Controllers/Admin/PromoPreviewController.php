@@ -18,7 +18,7 @@ class PromoPreviewController extends Controller
             'tenant' => $tenant,
             'promo' => $promo,
             'previewMode' => true,
-            'themeIcons' => $icons->iconsForPromo($promo->offers ?? [], $promo->description),
+            'themeIcons' => $icons->iconsForPromo($promo->offers ?? [], $promo->description, $tenant),
             'icons' => $icons,
         ]);
     }

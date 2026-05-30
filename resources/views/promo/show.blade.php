@@ -243,7 +243,7 @@
                 @foreach ($promo->offers as $offer)
                     @php $iconKey = $icons->iconKeyForOffer($offer); @endphp
                     <article class="offer-card">
-                        <div class="offer-card__icon">{!! $icons->svg($iconKey) !!}</div>
+                        <div class="offer-card__icon">{!! $icons->svg($iconKey, $tenant) !!}</div>
                         <h3>{{ $offer['name'] ?? 'Offerta speciale' }}</h3>
                         @if (!empty($offer['price']))
                             <div class="price">{{ $offer['price'] }}</div>
@@ -269,8 +269,8 @@
     </section>
 
     <section class="section" style="position:relative">
-        <div class="deco-svg deco-svg--1">{!! $icons->svg('beauty') !!}</div>
-        <div class="deco-svg deco-svg--2">{!! $icons->svg('body') !!}</div>
+        <div class="deco-svg deco-svg--1">{!! $icons->svg('beauty', $tenant) !!}</div>
+        <div class="deco-svg deco-svg--2">{!! $icons->svg('body', $tenant) !!}</div>
 
         <h2>Come prenotare</h2>
         <p class="intro">

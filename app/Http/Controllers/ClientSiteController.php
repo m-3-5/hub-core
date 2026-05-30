@@ -21,7 +21,7 @@ class ClientSiteController extends Controller
             'tenant' => $tenant,
             'promo' => $promo,
             'embedMode' => true,
-            'themeIcons' => app(\App\Services\PromoThemeIcons::class)->iconsForPromo($promo->offers ?? [], $promo->description),
+            'themeIcons' => app(\App\Services\PromoThemeIcons::class)->iconsForPromo($promo->offers ?? [], $promo->description, $tenant),
             'icons' => app(\App\Services\PromoThemeIcons::class),
         ]);
     }

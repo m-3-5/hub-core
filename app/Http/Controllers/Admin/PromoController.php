@@ -7,10 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Promo;
 use App\Models\Tenant;
 use App\Services\GeminiPromoGenerator;
+use App\Services\GeminiThemeIconGenerator;
 use App\Services\PromoVisualBuilder;
 use App\Services\WordPressWebhookDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -28,6 +30,7 @@ class PromoController extends Controller
         Tenant $tenant,
         GeminiPromoGenerator $generator,
         PromoVisualBuilder $visuals,
+        GeminiThemeIconGenerator $iconGenerator,
     ): RedirectResponse {
         $request->validate([
             'image' => ['required', 'image', 'max:10240'],
@@ -83,6 +86,12 @@ class PromoController extends Controller
         $promo->update([
             'image_variants' => $visuals->build($tenant, $promo, $path, $absolutePath),
         ]);
+
+        try {
+            $iconGenerator->ensureForPromo($tenant, $promo);
+        } catch (Throwable $e) {
+            Log::warning('Gemini icon generation skipped', ['message' => $e->getMessage()]);
+        }
 
         $redirect = redirect()
             ->route('admin.promos.show', [$tenant, $promo])
