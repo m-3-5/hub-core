@@ -14,9 +14,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700&family=Great+Vibes&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     @php
-        // Sfondo solo gradiente SVG (senza testo duplicato del titolo)
-        $heroVisual = $promo->variantUrl('hero_svg');
+        $heroVisual = $promo->variantUrl('hero');
         $flyerUrl = $promo->variantUrl('flyer');
+        $decorImages = $decorImages ?? $promo->decorImages();
     @endphp
     <style>
         :root {
@@ -72,7 +72,10 @@
             font-size: 13px; font-weight: 500;
             border: 1px solid rgba(255,255,255,.2);
         }
-        .hero-icon svg { width: 28px; height: 28px; flex-shrink: 0; filter: drop-shadow(0 2px 6px rgba(0,0,0,.2)); }
+        .hero-icon img {
+            width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+            flex-shrink: 0; border: 2px solid rgba(255,255,255,.5);
+        }
         .flyer-card {
             background: #fff; border-radius: 20px; padding: 16px;
             box-shadow: 0 24px 60px rgba(0,0,0,.35);
@@ -93,15 +96,25 @@
             border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
             position: relative; overflow: hidden;
         }
-        .offer-card__icon {
-            width: 96px; height: 96px; color: var(--primary);
-            margin-bottom: 20px;
-            padding: 4px;
+        .offer-card__visual {
+            width: 100%; aspect-ratio: 4/3; border-radius: 14px;
+            object-fit: cover; margin-bottom: 18px; display: block;
+            background: color-mix(in srgb, var(--primary) 12%, #fff);
         }
-        .offer-card__icon svg { width: 100%; height: 100%; display: block; }
-        .promo-icon { overflow: visible; }
-        .themes-row svg { width: 72px; height: 72px; margin: 0 auto 12px; display: block; opacity: .92; }
-        .deco-svg svg { width: 100%; height: 100%; opacity: .85; }
+        .offer-card__placeholder {
+            width: 100%; aspect-ratio: 4/3; border-radius: 14px; margin-bottom: 18px;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 20%, #fff), #fff);
+        }
+        .themes-row img {
+            width: 72px; height: 72px; border-radius: 50%; object-fit: cover;
+            margin: 0 auto 12px; display: block; border: 3px solid color-mix(in srgb, var(--primary) 25%, transparent);
+        }
+        .deco-img {
+            position: absolute; border-radius: 20px; object-fit: cover;
+            opacity: .22; pointer-events: none; box-shadow: 0 12px 40px rgba(0,0,0,.15);
+        }
+        .deco-img--1 { top: 80px; right: 3%; width: 160px; height: 160px; transform: rotate(6deg); }
+        .deco-img--2 { bottom: 40px; left: 2%; width: 130px; height: 130px; transform: rotate(-8deg); }
         .offer-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.65rem; color: var(--primary); margin-bottom: 8px; }
         .offer-card .price { font-size: 2.1rem; font-weight: 700; color: var(--primary-dark); margin: 8px 0; }
         .offer-card p { color: var(--muted); font-size: .98rem; }
@@ -172,9 +185,7 @@
         }
         .contact-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 24px; }
         .cta-bar__actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .deco-svg { position: absolute; opacity: .06; color: var(--primary); pointer-events: none; }
-        .deco-svg--1 { top: 100px; right: 4%; width: 140px; height: 140px; }
-        .deco-svg--2 { bottom: 60px; left: 2%; width: 110px; height: 110px; }
+        .deco-img--2 { bottom: 40px; left: 2%; width: 130px; height: 130px; transform: rotate(-8deg); }
     </style>
     <script type="application/ld+json">
     {!! json_encode([
@@ -212,14 +223,16 @@
                 @if ($promo->description)
                     <p class="promo-hero__lead">{{ $promo->description }}</p>
                 @endif
-                <div class="hero-icons">
-                    @foreach ($themeIcons as $icon)
-                        <span class="hero-icon">
-                            {!! $icon['svg'] !!}
-                            {{ $icon['label'] }}
-                        </span>
-                    @endforeach
-                </div>
+                @if (count($decorImages) > 0)
+                    <div class="hero-icons">
+                        @foreach (array_slice($decorImages, 0, 3) as $decor)
+                            <span class="hero-icon">
+                                <img src="{{ $decor['url'] }}" alt="{{ $decor['label'] }}">
+                                {{ $decor['label'] }}
+                            </span>
+                        @endforeach
+                    </div>
+                @endif
             </div>
             @if ($flyerUrl)
                 <div class="flyer-card">
@@ -240,10 +253,14 @@
 
         @if ($promo->offers)
             <div class="offers-grid">
-                @foreach ($promo->offers as $offer)
-                    @php $iconKey = $icons->iconKeyForOffer($offer); @endphp
+                @foreach ($promo->offers as $index => $offer)
+                    @php $decorUrl = $promo->decorUrlForOffer($index); @endphp
                     <article class="offer-card">
-                        <div class="offer-card__icon">{!! $icons->svg($iconKey, $tenant) !!}</div>
+                        @if ($decorUrl)
+                            <img class="offer-card__visual" src="{{ $decorUrl }}" alt="{{ $offer['name'] ?? 'Offerta' }}">
+                        @else
+                            <div class="offer-card__placeholder" aria-hidden="true"></div>
+                        @endif
                         <h3>{{ $offer['name'] ?? 'Offerta speciale' }}</h3>
                         @if (!empty($offer['price']))
                             <div class="price">{{ $offer['price'] }}</div>
@@ -258,19 +275,23 @@
             </div>
         @endif
 
-        <div class="themes-row" aria-hidden="true">
-            @foreach ($themeIcons as $icon)
-                <div class="theme-item">
-                    {!! $icon['svg'] !!}
-                    <small>{{ $icon['label'] }}</small>
-                </div>
-            @endforeach
-        </div>
+        @if (count($decorImages) > 0)
+            <div class="themes-row" aria-hidden="true">
+                @foreach ($decorImages as $decor)
+                    <div class="theme-item">
+                        <img src="{{ $decor['url'] }}" alt="">
+                        <small>{{ $decor['label'] }}</small>
+                    </div>
+                @endforeach
+            </div>
+        @endif
     </section>
 
     <section class="section" style="position:relative">
-        <div class="deco-svg deco-svg--1">{!! $icons->svg('beauty', $tenant) !!}</div>
-        <div class="deco-svg deco-svg--2">{!! $icons->svg('body', $tenant) !!}</div>
+        @if (count($decorImages) >= 2)
+            <img class="deco-img deco-img--1" src="{{ $decorImages[0]['url'] }}" alt="" aria-hidden="true">
+            <img class="deco-img deco-img--2" src="{{ $decorImages[1]['url'] }}" alt="" aria-hidden="true">
+        @endif
 
         <h2>Come prenotare</h2>
         <p class="intro">

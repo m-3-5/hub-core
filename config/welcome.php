@@ -1,0 +1,62 @@
+<?php
+
+return [
+    'slides' => [
+        [
+            'image' => 'images/welcome/welcome-promo.png',
+            'title' => 'Crea promo',
+            'text' => 'Volantini digitali e landing che si pubblicano sul sito del cliente in un click.',
+            'cta' => 'Crea la tua prima promo',
+            'href' => 'login',
+            'accent' => '#a855f7',
+        ],
+        [
+            'image' => 'images/welcome/welcome-services.png',
+            'title' => 'Inserisci servizi',
+            'text' => 'Per parrucchieri, centri estetici e professionisti che offrono servizi, non prodotti.',
+            'cta' => 'Registra la tua attività',
+            'href' => 'register',
+            'accent' => '#ec4899',
+        ],
+        [
+            'image' => 'images/welcome/welcome-shop.png',
+            'title' => 'Vendi online',
+            'text' => 'Store integrato sul tuo sito o sul nostro hub. Pagamenti tuoi o nostri, quando vorrai.',
+            'cta' => 'Apri il tuo store',
+            'href' => 'register',
+            'accent' => '#6366f1',
+        ],
+        [
+            'image' => 'images/welcome/welcome-agenda.png',
+            'title' => 'Agenda',
+            'text' => 'Prenotazioni e appuntamenti sempre sotto controllo, dal telefono o dal desktop.',
+            'cta' => 'Provalo gratis',
+            'href' => 'login',
+            'accent' => '#0ea5e9',
+        ],
+        [
+            'image' => 'images/welcome/welcome-rentals.png',
+            'title' => 'Affitti',
+            'text' => 'B&B, case vacanza e affittacamere con calendario e prenotazioni in un unico posto.',
+            'cta' => 'Gestisci i tuoi affitti',
+            'href' => 'register',
+            'accent' => '#14b8a6',
+        ],
+        [
+            'image' => 'images/welcome/welcome-website.png',
+            'title' => 'Crea sito web',
+            'text' => 'Il sito della tua attività, generato e aggiornato da qui. Semplice e professionale.',
+            'cta' => 'Crea il tuo sito',
+            'href' => 'register',
+            'accent' => '#8b5cf6',
+        ],
+        [
+            'image' => 'images/welcome/welcome-classifieds.png',
+            'title' => 'Annunci & privati',
+            'text' => 'Vendi prodotti o pubblica annunci come privato. Tutto moderato e sicuro.',
+            'cta' => 'Registrati come privato',
+            'href' => 'register',
+            'accent' => '#f59e0b',
+        ],
+    ],
+];

@@ -27,11 +27,25 @@
 </head>
 <body>
 <header>
-    <strong>Hub Core</strong>
-    <form method="POST" action="{{ route('admin.logout') }}" style="display:inline">
-        @csrf
-        <button type="submit" class="btn btn-secondary" style="border:0">Esci</button>
-    </form>
+    <div>
+        <strong>Hub Core</strong>
+        @auth
+            <span style="opacity:.75;font-size:14px;margin-left:12px">{{ auth()->user()->name }}</span>
+        @endauth
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+        @auth
+            @if (auth()->user()->accessibleTenants()->count() === 1)
+                <a href="{{ route('app.home', auth()->user()->accessibleTenants()->first()) }}" class="btn btn-secondary" style="padding:8px 14px">Home app</a>
+            @elseif (auth()->user()->accessibleTenants()->isNotEmpty())
+                <a href="{{ route('app.index') }}" class="btn btn-secondary" style="padding:8px 14px">Home app</a>
+            @endif
+        @endauth
+        <form method="POST" action="{{ route('admin.logout') }}" style="display:inline">
+            @csrf
+            <button type="submit" class="btn btn-secondary" style="border:0">Esci</button>
+        </form>
+    </div>
 </header>
 <main>
     @if (session('success'))

@@ -45,6 +45,10 @@ return [
         )))),
         // Image generation (may require billing on some accounts)
         'image_model' => env('GEMINI_IMAGE_MODEL', 'gemini-2.5-flash-image'),
+        'image_fallback_models' => array_filter(array_map('trim', explode(',', env(
+            'GEMINI_IMAGE_FALLBACK_MODELS',
+            'gemini-3.1-flash-image,gemini-3-pro-image'
+        )))),
     ],
 
     'hub' => [

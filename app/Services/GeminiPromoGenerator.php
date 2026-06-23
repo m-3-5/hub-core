@@ -9,6 +9,10 @@ use RuntimeException;
 
 class GeminiPromoGenerator
 {
+    public function __construct(
+        private GeminiModelResolver $models,
+    ) {}
+
     public function generateFromImage(string $imagePath, string $mimeType): array
     {
         $apiKey = config('services.gemini.api_key');
@@ -17,6 +21,7 @@ class GeminiPromoGenerator
             throw new RuntimeException('GEMINI_API_KEY non configurata nel file .env');
         }
 
+        $this->models->ensureDiscovered();
         $imageData = base64_encode(file_get_contents($imagePath));
 
         $prompt = <<<'PROMPT'
@@ -35,22 +40,18 @@ Analizza questa immagine promozionale (volantino/banner) e rispondi SOLO con un 
 Estrai tutti i testi visibili (prezzi, servizi, indirizzo, telefono). Usa italiano per i contenuti visibili all'utente.
 PROMPT;
 
-        $models = array_values(array_unique(array_filter([
-            config('services.gemini.model', 'gemini-2.5-flash'),
-            ...config('services.gemini.fallback_models', []),
-        ])));
-
+        $models = $this->models->textModels();
         $lastError = null;
+        $quotaHits = 0;
 
         foreach ($models as $model) {
             $response = $this->callGemini($apiKey, $model, $prompt, $mimeType, $imageData);
 
             if ($response->status() === 429) {
-                throw new GeminiApiException(
-                    'Quota Gemini esaurita. Controlla piano e fatturazione su Google AI Studio (aistudio.google.com), oppure usa "Crea senza IA".',
-                    429,
-                    true,
-                );
+                $quotaHits++;
+                $lastError = data_get($response->json(), 'error.message', 'Quota esaurita per '.$model);
+
+                continue;
             }
 
             if ($response->status() === 404) {
@@ -82,8 +83,16 @@ PROMPT;
             return $decoded;
         }
 
+        if ($quotaHits > 0 && $quotaHits === count($models)) {
+            throw new GeminiApiException(
+                'Quota Gemini esaurita su tutti i modelli testo. Esegui: php artisan gemini:discover-models --force',
+                429,
+                true,
+            );
+        }
+
         throw new GeminiApiException(
-            'Gemini: '.($lastError ?? 'Nessun modello disponibile. Verifica GEMINI_MODEL nel file .env.'),
+            'Gemini: '.($lastError ?? 'Nessun modello disponibile. Esegui: php artisan gemini:discover-models --force'),
             404,
         );
     }

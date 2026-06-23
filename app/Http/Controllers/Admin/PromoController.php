@@ -6,13 +6,13 @@ use App\Exceptions\GeminiApiException;
 use App\Http\Controllers\Controller;
 use App\Models\Promo;
 use App\Models\Tenant;
+use App\Services\GeminiImageGenerator;
 use App\Services\GeminiPromoGenerator;
-use App\Services\GeminiThemeIconGenerator;
 use App\Services\PromoVisualBuilder;
+use App\Services\TenantBrandManager;
 use App\Services\WordPressWebhookDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -20,35 +20,52 @@ use Throwable;
 
 class PromoController extends Controller
 {
-    public function create(Tenant $tenant): View
+    public function create(Tenant $tenant, TenantBrandManager $brand): View
     {
-        return view('admin.promos.create', compact('tenant'));
+        return view('admin.promos.create', [
+            'tenant' => $tenant,
+            'hasBrandLogo' => $brand->hasLogo($tenant),
+            'brandLogoUrl' => $brand->logoUrl($tenant),
+        ]);
     }
 
     public function store(
         Request $request,
         Tenant $tenant,
         GeminiPromoGenerator $generator,
+        GeminiImageGenerator $imageGenerator,
         PromoVisualBuilder $visuals,
-        GeminiThemeIconGenerator $iconGenerator,
+        TenantBrandManager $brand,
     ): RedirectResponse {
         $request->validate([
-            'image' => ['required', 'image', 'max:10240'],
+            'promo_source' => ['required', 'in:upload,generate'],
+            'image' => ['required_if:promo_source,upload', 'nullable', 'image', 'max:10240'],
+            'brand_mode' => ['required_if:promo_source,generate', 'nullable', 'in:tenant,once,save'],
+            'logo' => ['nullable', 'image', 'max:5120'],
+            'promo_hint' => ['nullable', 'string', 'max:500'],
             'always_active' => ['boolean'],
             'skip_ai' => ['boolean'],
         ]);
 
-        $file = $request->file('image');
-        $path = $file->store("promos/{$tenant->slug}", 'public');
-        $absolutePath = storage_path('app/public/'.$path);
         $flashWarning = null;
+
+        try {
+            [$path, $absolutePath, $mime] = $this->resolvePromoImage(
+                $request,
+                $tenant,
+                $brand,
+                $imageGenerator,
+            );
+        } catch (Throwable $e) {
+            return back()->withInput()->withErrors(['image' => $e->getMessage()]);
+        }
 
         if ($request->boolean('skip_ai')) {
             $generated = GeminiPromoGenerator::fallbackData($tenant->name);
             $flashMessage = 'Promo creata in bozza (senza IA). Controlla anteprima e pubblica quando pronta.';
         } else {
             try {
-                $generated = $generator->generateFromImage($absolutePath, $file->getMimeType());
+                $generated = $generator->generateFromImage($absolutePath, $mime);
                 $flashMessage = 'Promo generata con Gemini. Controlla anteprima e clicca Pubblica per inviarla su Beauty of Image.';
             } catch (GeminiApiException $e) {
                 if ($e->quotaExceeded) {
@@ -80,18 +97,15 @@ class PromoController extends Controller
             'status' => 'draft',
             'always_active' => $request->boolean('always_active', true),
             'published_at' => null,
-            'ai_metadata' => $generated,
+            'ai_metadata' => array_merge($generated, [
+                'promo_source' => $request->input('promo_source'),
+                'brand_mode' => $request->input('brand_mode'),
+            ]),
         ]);
 
         $promo->update([
             'image_variants' => $visuals->build($tenant, $promo, $path, $absolutePath),
         ]);
-
-        try {
-            $iconGenerator->ensureForPromo($tenant, $promo);
-        } catch (Throwable $e) {
-            Log::warning('Gemini icon generation skipped', ['message' => $e->getMessage()]);
-        }
 
         $redirect = redirect()
             ->route('admin.promos.show', [$tenant, $promo])
@@ -102,6 +116,70 @@ class PromoController extends Controller
         }
 
         return $redirect;
+    }
+
+    /**
+     * @return array{0: string, 1: string, 2: string}
+     */
+    private function resolvePromoImage(
+        Request $request,
+        Tenant $tenant,
+        TenantBrandManager $brand,
+        GeminiImageGenerator $imageGenerator,
+    ): array {
+        if ($request->input('promo_source') === 'upload') {
+            $file = $request->file('image');
+            $path = $file->store("promos/{$tenant->slug}", 'public');
+
+            return [$path, storage_path('app/public/'.$path), $file->getMimeType()];
+        }
+
+        $logoPath = $this->resolveBrandLogo($request, $tenant, $brand);
+        $logoAbsolute = $brand->absolutePath($logoPath);
+
+        if (! $logoAbsolute) {
+            throw new \InvalidArgumentException('Carica il logo del brand per generare il volantino.');
+        }
+
+        $dir = 'promos/'.$tenant->slug.'/'.Str::uuid();
+        $flyerPath = $dir.'/flyer-ai.jpg';
+
+        $generated = $imageGenerator->generateFlyerFromBrand(
+            $tenant,
+            $logoAbsolute,
+            $flyerPath,
+            $request->input('promo_hint'),
+        );
+
+        if (! $generated) {
+            throw new \RuntimeException(
+                'Impossibile generare il volantino con IA: quota immagini Gemini esaurita o modello non disponibile. '.
+                'Carica direttamente l\'immagine promo (opzione "Ho già l\'immagine") oppure riprova più tardi.'
+            );
+        }
+
+        return [$flyerPath, storage_path('app/public/'.$flyerPath), 'image/jpeg'];
+    }
+
+    private function resolveBrandLogo(Request $request, Tenant $tenant, TenantBrandManager $brand): ?string
+    {
+        $mode = $request->input('brand_mode', 'tenant');
+
+        if ($mode === 'tenant') {
+            if (! $brand->hasLogo($tenant)) {
+                throw new \InvalidArgumentException('Nessun logo salvato per questa attività. Caricalo qui sotto o scegli un\'altra opzione.');
+            }
+
+            return $brand->logoPath($tenant);
+        }
+
+        $file = $request->file('logo');
+
+        if (! $file) {
+            throw new \InvalidArgumentException('Carica il logo per generare la promo.');
+        }
+
+        return $brand->storeLogo($tenant, $file, persist: $mode === 'save');
     }
 
     public function show(Tenant $tenant, Promo $promo): View
@@ -182,16 +260,7 @@ class PromoController extends Controller
 
         $wasPublished = $promo->isPublished();
 
-        if ($promo->image_path) {
-            Storage::disk('public')->delete($promo->image_path);
-        }
-
-        $variants = $promo->image_variants ?? [];
-        foreach ($variants as $variantPath) {
-            if (is_string($variantPath)) {
-                Storage::disk('public')->delete($variantPath);
-            }
-        }
+        $this->deletePromoFiles($promo);
 
         $promo->delete();
 
@@ -200,8 +269,33 @@ class PromoController extends Controller
         }
 
         return redirect()
-            ->route('admin.dashboard')
+            ->route('app.home', $tenant)
             ->with('success', 'Promo eliminata.');
+    }
+
+    private function deletePromoFiles(Promo $promo): void
+    {
+        if ($promo->image_path) {
+            Storage::disk('public')->delete($promo->image_path);
+        }
+
+        foreach ($promo->image_variants ?? [] as $key => $variant) {
+            if ($key === 'decor' && is_array($variant)) {
+                foreach ($variant as $meta) {
+                    $path = is_array($meta) ? ($meta['path'] ?? null) : $meta;
+
+                    if (is_string($path)) {
+                        Storage::disk('public')->delete($path);
+                    }
+                }
+
+                continue;
+            }
+
+            if (is_string($variant)) {
+                Storage::disk('public')->delete($variant);
+            }
+        }
     }
 
     private function uniqueSlug(Tenant $tenant, string $slug): string

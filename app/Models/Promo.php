@@ -51,11 +51,43 @@ class Promo extends Model
         $variants = $this->image_variants ?? [];
 
         $path = match ($key) {
-            'hero' => $variants['hero'] ?? $variants['hero_svg'] ?? $this->image_path,
-            'og' => $variants['og'] ?? $variants['hero_svg'] ?? $this->image_path,
+            'hero' => $variants['hero'] ?? $this->image_path,
+            'og' => $variants['og'] ?? $variants['hero'] ?? $this->image_path,
             'flyer' => $variants['flyer'] ?? $this->image_path,
             default => $variants[$key] ?? null,
         };
+
+        return $path ? Storage::disk('public')->url($path) : null;
+    }
+
+    /** @return array<int, array{key: string, label: string, url: string}> */
+    public function decorImages(): array
+    {
+        $items = [];
+
+        foreach ($this->image_variants['decor'] ?? [] as $slot => $meta) {
+            $path = is_array($meta) ? ($meta['path'] ?? null) : $meta;
+
+            if (! $path) {
+                continue;
+            }
+
+            $items[] = [
+                'key' => is_array($meta) ? ($meta['key'] ?? $slot) : $slot,
+                'label' => is_array($meta) ? ($meta['label'] ?? '') : '',
+                'url' => Storage::disk('public')->url($path),
+                'slot' => $slot,
+            ];
+        }
+
+        return $items;
+    }
+
+    public function decorUrlForOffer(int $index): ?string
+    {
+        $slot = "offer-{$index}";
+        $meta = $this->image_variants['decor'][$slot] ?? null;
+        $path = is_array($meta) ? ($meta['path'] ?? null) : $meta;
 
         return $path ? Storage::disk('public')->url($path) : null;
     }

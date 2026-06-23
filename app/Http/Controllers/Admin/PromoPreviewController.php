@@ -5,12 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Promo;
 use App\Models\Tenant;
-use App\Services\PromoThemeIcons;
 use Illuminate\View\View;
 
 class PromoPreviewController extends Controller
 {
-    public function show(Tenant $tenant, Promo $promo, PromoThemeIcons $icons): View
+    public function show(Tenant $tenant, Promo $promo): View
     {
         abort_unless($promo->tenant_id === $tenant->id, 404);
 
@@ -18,8 +17,7 @@ class PromoPreviewController extends Controller
             'tenant' => $tenant,
             'promo' => $promo,
             'previewMode' => true,
-            'themeIcons' => $icons->iconsForPromo($promo->offers ?? [], $promo->description, $tenant),
-            'icons' => $icons,
+            'decorImages' => $promo->decorImages(),
         ]);
     }
 }
