@@ -11,6 +11,8 @@
 
 This repository is the starting point for a multi-tenant platform built with Laravel (promo builder, e-commerce with Stripe, shipping rules, bookings/agenda, and embeddable widgets for customer sites).
 
+**Piano di sviluppo (architettura, domini, fasi):** [`docs/PIANO-SVILUPPO.md`](docs/PIANO-SVILUPPO.md)
+
 ### Local setup (Windows)
 
 ```powershell
