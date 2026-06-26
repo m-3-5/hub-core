@@ -111,10 +111,17 @@
             box-shadow: 0 28px 60px rgba(15, 23, 42, .18);
             z-index: 2;
         }
+        .flyer__img-wrap {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            background: linear-gradient(160deg, #f1f5f9, #e2e8f0);
+        }
         .flyer__img {
             width: 100%;
-            aspect-ratio: 3 / 4;
+            height: 100%;
             object-fit: cover;
+            object-position: center center;
             display: block;
         }
         .flyer__body {
@@ -205,14 +212,16 @@
         <div class="carousel-track" aria-label="Anteprima funzioni Hub Core">
             @foreach ($loopSlides as $slide)
                 <article class="flyer">
-                    <img
-                        class="flyer__img"
-                        src="{{ $slide['image_url'] }}"
-                        alt="{{ $slide['title'] }} — Hub Core"
-                        loading="lazy"
-                        width="320"
-                        height="427"
-                    >
+                    <div class="flyer__img-wrap" style="background: linear-gradient(160deg, color-mix(in srgb, {{ $slide['accent'] }} 18%, #fff), color-mix(in srgb, {{ $slide['accent'] }} 8%, #f8fafc));">
+                        <img
+                            class="flyer__img"
+                            src="{{ $slide['image_url'] }}"
+                            alt="{{ $slide['title'] }} — Hub Core"
+                            loading="lazy"
+                            width="320"
+                            height="240"
+                        >
+                    </div>
                     <div class="flyer__body">
                         <h3>{{ $slide['title'] }}</h3>
                         <p>{{ $slide['text'] }}</p>
