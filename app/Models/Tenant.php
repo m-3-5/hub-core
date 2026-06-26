@@ -16,6 +16,9 @@ class Tenant extends Model
         'phone',
         'address',
         'primary_color',
+        'plan',
+        'workspace_database',
+        'workspace_url',
         'settings',
     ];
 
@@ -46,5 +49,19 @@ class Tenant extends Model
     public function activePromo(): ?Promo
     {
         return $this->promos()->active()->latest('published_at')->first();
+    }
+
+    public function isDedicated(): bool
+    {
+        return $this->plan === 'dedicated';
+    }
+
+    public function workspaceConnectionName(): ?string
+    {
+        if (! $this->isDedicated() || ! $this->workspace_database) {
+            return null;
+        }
+
+        return 'tenant_workspace_'.$this->slug;
     }
 }

@@ -18,6 +18,9 @@ class BeautyOfImageSeeder extends Seeder
                 'phone' => '+39 0973 686734 / +39 335 7282998',
                 'address' => 'Senise — Corso Garibaldi 7',
                 'primary_color' => '#e91e8c',
+                'plan' => 'dedicated',
+                'workspace_database' => config('hub.workspace.beauty-of-image.database'),
+                'workspace_url' => config('hub.workspace.beauty-of-image.url'),
                 'settings' => [
                     'whatsapp' => '393357282998',
                     'promos_page_url' => 'https://beautyofimage.com/promozioni',

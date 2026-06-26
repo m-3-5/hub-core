@@ -15,6 +15,17 @@ return [
 
     'default_password' => env('HUB_DEFAULT_PASSWORD', 'HubCore2026!'),
 
+    'workspace' => [
+        'beauty-of-image' => [
+            'database' => env('TENANT_BEAUTY_DATABASE', 'hub_beauty'),
+            'url' => env('TENANT_BEAUTY_URL'),
+        ],
+        'piramide35' => [
+            'database' => env('TENANT_PIRAMIDE35_DATABASE', 'hub_piramide35'),
+            'url' => env('TENANT_PIRAMIDE35_URL'),
+        ],
+    ],
+
     'modules' => [
         'promo' => [
             'key' => 'promo',

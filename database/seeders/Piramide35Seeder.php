@@ -18,6 +18,9 @@ class Piramide35Seeder extends Seeder
                 'phone' => '+39 348 756 4418',
                 'address' => 'Via Soldato Belfi 11, 85038 Senise (PZ)',
                 'primary_color' => '#22c55e',
+                'plan' => 'dedicated',
+                'workspace_database' => config('hub.workspace.piramide35.database'),
+                'workspace_url' => config('hub.workspace.piramide35.url'),
                 'settings' => [
                     'whatsapp' => '393487564418',
                     'email' => 'info@inm35.net',

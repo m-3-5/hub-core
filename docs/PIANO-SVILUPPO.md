@@ -270,13 +270,13 @@ Sync continuo bidirezionale: **non prioritario**. Preferire export al fork + eve
 - [x] Promo Beauty + Piramide su hub
 - [x] WordPress embed / webhook Beauty
 - [ ] Budget IA per promo + fallback immagini (upload / statiche)
-- [ ] Ricalibrazione immagini carousel welcome
-- [ ] Campo `plan` su tenant (`demo` | `subscription` | `dedicated`)
+- [x] Ricalibrazione immagini carousel welcome
+- [x] Campo `plan` su tenant (`demo` | `subscription` | `dedicated`)
 - [ ] Documentazione deploy Plesk aggiornata
 
 ### Fase 1 — Premium Beauty & Piramide (workspace)
 
-- [ ] Creare DB `hub_beauty` e `hub_piramide35`
+- [x] Creare DB `hub_beauty` e `hub_piramide35` (locale: `php artisan hub:provision-workspace`)
 - [ ] Scaffold repo `beauty-workspace` e `piramide-workspace` (Laravel)
 - [ ] Estrarre modulo promo in package condiviso o copia controllata
 - [ ] Comando export promo da hub-core
@@ -316,6 +316,8 @@ composer install --no-dev --optimize-autoloader
 # verificare .env (APP_URL, DB_*, GEMINI_*, HUB_*)
 php artisan migrate --force
 php artisan storage:link
+php artisan hub:provision-workspace beauty-of-image
+php artisan hub:provision-workspace piramide35
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
