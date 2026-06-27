@@ -64,7 +64,7 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=hub_core
 DB_USERNAME=hub_core_user
-DB_PASSWORD=***tua_password***
+DB_PASSWORD="***password con ! % ~ ^ tra virgolette doppie***"
 
 # Una sola riga GEMINI_API_KEY (no duplicati)
 GEMINI_API_KEY=***
@@ -73,14 +73,18 @@ GEMINI_MODEL=gemini-flash-lite-latest
 HUB_DEFAULT_PASSWORD=HubCore2026!
 HUB_BRIDGE_SECRET=***
 
-# Workspace premium
+# Workspace premium (DB già creati su Plesk)
 TENANT_BEAUTY_DATABASE=hub_beauty
-TENANT_BEAUTY_URL=https://beautyofimage.inm35.it
+TENANT_BEAUTY_URL=https://app.beautyofimage.com
 TENANT_PIRAMIDE35_DATABASE=hub_piramide35
-TENANT_PIRAMIDE35_URL=https://piramide35.inm35.it
+TENANT_PIRAMIDE35_URL=https://app.piramide35.com
+
+# WordPress Beauty — promo sul sito (se plugin installato)
+HUB_WEBHOOK_URL=https://beautyofimage.com/wp-json/beauty-hub/v1/sync
+HUB_WEBHOOK_SECRET=***stesso secret del mu-plugin WordPress***
 ```
 
-> `TENANT_*_URL` sono placeholder per la fase successiva; l’hub funziona anche se vuoti (il comando provision li imposta in automatico se mancanti).
+> Le password DB dedicate (`hub_beauty_user`, ecc.) **non** vanno in questo `.env` — serviranno sui futuri siti `app.*`. Qui basta `hub_core_user` con accesso anche a `hub_beauty` e `hub_piramide35`.
 
 **Importante:** se in passato hai eseguito `config:cache` con `.env` sbagliato:
 
@@ -118,6 +122,9 @@ php artisan storage:link
 php artisan hub:provision-workspace beauty-of-image
 php artisan hub:provision-workspace piramide35
 
+# Promo Beauty "Piega 10€" — attiva 10 giorni, poi torna la promo precedente
+php artisan db:seed --class=BeautyPiega10PromoSeeder --force
+
 php artisan gemini:discover-models --force
 
 php artisan config:cache
@@ -146,8 +153,28 @@ php artisan hub:provision-workspace piramide35
 | Home carousel | https://inm35.it — immagini card senza testo tagliato |
 | Login admin | https://inm35.it/admin/login |
 | Tenant Beauty | Accedi come `info@beautyofimage.com` |
-| Tenant Piramide | Accedi come utente Piramide |
-| DB workspace | In phpMyAdmin: tabelle `promos` in `hub_beauty` e `hub_piramide35` (vuote, ok) |
+| Promo piega 10€ Beauty | https://inm35.it/p/beauty-of-image/piega-10euro — **scade automaticamente dopo 10 giorni** |
+| Sito WordPress Beauty | https://beautyofimage.com/promozioni — plugin + webhook (vedi sotto) |
+
+### Promo Piega — scadenza automatica
+
+Il seeder imposta `ends_at` = **10 giorni dal deploy**. Finché è attiva, compare per prima (data pubblicazione più recente).  
+Dopo la scadenza esce dall’API e dal sito; **torna in evidenza la promo precedente** se è ancora `published` (es. `always_active`).
+
+Non serve cron aggiuntivo: il filtro `active()` controlla `ends_at` a ogni richiesta.
+
+### WordPress Beauty — promo visibile sul sito
+
+Nel `.env` di **hub-core** su Plesk:
+
+```env
+HUB_WEBHOOK_URL=https://beautyofimage.com/wp-json/beauty-hub/v1/sync
+HUB_WEBHOOK_SECRET=***stesso secret del plugin WordPress***
+```
+
+Su WordPress: mu-plugin `beauty-hub-core.php` in `wp-content/mu-plugins/` con `BEAUTY_HUB_URL=https://inm35.it` e lo stesso secret. Pagina promozioni con shortcode `[beauty_promos]`.
+
+Dopo il seed la promo è già **pubblicata**; il webhook parte al prossimo publish manuale da admin, oppure WordPress sincronizza via API/cron entro 15 minuti.
 
 ---
 
