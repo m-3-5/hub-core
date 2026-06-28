@@ -1,34 +1,31 @@
 <?php
 /**
- * Esempio ponte SSO WordPress → Hub Core (da installare in futuro su beautyofimage.com)
+ * Esempio ponte SSO WordPress → Hub Core (beautyofimage.com / hub-ponte.php)
  *
  * Flusso come sharing/ponte.php:
- * 1. Utente loggato su WP (editor/admin)
- * 2. Questo script genera link firmato verso Hub
- * 3. Hub riconosce wp_username e apre la home app del tenant
+ * 1. Titolare loggato su WordPress
+ * 2. hub-ponte.php genera link firmato verso Hub
+ * 3. Hub riconosce wp_username e apre admin promo (dest=promos) o home app
  *
- * NON installare ancora — solo riferimento per integrazione futura.
+ * Installazione: vedi beauty-hub-core.php v1.2+ e hub-ponte.php nella root WP.
  */
 require_once dirname(__DIR__).'/wp-load.php';
 
-if (! is_user_logged_in() || ! current_user_can('edit_others_posts')) {
-    wp_redirect(wp_login_url(home_url('/hub-ponte.php')));
+if (! is_user_logged_in() || ! (function_exists('beauty_hub_current_user_is_titolare') && beauty_hub_current_user_is_titolare())) {
+    wp_redirect(wp_login_url(home_url('/hub-ponte.php?dest=promos')));
     exit;
 }
 
-$hubUrl = 'https://inm35.it'; // o https://hub-core.test in locale
-$secret = 'STESSO_VALORE_DI_HUB_BRIDGE_SECRET';
-$tenant = 'beauty-of-image';
-$wpUser = strtolower(wp_get_current_user()->user_login);
-$ts = time();
-$sig = hash_hmac('sha256', $tenant.'|'.$wpUser.'|'.$ts, $secret);
+$dest = $_GET['dest'] ?? 'promos';
+if (! in_array($dest, ['app', 'promos'], true)) {
+    $dest = 'promos';
+}
 
-$redirect = $hubUrl.'/auth/wp-bridge?'.http_build_query([
-    'tenant' => $tenant,
-    'wp_user' => $wpUser,
-    'ts' => $ts,
-    'sig' => $sig,
-]);
+$url = beauty_hub_bridge_url($dest);
 
-wp_redirect($redirect);
+if (! $url) {
+    wp_die('Configura BEAUTY_HUB_BRIDGE_SECRET uguale a HUB_BRIDGE_SECRET su Hub Core.');
+}
+
+wp_redirect($url);
 exit;

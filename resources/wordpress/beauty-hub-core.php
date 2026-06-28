@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Beauty Hub Core Sync
  * Description: Sincronizza le promo da hub-core (inm35.it) e le mostra con [beauty_promos] senza iframe.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: Hub Core
  *
  * Installazione: copia in wp-content/mu-plugins/beauty-hub-core.php
@@ -24,6 +24,69 @@ if (! defined('BEAUTY_HUB_WEBHOOK_SECRET')) {
 }
 if (! defined('BEAUTY_HUB_OPTION_KEY')) {
     define('BEAUTY_HUB_OPTION_KEY', 'beauty_hub_promos_cache');
+}
+if (! defined('BEAUTY_HUB_BRIDGE_SECRET')) {
+    define('BEAUTY_HUB_BRIDGE_SECRET', 'CAMBIA_STESSO_VALORE_HUB_BRIDGE_SECRET');
+}
+
+// ── Ponte SSO WordPress → Hub (titolari) ────────────────────────────────────
+
+/** @return list<string> */
+function beauty_hub_titolari_usernames(): array
+{
+    return apply_filters('beauty_hub_titolari_usernames', [
+        'info',
+        'pasquale',
+        'emilia',
+        'rosalia',
+        'rzsvmeqjjinx',
+    ]);
+}
+
+function beauty_hub_current_user_is_titolare(): bool
+{
+    if (! is_user_logged_in()) {
+        return false;
+    }
+
+    return in_array(
+        strtolower(wp_get_current_user()->user_login),
+        beauty_hub_titolari_usernames(),
+        true
+    );
+}
+
+function beauty_hub_bridge_configured(): bool
+{
+    $secret = defined('BEAUTY_HUB_BRIDGE_SECRET') ? BEAUTY_HUB_BRIDGE_SECRET : '';
+
+    return $secret !== '' && ! str_contains($secret, 'CAMBIA');
+}
+
+/** @param  'app'|'promos'  $dest */
+function beauty_hub_bridge_url(string $dest = 'app'): ?string
+{
+    if (! beauty_hub_bridge_configured() || ! is_user_logged_in()) {
+        return null;
+    }
+
+    if (! in_array($dest, ['app', 'promos'], true)) {
+        $dest = 'app';
+    }
+
+    $hubUrl = rtrim(BEAUTY_HUB_URL, '/');
+    $tenant = BEAUTY_HUB_TENANT;
+    $wpUser = strtolower(wp_get_current_user()->user_login);
+    $ts = time();
+    $sig = hash_hmac('sha256', $tenant.'|'.$wpUser.'|'.$ts, BEAUTY_HUB_BRIDGE_SECRET);
+
+    return $hubUrl.'/auth/wp-bridge?'.http_build_query([
+        'tenant' => $tenant,
+        'wp_user' => $wpUser,
+        'ts' => $ts,
+        'sig' => $sig,
+        'dest' => $dest,
+    ]);
 }
 
 // ── Cache ────────────────────────────────────────────────────────────────────

@@ -48,6 +48,12 @@ class WordPressBridgeController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        $dest = $request->string('dest')->toString();
+
+        if ($dest === 'promos') {
+            return redirect()->route('admin.promos.index', $tenant);
+        }
+
         return redirect()->route('app.home', $tenant);
     }
 }

@@ -250,9 +250,26 @@ Nel `.env` di **hub-core** su Plesk:
 ```env
 HUB_WEBHOOK_URL=https://beautyofimage.com/wp-json/beauty-hub/v1/sync
 HUB_WEBHOOK_SECRET=***stesso secret del plugin WordPress***
+HUB_BRIDGE_SECRET=***stesso valore di BEAUTY_HUB_BRIDGE_SECRET su WordPress***
 ```
 
-Su WordPress: mu-plugin `beauty-hub-core.php` in `wp-content/mu-plugins/` con `BEAUTY_HUB_URL=https://inm35.it` e lo stesso secret. Pagina promozioni con shortcode `[beauty_promos]`.
+Su WordPress: mu-plugin `beauty-hub-core.php` v1.2+ in `wp-content/mu-plugins/` con:
+- `BEAUTY_HUB_URL=https://inm35.it`
+- `BEAUTY_HUB_WEBHOOK_SECRET` = stesso di `HUB_WEBHOOK_SECRET`
+- `BEAUTY_HUB_BRIDGE_SECRET` = stesso di `HUB_BRIDGE_SECRET`
+
+Root sito: `hub-ponte.php` (ponte SSO titolari → admin promo Hub).
+
+Menu **AREA TITOLARI → Promo & volantini** → `https://beautyofimage.com/hub-ponte.php?dest=promos`
+
+**Utenti Hub riconosciuti** (campo `wp_username` in tabella `users`):
+| Login WordPress | Email Hub |
+|-----------------|-----------|
+| `info` | info@beautyofimage.com |
+| `emilia` | emilia@beautyofimage.com |
+| `pasquale` | pasquale.costantino@ferrero.com |
+
+Per altri titolari WP (es. `rosalia`): creare utente Hub con `wp_username` uguale al login WP.
 
 Dopo il seed la promo è già **pubblicata**; il webhook parte al prossimo publish manuale da admin, oppure WordPress sincronizza via API/cron entro 15 minuti.
 
