@@ -132,16 +132,20 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-### Se `hub:provision-workspace` fallisce su CREATE DATABASE
+### Se `hub:provision-workspace` fallisce (Access denied)
 
-L’utente MySQL potrebbe non avere permesso di creare DB. In quel caso:
+Su Plesk i DB sono già creati con utenti dedicati, ma **hub_core_user** deve poterci scrivere per le migration da inm35.it:
 
-1. Crea `hub_beauty` e `hub_piramide35` dal pannello Plesk
-2. Rilancia solo:
+1. **Plesk → Database → hub_beauty → User Management**
+2. **Add Database User** → seleziona utente esistente **`hub_core_user`**
+3. Privilegi: **tutti** (o almeno SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP)
+4. Ripeti per **hub_piramide35**
+
+Poi rilancia con `--skip-create` (il DB esiste già):
 
 ```bash
-php artisan hub:provision-workspace beauty-of-image
-php artisan hub:provision-workspace piramide35
+php artisan hub:provision-workspace beauty-of-image --skip-create
+php artisan hub:provision-workspace piramide35 --skip-create
 ```
 
 ---

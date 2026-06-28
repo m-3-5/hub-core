@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Tenant;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -33,7 +34,7 @@ class TenantWorkspaceManager
         return $name;
     }
 
-    public function createDatabase(Tenant $tenant): void
+    public function ensureDatabase(Tenant $tenant, bool $attemptCreate = true): void
     {
         if (! $tenant->workspace_database) {
             throw new RuntimeException("Tenant {$tenant->slug} non ha workspace_database configurato.");
@@ -45,9 +46,44 @@ class TenantWorkspaceManager
             throw new RuntimeException('Nome database workspace non valido.');
         }
 
-        DB::connection('mysql')->statement(
-            "CREATE DATABASE IF NOT EXISTS `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-        );
+        if ($attemptCreate) {
+            try {
+                DB::connection('mysql')->statement(
+                    "CREATE DATABASE IF NOT EXISTS `{$database}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+                );
+
+                return;
+            } catch (QueryException $e) {
+                if (! $this->isAccessDenied($e)) {
+                    throw $e;
+                }
+            }
+        }
+
+        $this->assertDatabaseReachable($tenant);
+    }
+
+    public function assertDatabaseReachable(Tenant $tenant): void
+    {
+        $connection = $this->registerConnection($tenant);
+
+        try {
+            DB::connection($connection)->getPdo();
+        } catch (QueryException $e) {
+            throw new RuntimeException(
+                "Impossibile accedere al database [{$tenant->workspace_database}] con l'utente "
+                .config('database.connections.mysql.username').'. '
+                .'Su Plesk: Database → '.$tenant->workspace_database
+                .' → User Management → aggiungi '.config('database.connections.mysql.username')
+                .' con tutti i privilegi.',
+                previous: $e,
+            );
+        }
+    }
+
+    private function isAccessDenied(QueryException $e): bool
+    {
+        return (string) $e->getCode() === '42000' || str_contains($e->getMessage(), 'Access denied');
     }
 
     public function migrate(Tenant $tenant): void
@@ -77,9 +113,9 @@ class TenantWorkspaceManager
         return 'https://'.$subdomain.'.inm35.it';
     }
 
-    public function provision(Tenant $tenant, bool $migrate = true): string
+    public function provision(Tenant $tenant, bool $migrate = true, bool $attemptCreate = true): string
     {
-        $this->createDatabase($tenant);
+        $this->ensureDatabase($tenant, $attemptCreate);
         $connection = $this->registerConnection($tenant);
 
         if ($migrate) {

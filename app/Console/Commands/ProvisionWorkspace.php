@@ -10,9 +10,10 @@ class ProvisionWorkspace extends Command
 {
     protected $signature = 'hub:provision-workspace
                             {tenant : Slug tenant (es. beauty-of-image)}
-                            {--skip-migrate : Crea solo il database}';
+                            {--skip-migrate : Verifica solo il database, senza migration}
+                            {--skip-create : Non tenta CREATE DATABASE (DB già creato su Plesk)}';
 
-    protected $description = 'Crea database workspace dedicato per tenant premium e applica migration';
+    protected $description = 'Prepara database workspace dedicato per tenant premium e applica migration';
 
     public function handle(TenantWorkspaceManager $workspaces): int
     {
@@ -31,8 +32,19 @@ class ProvisionWorkspace extends Command
         $this->info("Provisioning workspace per {$tenant->name}…");
         $this->line("Database: {$tenant->workspace_database}");
 
-        $workspaces->createDatabase($tenant);
-        $this->info('Database creato o già esistente.');
+        try {
+            $workspaces->ensureDatabase($tenant, ! $this->option('skip-create'));
+        } catch (\Throwable $e) {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
+
+        if ($this->option('skip-create')) {
+            $this->info('CREATE DATABASE saltato — uso database esistente su Plesk.');
+        } else {
+            $this->info('Database creato, già esistente o raggiungibile.');
+        }
 
         if (! $this->option('skip-migrate')) {
             $connection = $workspaces->registerConnection($tenant);
