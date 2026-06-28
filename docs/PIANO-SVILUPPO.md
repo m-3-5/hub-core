@@ -305,6 +305,123 @@ Sync continuo bidirezionale: **non prioritario**. Preferire export al fork + eve
 - [ ] Migrazione DNS root + dismissione WP (Beauty)
 - [ ] App scaricabili / PWA (stesso backend workspace)
 
+### Fase 5 — Promo: scadenza visibile, archivio, pagamento
+
+- [ ] Mostrare data scadenza offerta al pubblico (landing, API, WordPress)
+- [ ] API e shortcode: promo **attive** + **scadute** (archivio)
+- [ ] Stile visivo: attive normali, scadute con ombra/opacità ridotta
+- [ ] Paywall modulo Promo: abbonamento o crediti prima di creare
+- [ ] Integrazione pagamenti (Stripe / Plesk billing) per sblocco servizio
+
+### Fase 6 — Assistente IA su inm35.it
+
+- [ ] Widget chat in hub (domande su servizi, guida utente)
+- [ ] Raccolta feedback strutturato per servizi attivi
+- [ ] Knowledge base iniziale (documentazione hub, FAQ, moduli)
+- [ ] Apprendimento: log conversazioni + revisione umana (non auto-deploy cieco)
+- [ ] Stack: **Gemini** (o OpenAI) via API Laravel — **non** Cursor SDK in produzione
+
+---
+
+## 13. Visione servizi modulari + visione hub (aggiornamento importante)
+
+Ogni servizio (Promo, Agenda, Affitti, Shop, Sito…) segue lo **stesso modello**:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  HUB inm35.it (Laravel)                                     │
+│  • Registro clienti, login, billing, assistente IA          │
+│  • Demo / abbonamento su multi-tenant                       │
+│  • API di lettura: prodotti, servizi, aggiornamenti         │
+│  • Comando fork: copia intero progetto → ambiente cliente   │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+         ┌─────────────────┼─────────────────┐
+         ▼                 ▼                 ▼
+  hub-module-promo   hub-module-agenda   hub-module-affitti
+  (package Laravel)  (package Laravel)   (package Laravel)
+         │                 │                 │
+         ▼                 ▼                 ▼
+  Abbonamento hub    Abbonamento hub    Abbonamento hub
+  (multi-tenant DB)  (multi-tenant)     (multi-tenant)
+         │                 │                 │
+         ▼                 ▼                 ▼
+  Fork "tutto mio"   Fork dedicato      Fork dedicato
+  Laravel + DB       Laravel + DB       Laravel + DB
+  app.cliente.com    app.cliente.com    app.cliente.com
+```
+
+### Due modalità per il cliente
+
+| Modalità | Cosa ottiene | Dove vivono i dati |
+|----------|--------------|-------------------|
+| **Abbonamento hub** | Usa il servizio su inm35.it | DB hub (tenant_id) |
+| **Progetto proprio** | Copia completa Laravel + DB sul suo dominio | DB dedicato cliente |
+
+### Visione hub sempre attiva (fattibile)
+
+Anche quando il cliente ha il **progetto copiato** sul suo ambiente, l'hub mantiene **visibilità** (non controllo totale, ma oversight):
+
+| Cosa l'hub vede | Come |
+|-----------------|------|
+| Tenant registrato, piano, moduli attivi | `hub_core.tenants` |
+| Metadati azienda, stato sync | API heartbeat dal workspace |
+| Elenco promo/servizi pubblicati (sintesi) | Webhook / API read-only dal workspace |
+| Versione software deployata | Header `X-Hub-Module-Version` |
+| Feedback utenti | Assistente IA → hub centralizzato |
+
+Il workspace dedicato **non dipende** dall'hub per funzionare offline, ma **notifica** l'hub se configurato (contratto API + chiave tenant).
+
+### Comando fork (target)
+
+```bash
+php artisan hub:fork-module promo beauty-of-image
+# → crea/aggiorna repo beauty-workspace
+# → export dati tenant
+# → deploy su app.beautyofimage.com
+# → hub conserva registry + API read
+```
+
+**Fattibilità:** sì, con package Composer condivisi (`m35/hub-promo`, ecc.) e API leggere.  
+Complessità media-alta; conviene **un modulo alla volta** partendo da Promo (già avviato).
+
+---
+
+## 14. Assistente IA — scelta tecnologica
+
+| Opzione | Uso corretto | Per inm35.it pubblico |
+|---------|--------------|------------------------|
+| **Gemini API** | Chat, testi, analisi immagini volantino | ✅ Consigliato (già integrato) |
+| **OpenAI API** | Alternativa chat | ✅ Possibile |
+| **Cursor SDK** | Agenti che modificano codice in CI/dev | ❌ Non per utenti finali sul sito |
+
+L'assistente su inm35.it deve:
+
+1. Rispondere su servizi, prezzi, come usare i moduli (RAG su docs + FAQ).
+2. Chiedere feedback dopo l'uso di un modulo (rating, testo, NPS leggero).
+3. Salvare conversazioni in `hub_core` per migliorare le risposte (**revisione umana**, non auto-modifica del codice in produzione).
+
+**Auto-ammaestramento:** fine-tuning o aggiornamento knowledge base da log approvati — non Cursor che committa codice da solo su Plesk.
+
+Cursor resta lo strumento **di sviluppo** (come ora in locale), non il motore chat del cliente.
+
+---
+
+## 15. Promo — scadenza e archivio (specifiche)
+
+### Scadenza visibile al pubblico
+
+- Landing promo: badge «Valida fino al …» se `ends_at` presente.
+- WordPress `[beauty_promos]`: stessa etichetta sotto il titolo.
+- API JSON: campo `ends_at` già esposto → usare in UI.
+
+### Archivio «tutte le promo»
+
+- **Attive:** card normali, in cima.
+- **Scadute:** restano visibili, `opacity: 0.72`, ombra più soft, badge «Scaduta il …».
+- API nuova query param: `?include=expired` o endpoint `/promos/archive`.
+- Ordine: attive prima (per `published_at`), poi scadute.
+
 ---
 
 ## 10. Deploy e file (Git → Plesk)
@@ -338,15 +455,21 @@ Questo file (`docs/PIANO-SVILUPPO.md`) viaggia con Git: consultabile in repo e i
 | 2026-05 | Siti pubblici attuali non si toccano finché non si è in Fase 4 |
 | 2026-05 | Workspace prima su `*.inm35.it`, poi `app.*.com`, infine root dominio |
 | 2026-05 | Sharing resta servizio hub; fork dedicati si integrano via API |
-| 2026-05 | Stack principale: Laravel; statiche solo per casi semplici |
+| 2026-06 | Immagini promo: volantino + SVG fallback (`PROMO_AI_IMAGES=false`) |
+| 2026-06 | Promo: scadenza visibile + archivio attive/scadute (Fase 5) |
+| 2026-06 | Paywall per creazione promo (Fase 5) |
+| 2026-06 | Assistente IA hub: Gemini + feedback, non Cursor in produzione |
+| 2026-06 | Ogni servizio = Laravel+DB forkabile; hub mantiene visione via API |
 
 ---
 
-## 12. Prossimo passo operativo
+## 16. Prossimo passo operativo
 
-1. Approvare nomi sottodominio Fase A: `beautyofimage.inm35.it`, `piramide35.inm35.it`.
-2. Creare i due database su Herd (locale) e Plesk (prod).
-3. Scaffold `beauty-workspace` + comando `hub:export-tenant`.
+1. ~~Database workspace Beauty/Piramide su Plesk~~ ✅
+2. **Fase 5a:** scadenza visibile + archivio promo (landing + WordPress + API)
+3. **Fase 5b:** paywall modulo Promo (Stripe o manuale iniziale)
+4. Scaffold `beauty-workspace` + export promo
+5. Prototipo widget assistente IA (Gemini) su inm35.it
 
 > Per aggiornare questo piano: modificare questo file e commit su `hub-core`.  
 > Riferimento conversazioni: documento vivo da usare con Cursor / team M35.
