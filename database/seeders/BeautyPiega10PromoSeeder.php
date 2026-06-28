@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Promo;
 use App\Models\Tenant;
+use App\Services\PromoVisualBuilder;
+use App\Services\WordPressWebhookDispatcher;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
 
@@ -26,7 +28,10 @@ class BeautyPiega10PromoSeeder extends Seeder
         File::ensureDirectoryExists($destDir);
         File::copy($source, storage_path('app/public/'.$destPath));
 
-        Promo::updateOrCreate(
+        $startsAt = now();
+        $endsAt = now()->addDays(10);
+
+        $promo = Promo::updateOrCreate(
             [
                 'tenant_id' => $tenant->id,
                 'slug' => 'piega-10euro',
@@ -44,17 +49,12 @@ class BeautyPiega10PromoSeeder extends Seeder
                 'cta_label' => 'Prenota ora',
                 'cta_url' => $tenant->website,
                 'image_path' => $destPath,
-                'image_variants' => [
-                    'hero' => $destPath,
-                    'og' => $destPath,
-                    'flyer' => $destPath,
-                ],
                 'seo_title' => 'Piega 10€ — Beauty of Image Senise',
                 'seo_description' => 'Promo piega a soli 10€ da Beauty of Image a Senise. Prenota il tuo appuntamento in salone.',
                 'status' => 'published',
                 'always_active' => false,
-                'starts_at' => now(),
-                'ends_at' => now()->addDays(10),
+                'starts_at' => $startsAt,
+                'ends_at' => $endsAt,
                 'published_at' => now(),
                 'ai_metadata' => [
                     'source' => 'client_flyer',
@@ -63,7 +63,14 @@ class BeautyPiega10PromoSeeder extends Seeder
             ]
         );
 
+        $absolute = storage_path('app/public/'.$destPath);
+        $variants = app(PromoVisualBuilder::class)->build($tenant, $promo, $destPath, $absolute);
+        $promo->update(['image_variants' => $variants]);
+
+        app(WordPressWebhookDispatcher::class)->promoPublished($tenant, $promo->fresh());
+
         $this->command?->info('Promo piega-10euro creata/aggiornata (attiva 10 giorni, poi torna la promo precedente).');
-        $this->command?->line('Scadenza: '.now()->addDays(10)->format('d/m/Y H:i'));
+        $this->command?->line('Scadenza: '.$endsAt->format('d/m/Y H:i'));
+        $this->command?->line('Landing: '.route('promo.show', [$tenant, $promo]));
     }
 }

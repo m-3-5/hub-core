@@ -11,6 +11,7 @@ class PromoVisualBuilder
     public function __construct(
         private GeminiImageGenerator $geminiImages,
         private PromoDecorImageBuilder $decorImages,
+        private PromoVisualFallback $fallback,
     ) {}
 
     /**
@@ -29,34 +30,39 @@ class PromoVisualBuilder
             : storage_path('app/public/'.$originalStoragePath);
 
         if (is_file($reference)) {
-            try {
-                $heroPath = $this->geminiImages->generateHeroBanner(
-                    $tenant,
-                    $promo,
-                    $reference,
-                    $dir.'/hero-ai.jpg',
-                );
+            $topics = PromoOfferTopics::topicsForPromo($promo->offers ?? [], $promo->description);
+            $decor = [];
 
-                if ($heroPath) {
-                    $variants['hero'] = $heroPath;
+            if (config('hub.promo_ai_images')) {
+                try {
+                    $heroPath = $this->geminiImages->generateHeroBanner(
+                        $tenant,
+                        $promo,
+                        $reference,
+                        $dir.'/hero-ai.jpg',
+                    );
+
+                    if ($heroPath) {
+                        $variants['hero'] = $heroPath;
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Gemini hero image skipped', ['message' => $e->getMessage()]);
                 }
-            } catch (\Throwable $e) {
-                Log::warning('Gemini hero image skipped', ['message' => $e->getMessage()]);
+
+                try {
+                    $decor = $this->decorImages->build($tenant, $promo, $reference);
+                } catch (\Throwable $e) {
+                    Log::warning('Promo decor images skipped', ['message' => $e->getMessage()]);
+                }
             }
 
-            try {
-                $decor = $this->decorImages->build($tenant, $promo, $reference);
+            $decor = $this->fallback->ensureDecor($tenant, $promo, $decor, $topics);
 
-                if ($decor !== []) {
-                    $variants['decor'] = $decor;
-                }
-            } catch (\Throwable $e) {
-                Log::warning('Promo decor images skipped', ['message' => $e->getMessage()]);
+            if ($decor !== []) {
+                $variants['decor'] = $decor;
             }
         }
 
-        $variants['og'] = $variants['hero'] ?? $originalStoragePath;
-
-        return $variants;
+        return $this->fallback->ensureBaseVariants($variants, $originalStoragePath);
     }
 }

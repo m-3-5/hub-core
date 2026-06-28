@@ -15,6 +15,9 @@ return [
 
     'default_password' => env('HUB_DEFAULT_PASSWORD', 'HubCore2026!'),
 
+    // Immagini promo via Gemini (richiede billing). Se false: volantino + SVG tematici.
+    'promo_ai_images' => env('PROMO_AI_IMAGES', false),
+
     'workspace' => [
         'beauty-of-image' => [
             'database' => env('TENANT_BEAUTY_DATABASE', 'hub_beauty'),

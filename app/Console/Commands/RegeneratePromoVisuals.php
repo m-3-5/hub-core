@@ -11,7 +11,7 @@ class RegeneratePromoVisuals extends Command
 {
     protected $signature = 'promo:regenerate-visuals {tenant} {promo? : Slug promo (tutte se omesso)}';
 
-    protected $description = 'Rigenera hero e immagini decorative IA per promo esistenti';
+    protected $description = 'Rigenera hero e immagini decorative (IA se abilitata, altrimenti volantino + SVG)';
 
     public function handle(PromoVisualBuilder $visuals): int
     {
