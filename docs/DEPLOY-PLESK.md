@@ -258,6 +258,8 @@ Su WordPress: mu-plugin `beauty-hub-core.php` v1.2+ in `wp-content/mu-plugins/` 
 - `BEAUTY_HUB_WEBHOOK_SECRET` = stesso di `HUB_WEBHOOK_SECRET`
 - `BEAUTY_HUB_BRIDGE_SECRET` = stesso di `HUB_BRIDGE_SECRET`
 
+**Pacchetto pronto dopo git pull:** cartella `deploy/beautyofimage-wordpress/` (vedi README lì dentro).
+
 Root sito: `hub-ponte.php` (ponte SSO titolari → admin promo Hub).
 
 Menu **AREA TITOLARI → Promo & volantini** → `https://beautyofimage.com/hub-ponte.php?dest=promos`
