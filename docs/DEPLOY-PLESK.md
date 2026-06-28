@@ -87,9 +87,80 @@ TENANT_PIRAMIDE35_URL=https://app.piramide35.com
 # WordPress Beauty — promo sul sito (se plugin installato)
 HUB_WEBHOOK_URL=https://beautyofimage.com/wp-json/beauty-hub/v1/sync
 HUB_WEBHOOK_SECRET=***stesso secret del mu-plugin WordPress***
+
+# Email (reset password admin, notifiche future)
+# Casella Aruba Business: noreply@inm35.net
+MAIL_MAILER=smtp
+MAIL_HOST=out.postassl.it
+MAIL_PORT=465
+MAIL_SCHEME=smtps
+MAIL_USERNAME=noreply@inm35.net
+MAIL_PASSWORD="***password casella — vedi workspace-credentials.local.md***"
+MAIL_FROM_ADDRESS="noreply@inm35.net"
+MAIL_FROM_NAME="Hub Core"
 ```
 
 > Con `TENANT_*_DB_USERNAME` e `TENANT_*_DB_PASSWORD` l'hub entra nei workspace con gli utenti dedicati — **non serve** aggiungere `hub_core_user` a `hub_beauty` / `hub_piramide35`.
+
+### Email e recupero password admin
+
+Casella usata: **noreply@inm35.net** (Aruba Business Mail).
+
+| Parametro SMTP Aruba Business | Valore |
+|-------------------------------|--------|
+| Server in uscita | `out.postassl.it` |
+| Porta | `465` |
+| Sicurezza | SSL (`MAIL_SCHEME=smtps`) |
+| Utente | indirizzo completo (`noreply@inm35.net`) |
+| Mittente | `noreply@inm35.net` |
+
+Guida ufficiale: [Aruba Business — client di posta](https://guide.arubabusiness.it/email/configurazioni-email-arubabusiness/utilizzare-casella-arubabusiness-client-posta)
+
+Il flusso **“Password dimenticata”** è già attivo:
+
+| URL | Uso |
+|-----|-----|
+| https://inm35.it/admin/login | Login + checkbox “Ricordami” |
+| https://inm35.it/admin/password/dimenticata | Richiesta link via email |
+
+Con `MAIL_MAILER=log` (default) il link **non arriva in casella** — compare in `storage/logs/laravel.log`.
+
+#### Attivare email vere su Plesk
+
+1. **Plesk → Mail → Crea indirizzo email** (es. `hub@inm35.it` o `noreply@inm35.it`)
+2. Nel `.env` imposta `MAIL_MAILER=smtp` come nell’esempio sopra  
+   - Host tipico: `mail.inm35.it`  
+   - Porta **465** + `MAIL_SCHEME=smtps`, oppure **587** + `MAIL_SCHEME=tls`
+3. Pulisci la cache config:
+   ```bash
+   php artisan config:clear
+   php artisan config:cache
+   ```
+4. Prova l’invio:
+   ```bash
+   php artisan hub:test-mail startupm3.5@gmail.com
+   ```
+5. Se ok, prova il reset:
+   ```bash
+   php artisan hub:send-access-link startupm3.5@gmail.com
+   ```
+   Oppure dal browser: https://inm35.it/admin/password/dimenticata
+
+**Alternativa senza SMTP:** su molti server Plesk Linux funziona `MAIL_MAILER=sendmail` con solo `MAIL_FROM_ADDRESS` impostato.
+
+#### Emergenza — password dimenticata (SSH, senza email)
+
+```bash
+# Imposta password direttamente (genera una casuale se omessa)
+php artisan hub:reset-password startupm3.5@gmail.com
+
+# Oppure con password scelta
+php artisan hub:reset-password info@beautyofimage.com --password="NuovaPasswordSicura123!"
+```
+
+Account admin noti (da seeder): `startupm3.5@gmail.com`, `info@beautyofimage.com`, `emilia@beautyofimage.com`.
+
+> **Futuro (non ancora implementato):** codice SMS sullo smartphone, app key / TOTP — per ora usare email + “Ricordami” sul login.
 
 **Importante:** se in passato hai eseguito `config:cache` con `.env` sbagliato:
 
