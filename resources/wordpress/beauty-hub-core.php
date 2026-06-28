@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Beauty Hub Core Sync
  * Description: Sincronizza le promo da hub-core (inm35.it) e le mostra con [beauty_promos] senza iframe.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Hub Core
  *
  * Installazione: copia in wp-content/mu-plugins/beauty-hub-core.php
@@ -161,16 +161,49 @@ function beauty_hub_shortcode_promos($atts): string
     ob_start();
     ?>
     <style>
-        .beauty-hub-grid{display:grid;grid-template-columns:repeat(<?php echo (int) $atts['columns']; ?>,minmax(0,1fr));gap:24px;margin:32px 0}
-        @media(max-width:768px){.beauty-hub-grid{grid-template-columns:1fr}}
-        .beauty-hub-card{border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 8px 30px rgba(0,0,0,.08);border:1px solid rgba(0,0,0,.06);transition:transform .2s}
-        .beauty-hub-card:hover{transform:translateY(-4px)}
-        .beauty-hub-card img{width:100%;height:220px;object-fit:cover;display:block}
-        .beauty-hub-card__body{padding:20px}
-        .beauty-hub-card h3{margin:0 0 8px;font-size:1.35rem;color:<?php echo $color; ?>}
-        .beauty-hub-card p{margin:0 0 16px;color:#555;line-height:1.5;font-size:.95rem}
-        .beauty-hub-actions{display:flex;flex-wrap:wrap;gap:10px}
-        .beauty-hub-btn{display:inline-block;color:#fff!important;text-decoration:none;padding:10px 18px;border-radius:999px;font-weight:600;font-size:.9rem}
+        .beauty-hub-grid{
+            display:grid;
+            grid-template-columns:repeat(<?php echo (int) $atts['columns']; ?>,minmax(0,1fr));
+            gap:20px;
+            margin:24px auto;
+            max-width:min(920px,100%);
+            padding:0 12px;
+        }
+        @media(max-width:768px){
+            .beauty-hub-grid{grid-template-columns:1fr;max-width:380px}
+        }
+        .beauty-hub-card{
+            border-radius:14px;
+            overflow:hidden;
+            background:#fff;
+            box-shadow:0 6px 22px rgba(0,0,0,.07);
+            border:1px solid rgba(0,0,0,.06);
+            transition:transform .2s;
+            max-width:420px;
+            width:100%;
+            justify-self:center;
+        }
+        .beauty-hub-card:hover{transform:translateY(-3px)}
+        .beauty-hub-card__media{
+            display:block;
+            background:linear-gradient(180deg,#fdf8fb,#fff);
+            padding:14px 16px 10px;
+            border-bottom:1px solid rgba(0,0,0,.05);
+        }
+        .beauty-hub-card__media img{
+            width:100%;
+            height:auto;
+            max-height:160px;
+            object-fit:contain;
+            object-position:center;
+            display:block;
+            margin:0 auto;
+        }
+        .beauty-hub-card__body{padding:16px 18px 18px}
+        .beauty-hub-card h3{margin:0 0 6px;font-size:1.12rem;line-height:1.25;color:<?php echo $color; ?>}
+        .beauty-hub-card p{margin:0 0 12px;color:#555;line-height:1.45;font-size:.88rem}
+        .beauty-hub-actions{display:flex;flex-wrap:wrap;gap:8px}
+        .beauty-hub-btn{display:inline-block;color:#fff!important;text-decoration:none;padding:8px 14px;border-radius:999px;font-weight:600;font-size:.82rem}
         .beauty-hub-btn--primary{background:<?php echo $color; ?>}
         .beauty-hub-btn--outline{background:#fff;color:<?php echo $color; ?>!important;border:2px solid <?php echo $color; ?>}
         .beauty-hub-btn--whatsapp{background:#25D366}
@@ -188,7 +221,9 @@ function beauty_hub_shortcode_promos($atts): string
             ?>
             <article class="beauty-hub-card">
                 <?php if ($img) : ?>
-                    <a href="<?php echo $url; ?>"><img src="<?php echo $img; ?>" alt="<?php echo $title; ?>" loading="lazy"></a>
+                    <a class="beauty-hub-card__media" href="<?php echo $url; ?>">
+                        <img src="<?php echo $img; ?>" alt="<?php echo $title; ?>" loading="lazy">
+                    </a>
                 <?php endif; ?>
                 <div class="beauty-hub-card__body">
                     <h3><?php echo $title; ?></h3>
