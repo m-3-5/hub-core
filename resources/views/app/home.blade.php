@@ -39,19 +39,30 @@
     @endforeach
 </div>
 
-@if ($recentPromos->isNotEmpty())
+@if ($recentPromos->isNotEmpty() || ($expiredCount ?? 0) > 0)
     <div class="section-card">
-        <h2>Promo recenti</h2>
-        <ul class="promo-list">
-            @foreach ($recentPromos as $promo)
-                <li>
-                    <a href="{{ route('admin.promos.show', [$tenant, $promo]) }}">{{ $promo->title }}</a>
-                    <span class="status {{ $promo->isPublished() ? 'status-published' : 'status-draft' }}">
-                        {{ $promo->isPublished() ? 'Pubblicata' : 'Bozza' }}
-                    </span>
-                </li>
-            @endforeach
-        </ul>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+            <h2 style="margin:0">Promozioni</h2>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <a href="{{ route('admin.promos.index', $tenant) }}">Gestisci</a>
+                <a href="{{ route('promo.archive', $tenant) }}" target="_blank">Archivio pubblico ↗</a>
+            </div>
+        </div>
+        @if ($recentPromos->isNotEmpty())
+            <ul class="promo-list">
+                @foreach ($recentPromos as $promo)
+                    <li>
+                        <a href="{{ route('admin.promos.show', [$tenant, $promo]) }}">{{ $promo->title }}</a>
+                        @if ($promo->expiryLabel())
+                            <small style="color:#666"> · {{ $promo->expiryLabel() }}</small>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+        @if (($expiredCount ?? 0) > 0)
+            <p style="color:#64748b;font-size:.9rem;margin-top:12px">{{ $expiredCount }} promo in archivio (scadute)</p>
+        @endif
     </div>
 @endif
 @endsection

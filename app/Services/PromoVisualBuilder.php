@@ -17,7 +17,7 @@ class PromoVisualBuilder
     /**
      * @return array<string, mixed>
      */
-    public function build(Tenant $tenant, Promo $promo, string $originalStoragePath, ?string $referenceAbsolutePath = null): array
+    public function build(Tenant $tenant, Promo $promo, string $originalStoragePath, ?string $referenceAbsolutePath = null, ?bool $aiImages = null): array
     {
         $dir = pathinfo($originalStoragePath, PATHINFO_DIRNAME);
         $variants = [
@@ -29,11 +29,13 @@ class PromoVisualBuilder
             ? $referenceAbsolutePath
             : storage_path('app/public/'.$originalStoragePath);
 
+        $useAi = $aiImages ?? (bool) config('hub.promo_ai_images', false);
+
         if (is_file($reference)) {
             $topics = PromoOfferTopics::topicsForPromo($promo->offers ?? [], $promo->description);
             $decor = [];
 
-            if (config('hub.promo_ai_images')) {
+            if ($useAi) {
                 try {
                     $heroPath = $this->geminiImages->generateHeroBanner(
                         $tenant,

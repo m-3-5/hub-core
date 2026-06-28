@@ -17,6 +17,8 @@ class PromoPublicController extends Controller
             'tenant' => $tenant,
             'promo' => $promo,
             'decorImages' => $promo->decorImages(),
+            'shareLinks' => \App\Support\PromoShareLinks::for($promo),
+            'isExpiredPromo' => $promo->isExpired(),
         ]);
     }
 }

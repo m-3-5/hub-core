@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PromoPreviewController;
 use App\Http\Controllers\Auth\WordPressBridgeController;
 use App\Http\Controllers\ClientSiteController;
 use App\Http\Controllers\EmbedController;
+use App\Http\Controllers\PromoArchiveController;
 use App\Http\Controllers\PromoPublicController;
 use App\Http\Controllers\WelcomeController;
 use App\Models\Tenant;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', WelcomeController::class)->name('welcome');
 
 Route::get('/auth/wp-bridge', WordPressBridgeController::class)->name('auth.wp-bridge');
+
+Route::get('/p/{tenant}', PromoArchiveController::class)->name('promo.archive');
 
 Route::get('/p/{tenant}/{promo}', [PromoPublicController::class, 'show'])
     ->name('promo.show')
@@ -44,6 +47,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+        Route::get('/tenants/{tenant}/promos', [PromoController::class, 'index'])->name('promos.index');
         Route::get('/tenants/{tenant}/promos/create', [PromoController::class, 'create'])->name('promos.create');
         Route::post('/tenants/{tenant}/promos', [PromoController::class, 'store'])->name('promos.store');
         Route::get('/tenants/{tenant}/promos/{promo}', [PromoController::class, 'show'])->name('promos.show');

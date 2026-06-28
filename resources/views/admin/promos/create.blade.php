@@ -5,121 +5,91 @@
 @section('content')
 <div class="card">
     <h1>Nuova promo — {{ $tenant->name }}</h1>
-    <p style="color:#666;margin-bottom:24px">
-        Scegli se hai già il volantino oppure se vuoi che l'IA lo crei dal tuo logo e brand.
-        Gemini genera testi e <strong>immagini decorative</strong> per la landing (niente più icone SVG).
-    </p>
+
+    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:16px 18px;margin:16px 0 24px">
+        <strong>Pacchetto mensile</strong> — hai usato <strong>{{ $promoQuota['used'] }}</strong> di
+        <strong>{{ $promoQuota['included'] }}</strong> promo incluse
+        @if ($promoQuota['remaining'] > 0)
+            (<strong>{{ $promoQuota['remaining'] }}</strong> ancora disponibili).
+        @else
+            . Le prossime promo saranno <strong>a pagamento</strong>.
+        @endif
+    </div>
 
     <form method="POST" action="{{ route('admin.promos.store', $tenant) }}" enctype="multipart/form-data" id="promo-form">
         @csrf
 
         <fieldset style="border:0;padding:0;margin:0 0 24px">
-            <legend style="font-weight:700;margin-bottom:12px">1. Da dove partiamo?</legend>
+            <legend style="font-weight:700;margin-bottom:12px">1. Tipo di promo</legend>
 
             <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-weight:500;cursor:pointer">
-                <input type="radio" name="promo_source" value="upload" checked data-promo-source>
+                <input type="radio" name="visual_tier" value="base" checked data-visual-tier>
                 <span>
-                    <strong>Ho già l'immagine promo</strong><br>
-                    <small style="color:#666">Carico il volantino → l'IA legge testi e crea immagini correlate per la pagina</small>
+                    <strong>Promo base</strong> (inclusa nel pacchetto)<br>
+                    <small style="color:#666">Carica il volantino o crea con illustrazioni SVG tematiche — senza costi extra</small>
                 </span>
             </label>
 
-            <label style="display:flex;gap:10px;align-items:flex-start;font-weight:500;cursor:pointer">
-                <input type="radio" name="promo_source" value="generate" data-promo-source>
+            <label style="display:flex;gap:10px;align-items:flex-start;font-weight:500;cursor:pointer;opacity:.85">
+                <input type="radio" name="visual_tier" value="ai_flyer" data-visual-tier>
                 <span>
-                    <strong>Crea promo con logo e brand</strong><br>
-                    <small style="color:#666">Per chi non ha ancora un volantino: generiamo tutto dal tuo marchio</small>
+                    <strong>Volantino generato con IA</strong> — €{{ $aiFlyerPrice }}<br>
+                    <small style="color:#666">Creazione automatica del volantino dal logo (pagamento richiesto — in arrivo)</small>
                 </span>
             </label>
         </fieldset>
 
-        <div id="panel-upload" style="margin-bottom:24px">
-            <label for="image">Immagine promo / volantino</label>
-            <input type="file" name="image" id="image" accept="image/*">
-        </div>
+        <fieldset style="border:0;padding:0;margin:0 0 24px" id="panel-base">
+            <legend style="font-weight:700;margin-bottom:12px">2. Immagine volantino</legend>
+            <input type="hidden" name="promo_source" value="upload" id="promo_source">
+            <label for="image">Carica il volantino / immagine promo</label>
+            <input type="file" name="image" id="image" accept="image/*" required>
+            <p style="color:#666;font-size:.9rem;margin-top:8px">L'IA legge i testi dal volantino. Le immagini decorative saranno SVG inclusi nel pacchetto.</p>
+        </fieldset>
 
-        <div id="panel-generate" style="display:none;margin-bottom:24px">
-            <fieldset style="border:1px solid #eee;border-radius:12px;padding:16px;margin:0 0 16px">
-                <legend style="font-weight:700;padding:0 8px">Logo e brand</legend>
-
-                @if ($hasBrandLogo)
-                    <label style="display:flex;gap:8px;align-items:center;margin-bottom:10px;font-weight:500">
-                        <input type="radio" name="brand_mode" value="tenant" checked data-brand-mode>
-                        Usa logo salvato
-                        @if ($brandLogoUrl)
-                            <img src="{{ $brandLogoUrl }}" alt="Logo" style="height:36px;border-radius:6px;margin-left:8px">
-                        @endif
-                    </label>
-                @endif
-
-                <label style="display:flex;gap:8px;align-items:center;margin-bottom:10px;font-weight:500">
-                    <input type="radio" name="brand_mode" value="once" @checked(! $hasBrandLogo) data-brand-mode>
-                    Carica logo solo per questa promo
-                </label>
-
-                <label style="display:flex;gap:8px;align-items:center;margin-bottom:12px;font-weight:500">
-                    <input type="radio" name="brand_mode" value="save" data-brand-mode>
-                    Carica logo e <strong>ricorda</strong> per le prossime promo
-                </label>
-
-                <div id="logo-upload-wrap" style="{{ $hasBrandLogo ? 'display:none' : '' }}">
-                    <label for="logo">File logo (PNG, JPG, SVG)</label>
-                    <input type="file" name="logo" id="logo" accept="image/*">
-                </div>
-            </fieldset>
-
-            <label for="promo_hint">Suggerimento per la promo (opzionale)</label>
-            <textarea name="promo_hint" id="promo_hint" rows="2" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-bottom:8px" placeholder="Es. Promo primavera: piega + trattamento corpo a prezzo speciale"></textarea>
+        <div id="panel-ai-flyer" style="display:none;margin-bottom:24px;padding:16px;background:#fff7ed;border-radius:12px;border:1px solid #fed7aa;color:#9a3412">
+            Il volantino IA richiede il pagamento di <strong>€{{ $aiFlyerPrice }}</strong>.
+            Il pagamento online sarà disponibile a breve — seleziona <strong>Promo base</strong> per continuare ora.
         </div>
 
         <label style="display:flex;align-items:center;gap:8px;font-weight:normal;margin-bottom:12px">
-            <input type="checkbox" name="always_active" value="1" checked>
-            Promo sempre attiva (popup + pagina senza scadenza)
+            <input type="checkbox" name="always_active" value="1">
+            Promo sempre attiva (senza data di scadenza)
         </label>
 
         <label style="display:flex;align-items:center;gap:8px;font-weight:normal;margin-bottom:24px">
             <input type="checkbox" name="skip_ai" value="1">
-            Crea senza IA (solo immagine, testi predefiniti — niente immagini decorative)
+            Crea senza IA sui testi (solo immagine + testi predefiniti)
         </label>
 
-        @error('image')
-            <p class="error" style="color:#c62828;margin-bottom:16px">{{ $message }}</p>
-        @enderror
+        @error('visual_tier')<p class="error" style="color:#c62828;margin-bottom:12px">{{ $message }}</p>@enderror
+        @error('promo_source')<p class="error" style="color:#c62828;margin-bottom:12px">{{ $message }}</p>@enderror
+        @error('image')<p class="error" style="color:#c62828;margin-bottom:12px">{{ $message }}</p>@enderror
 
-        <button type="submit" class="btn">Crea bozza e anteprima</button>
-        <a href="{{ route('app.home', $tenant) }}" class="btn btn-secondary" style="margin-left:8px">← Home</a>
+        <button type="submit" class="btn" id="submit-btn">Crea bozza e anteprima</button>
+        <a href="{{ route('admin.promos.index', $tenant) }}" class="btn btn-secondary" style="margin-left:8px">← Tutte le promo</a>
     </form>
 </div>
 
 <script>
 (function () {
-    const uploadPanel = document.getElementById('panel-upload');
-    const generatePanel = document.getElementById('panel-generate');
+    const basePanel = document.getElementById('panel-base');
+    const aiPanel = document.getElementById('panel-ai-flyer');
     const imageInput = document.getElementById('image');
-    const logoWrap = document.getElementById('logo-upload-wrap');
-    const sourceRadios = document.querySelectorAll('[data-promo-source]');
-    const brandRadios = document.querySelectorAll('[data-brand-mode]');
+    const submitBtn = document.getElementById('submit-btn');
+    const tiers = document.querySelectorAll('[data-visual-tier]');
 
-    function syncSource() {
-        const generate = document.querySelector('[data-promo-source]:checked')?.value === 'generate';
-        uploadPanel.style.display = generate ? 'none' : 'block';
-        generatePanel.style.display = generate ? 'block' : 'none';
-        imageInput.required = !generate;
-        syncBrandMode();
+    function sync() {
+        const ai = document.querySelector('[data-visual-tier]:checked')?.value === 'ai_flyer';
+        basePanel.style.display = ai ? 'none' : 'block';
+        aiPanel.style.display = ai ? 'block' : 'none';
+        imageInput.required = !ai;
+        submitBtn.disabled = ai;
+        submitBtn.style.opacity = ai ? '0.5' : '1';
     }
 
-    function syncBrandMode() {
-        const generate = document.querySelector('[data-promo-source]:checked')?.value === 'generate';
-        if (!generate) return;
-        const mode = document.querySelector('[data-brand-mode]:checked')?.value;
-        const needsLogo = mode === 'once' || mode === 'save';
-        logoWrap.style.display = needsLogo ? 'block' : 'none';
-        document.getElementById('logo').required = needsLogo;
-    }
-
-    sourceRadios.forEach(r => r.addEventListener('change', syncSource));
-    brandRadios.forEach(r => r.addEventListener('change', syncBrandMode));
-    syncSource();
+    tiers.forEach(r => r.addEventListener('change', sync));
+    sync();
 })();
 </script>
 @endsection

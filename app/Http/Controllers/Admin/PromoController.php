@@ -11,6 +11,7 @@ use App\Services\GeminiPromoGenerator;
 use App\Services\PromoVisualBuilder;
 use App\Services\TenantBrandManager;
 use App\Services\WordPressWebhookDispatcher;
+use App\Support\TenantPromoQuota;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -20,12 +21,27 @@ use Throwable;
 
 class PromoController extends Controller
 {
+    public function index(Tenant $tenant): View
+    {
+        $active = $tenant->promos()->published()->active()->latest('published_at')->get();
+        $expired = $tenant->promos()->expired()->latest('ends_at')->get();
+        $drafts = $tenant->promos()->where('status', 'draft')->latest()->get();
+
+        return view('admin.promos.index', compact('tenant', 'active', 'expired', 'drafts'));
+    }
+
     public function create(Tenant $tenant, TenantBrandManager $brand): View
     {
         return view('admin.promos.create', [
             'tenant' => $tenant,
             'hasBrandLogo' => $brand->hasLogo($tenant),
             'brandLogoUrl' => $brand->logoUrl($tenant),
+            'promoQuota' => [
+                'included' => TenantPromoQuota::includedLimit($tenant),
+                'used' => TenantPromoQuota::usedCount($tenant),
+                'remaining' => TenantPromoQuota::remaining($tenant),
+            ],
+            'aiFlyerPrice' => config('hub.promo_ai_flyer_price', 24),
         ]);
     }
 
@@ -39,6 +55,7 @@ class PromoController extends Controller
     ): RedirectResponse {
         $request->validate([
             'promo_source' => ['required', 'in:upload,generate'],
+            'visual_tier' => ['required', 'in:base,ai_flyer'],
             'image' => ['required_if:promo_source,upload', 'nullable', 'image', 'max:10240'],
             'brand_mode' => ['required_if:promo_source,generate', 'nullable', 'in:tenant,once,save'],
             'logo' => ['nullable', 'image', 'max:5120'],
@@ -46,6 +63,23 @@ class PromoController extends Controller
             'always_active' => ['boolean'],
             'skip_ai' => ['boolean'],
         ]);
+
+        if ($request->input('visual_tier') === 'ai_flyer') {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'visual_tier' => 'Il volantino generato con IA (€'.config('hub.promo_ai_flyer_price', 24).') richiede il pagamento del servizio. '
+                        .'Pagamento online in arrivo — per ora usa «Promo base» con il tuo volantino o le illustrazioni incluse.',
+                ]);
+        }
+
+        if ($request->input('promo_source') === 'generate') {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'promo_source' => 'La generazione volantino da logo è disponibile solo con il pacchetto IA a pagamento.',
+                ]);
+        }
 
         $flashWarning = null;
 
@@ -84,6 +118,8 @@ class PromoController extends Controller
         $slug = Str::slug($generated['suggested_slug'] ?? $generated['title'] ?? 'promo');
         $slug = $this->uniqueSlug($tenant, $slug);
 
+        $overQuota = ! TenantPromoQuota::hasIncludedSlot($tenant);
+
         $promo = $tenant->promos()->create([
             'title' => $generated['title'] ?? 'Nuova promozione',
             'slug' => $slug,
@@ -100,12 +136,18 @@ class PromoController extends Controller
             'ai_metadata' => array_merge($generated, [
                 'promo_source' => $request->input('promo_source'),
                 'brand_mode' => $request->input('brand_mode'),
+                'visual_tier' => $request->input('visual_tier', 'base'),
             ]),
         ]);
 
         $promo->update([
-            'image_variants' => $visuals->build($tenant, $promo, $path, $absolutePath),
+            'image_variants' => $visuals->build($tenant, $promo, $path, $absolutePath, aiImages: false),
         ]);
+
+        if ($overQuota) {
+            $flashWarning = ($flashWarning ? $flashWarning.' ' : '')
+                .'Hai superato le '.TenantPromoQuota::includedLimit($tenant).' promo incluse nel pacchetto mensile. Le promo extra saranno a pagamento.';
+        }
 
         $redirect = redirect()
             ->route('admin.promos.show', [$tenant, $promo])

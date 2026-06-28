@@ -48,6 +48,10 @@ class PromoPublicPresenter
             'ends_at' => $promo->ends_at?->toIso8601String(),
             'published_at' => $promo->published_at?->toIso8601String(),
             'status' => $promo->status,
+            'is_active' => $promo->isActive(),
+            'is_expired' => $promo->isExpired(),
+            'expiry_label' => $promo->expiryLabel(),
+            'share' => PromoShareLinks::for($promo),
         ];
     }
 }

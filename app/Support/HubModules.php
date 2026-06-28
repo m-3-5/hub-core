@@ -28,7 +28,7 @@ class HubModules
     private function urlFor(string $key, Tenant $tenant): ?string
     {
         return match ($key) {
-            'promo' => route('admin.promos.create', $tenant),
+            'promo' => route('admin.promos.index', $tenant),
             default => null,
         };
     }

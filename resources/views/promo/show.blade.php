@@ -8,6 +8,12 @@
     <meta property="og:title" content="{{ $promo->seo_title ?? $promo->title }}">
     <meta property="og:description" content="{{ $promo->seo_description }}">
     <meta property="og:image" content="{{ $promo->variantUrl('og') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ $tenant->name }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $promo->seo_title ?? $promo->title }}">
+    <meta name="twitter:description" content="{{ $promo->seo_description }}">
+    <meta name="twitter:image" content="{{ $promo->variantUrl('og') }}">
     <meta property="og:url" content="{{ $promo->publicUrl() }}">
     <meta name="theme-color" content="{{ $tenant->primary_color }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +23,9 @@
         $heroVisual = $promo->variantUrl('hero');
         $flyerUrl = $promo->variantUrl('flyer');
         $decorImages = $decorImages ?? $promo->decorImages();
+        $shareLinks = $shareLinks ?? \App\Support\PromoShareLinks::for($promo);
+        $isExpiredPromo = $isExpiredPromo ?? $promo->isExpired();
+        $expiryLabel = $promo->expiryLabel();
     @endphp
     <style>
         :root {
@@ -185,6 +194,26 @@
         }
         .contact-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 24px; }
         .cta-bar__actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .expiry-pill {
+            display: inline-block; margin-bottom: 12px; padding: 6px 14px; border-radius: 999px;
+            font-size: .78rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+        }
+        .expiry-pill--active { background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.45); color: #fff; }
+        .expiry-pill--expired { background: #fef3c7; color: #92400e; }
+        .expired-banner {
+            background: #fef3c7; color: #92400e; text-align: center; padding: 12px 16px;
+            font-weight: 600; font-size: .92rem;
+        }
+        .share-bar {
+            display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;
+        }
+        .share-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 14px; border-radius: 999px; font-size: .82rem; font-weight: 600;
+            text-decoration: none; border: 1px solid rgba(255,255,255,.35); color: #fff;
+            background: rgba(255,255,255,.12);
+        }
+        .share-btn:hover { background: rgba(255,255,255,.22); }
         .deco-img--2 { bottom: 40px; left: 2%; width: 130px; height: 130px; transform: rotate(-8deg); }
     </style>
     <script type="application/ld+json">
@@ -209,6 +238,8 @@
 <div style="background:#e65100;color:#fff;text-align:center;padding:14px 16px;font-weight:600;font-family:system-ui,sans-serif;position:sticky;top:0;z-index:100">
     ANTEPRIMA — Questa promo non è ancora visibile al pubblico
 </div>
+@elseif ($isExpiredPromo)
+<div class="expired-banner">Questa promozione è scaduta — consulta le <a href="{{ route('promo.archive', $tenant) }}" style="color:#92400e">offerte attive</a></div>
 @endif
 <div class="promo-page">
     <header class="promo-hero">
@@ -218,7 +249,10 @@
         <div class="promo-hero__overlay"></div>
         <div class="promo-hero__grid">
             <div class="promo-hero__text">
-                <span class="promo-badge">{{ $tenant->name }} · Promo attiva</span>
+                <span class="promo-badge">{{ $tenant->name }} · {{ $isExpiredPromo ? 'Promo archivio' : 'Promo attiva' }}</span>
+                @if ($expiryLabel)
+                    <span class="expiry-pill {{ $isExpiredPromo ? 'expiry-pill--expired' : 'expiry-pill--active' }}">{{ $expiryLabel }}</span>
+                @endif
                 <h1>{{ $promo->title }}</h1>
                 @if ($promo->description)
                     <p class="promo-hero__lead">{{ $promo->description }}</p>
@@ -233,6 +267,12 @@
                         @endforeach
                     </div>
                 @endif
+                <div class="share-bar" aria-label="Condividi promo">
+                    <a class="share-btn" href="{{ $shareLinks['whatsapp'] }}" target="_blank" rel="noopener">WhatsApp</a>
+                    <a class="share-btn" href="{{ $shareLinks['facebook'] }}" target="_blank" rel="noopener">Facebook</a>
+                    <a class="share-btn" href="{{ $shareLinks['twitter'] }}" target="_blank" rel="noopener">X</a>
+                    <button type="button" class="share-btn" data-copy="{{ $shareLinks['copy'] }}">Copia link</button>
+                </div>
             </div>
             @if ($flyerUrl)
                 <div class="flyer-card">
@@ -370,5 +410,18 @@
         </div>
     </div>
 </div>
+<script>
+document.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var url = btn.getAttribute('data-copy');
+        if (navigator.clipboard && url) {
+            navigator.clipboard.writeText(url).then(function () {
+                btn.textContent = 'Link copiato!';
+                setTimeout(function () { btn.textContent = 'Copia link'; }, 2000);
+            });
+        }
+    });
+});
+</script>
 </body>
 </html>

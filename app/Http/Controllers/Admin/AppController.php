@@ -21,8 +21,9 @@ class AppController extends Controller
     {
         $user = auth()->user();
         $hubModules = $modules->forTenant($tenant);
-        $recentPromos = $tenant->promos()->latest()->limit(6)->get();
+        $recentPromos = $tenant->promos()->published()->active()->latest('published_at')->limit(4)->get();
+        $expiredCount = $tenant->promos()->expired()->count();
 
-        return view('app.home', compact('tenant', 'user', 'hubModules', 'recentPromos'));
+        return view('app.home', compact('tenant', 'user', 'hubModules', 'recentPromos', 'expiredCount'));
     }
 }

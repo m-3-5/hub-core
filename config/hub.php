@@ -18,6 +18,10 @@ return [
     // Immagini promo via Gemini (richiede billing). Se false: volantino + SVG tematici.
     'promo_ai_images' => env('PROMO_AI_IMAGES', false),
 
+    'promo_included_quota' => (int) env('PROMO_INCLUDED_QUOTA', 5),
+
+    'promo_ai_flyer_price' => (int) env('PROMO_AI_FLYER_PRICE', 24),
+
     'workspace' => [
         'beauty-of-image' => [
             'database' => env('TENANT_BEAUTY_DATABASE', 'hub_beauty'),

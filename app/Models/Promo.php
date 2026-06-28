@@ -113,6 +113,64 @@ class Promo extends Model
             });
     }
 
+    public function scopePublished($query)
+    {
+        return $query->where('status', 'published');
+    }
+
+    public function scopeExpired($query)
+    {
+        return $query
+            ->published()
+            ->where('always_active', false)
+            ->whereNotNull('ends_at')
+            ->where('ends_at', '<', now());
+    }
+
+    public function isActive(): bool
+    {
+        if (! $this->isPublished()) {
+            return false;
+        }
+
+        if ($this->always_active) {
+            return true;
+        }
+
+        if ($this->starts_at && $this->starts_at->isFuture()) {
+            return false;
+        }
+
+        if ($this->ends_at && $this->ends_at->isPast()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->isPublished()
+            && ! $this->always_active
+            && $this->ends_at
+            && $this->ends_at->isPast();
+    }
+
+    public function expiryLabel(): ?string
+    {
+        if ($this->always_active) {
+            return 'Sempre valida';
+        }
+
+        if ($this->ends_at) {
+            return $this->isExpired()
+                ? 'Scaduta il '.$this->ends_at->timezone(config('app.timezone'))->format('d/m/Y')
+                : 'Valida fino al '.$this->ends_at->timezone(config('app.timezone'))->format('d/m/Y');
+        }
+
+        return null;
+    }
+
     public function imageUrl(): ?string
     {
         if (! $this->image_path) {
