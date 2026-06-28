@@ -24,14 +24,30 @@ class TenantWorkspaceManager
 
         $base = config('database.connections.mysql');
         $name = $this->connectionName($tenant);
+        $workspace = config("hub.workspace.{$tenant->slug}", []);
+
+        $overrides = ['database' => $tenant->workspace_database];
+
+        if (! empty($workspace['username'])) {
+            $overrides['username'] = $workspace['username'];
+        }
+
+        if (array_key_exists('password', $workspace) && $workspace['password'] !== null && $workspace['password'] !== '') {
+            $overrides['password'] = $workspace['password'];
+        }
 
         config([
-            "database.connections.{$name}" => array_merge($base, [
-                'database' => $tenant->workspace_database,
-            ]),
+            "database.connections.{$name}" => array_merge($base, $overrides),
         ]);
 
         return $name;
+    }
+
+    public function connectionUsername(Tenant $tenant): string
+    {
+        $workspace = config("hub.workspace.{$tenant->slug}", []);
+
+        return $workspace['username'] ?? (string) config('database.connections.mysql.username');
     }
 
     public function ensureDatabase(Tenant $tenant, bool $attemptCreate = true): void
@@ -70,12 +86,12 @@ class TenantWorkspaceManager
         try {
             DB::connection($connection)->getPdo();
         } catch (QueryException $e) {
+            $user = $this->connectionUsername($tenant);
+
             throw new RuntimeException(
-                "Impossibile accedere al database [{$tenant->workspace_database}] con l'utente "
-                .config('database.connections.mysql.username').'. '
-                .'Su Plesk: Database → '.$tenant->workspace_database
-                .' → User Management → aggiungi '.config('database.connections.mysql.username')
-                .' con tutti i privilegi.',
+                "Impossibile accedere al database [{$tenant->workspace_database}] con l'utente [{$user}]. "
+                .'Verifica TENANT_*_DB_USERNAME e TENANT_*_DB_PASSWORD nel .env, oppure su Plesk aggiungi '
+                .config('database.connections.mysql.username').' al database.',
                 previous: $e,
             );
         }

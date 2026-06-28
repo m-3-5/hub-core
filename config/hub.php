@@ -18,10 +18,14 @@ return [
     'workspace' => [
         'beauty-of-image' => [
             'database' => env('TENANT_BEAUTY_DATABASE', 'hub_beauty'),
+            'username' => env('TENANT_BEAUTY_DB_USERNAME'),
+            'password' => env('TENANT_BEAUTY_DB_PASSWORD'),
             'url' => env('TENANT_BEAUTY_URL'),
         ],
         'piramide35' => [
             'database' => env('TENANT_PIRAMIDE35_DATABASE', 'hub_piramide35'),
+            'username' => env('TENANT_PIRAMIDE35_DB_USERNAME'),
+            'password' => env('TENANT_PIRAMIDE35_DB_PASSWORD'),
             'url' => env('TENANT_PIRAMIDE35_URL'),
         ],
     ],

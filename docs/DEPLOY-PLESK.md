@@ -75,8 +75,13 @@ HUB_BRIDGE_SECRET=***
 
 # Workspace premium (DB già creati su Plesk)
 TENANT_BEAUTY_DATABASE=hub_beauty
+TENANT_BEAUTY_DB_USERNAME=hub_beauty_user
+TENANT_BEAUTY_DB_PASSWORD="***password beauty — virgolette se ha % ! ~ ^***"
 TENANT_BEAUTY_URL=https://app.beautyofimage.com
+
 TENANT_PIRAMIDE35_DATABASE=hub_piramide35
+TENANT_PIRAMIDE35_DB_USERNAME=hub_piramide35_user
+TENANT_PIRAMIDE35_DB_PASSWORD="***password piramide***"
 TENANT_PIRAMIDE35_URL=https://app.piramide35.com
 
 # WordPress Beauty — promo sul sito (se plugin installato)
@@ -84,7 +89,7 @@ HUB_WEBHOOK_URL=https://beautyofimage.com/wp-json/beauty-hub/v1/sync
 HUB_WEBHOOK_SECRET=***stesso secret del mu-plugin WordPress***
 ```
 
-> Le password DB dedicate (`hub_beauty_user`, ecc.) **non** vanno in questo `.env` — serviranno sui futuri siti `app.*`. Qui basta `hub_core_user` con accesso anche a `hub_beauty` e `hub_piramide35`.
+> Con `TENANT_*_DB_USERNAME` e `TENANT_*_DB_PASSWORD` l'hub entra nei workspace con gli utenti dedicati — **non serve** aggiungere `hub_core_user` a `hub_beauty` / `hub_piramide35`.
 
 **Importante:** se in passato hai eseguito `config:cache` con `.env` sbagliato:
 
