@@ -37,3 +37,5 @@ Beauty: abilitare modulo `services` in `tenant.settings.modules`.
 - Conto Stripe del cliente (non M35)
 - Klarna: attivo su Dashboard Stripe → Metodi di pagamento
 - Chiavi salvate cifrate in `tenant.settings.stripe`
+- Chiave limitata (`rk_live_…`): servono almeno **Products**, **Prices**, **Payment Links** in scrittura
+- L'hub usa metodi di pagamento automatici Stripe (carta + Klarna se attivo sul conto)

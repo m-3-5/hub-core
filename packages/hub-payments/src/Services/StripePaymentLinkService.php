@@ -30,17 +30,7 @@ class StripePaymentLinkService
             'currency' => strtolower($currency),
         ]);
 
-        $methods = config('hub-payments.payment_methods', ['card', 'klarna']);
-        $linkPayload = [
-            'line_items[0][price]' => $price['id'],
-            'line_items[0][quantity]' => 1,
-        ];
-
-        foreach (array_values($methods) as $index => $method) {
-            $linkPayload['payment_method_types['.$index.']'] = $method;
-        }
-
-        $link = $this->post('/v1/payment_links', $linkPayload);
+        $link = $this->createPaymentLinkForPrice($price['id']);
 
         return [
             'product_id' => $product['id'],
@@ -48,6 +38,24 @@ class StripePaymentLinkService
             'payment_link_id' => $link['id'],
             'url' => $link['url'],
         ];
+    }
+
+    /** @return array<string, mixed> */
+    private function createPaymentLinkForPrice(string $priceId): array
+    {
+        try {
+            return $this->post('/v1/payment_links', [
+                'line_items[0][price]' => $priceId,
+                'line_items[0][quantity]' => 1,
+                'automatic_payment_methods[enabled]' => 'true',
+            ]);
+        } catch (RuntimeException) {
+            return $this->post('/v1/payment_links', [
+                'line_items[0][price]' => $priceId,
+                'line_items[0][quantity]' => 1,
+                'payment_method_types[0]' => 'card',
+            ]);
+        }
     }
 
     /** @param  array<string, mixed>  $fields */
@@ -62,9 +70,15 @@ class StripePaymentLinkService
         } catch (RequestException $e) {
             $message = $e->response?->json('error.message') ?? $e->getMessage();
 
-            throw new RuntimeException('Stripe: '.$message, 0, $e);
+            throw new RuntimeException('Stripe ('.$path.'): '.$message, 0, $e);
         }
 
-        return $response->json();
+        $data = $response->json();
+
+        if ($path === '/v1/payment_links' && empty($data['url'])) {
+            throw new RuntimeException('Stripe: Payment Link creato ma senza URL.');
+        }
+
+        return $data;
     }
 }
