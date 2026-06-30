@@ -25,6 +25,11 @@ class BeautyOfImageSeeder extends Seeder
                     'whatsapp' => '393357282998',
                     'promos_page_url' => 'https://beautyofimage.com/promozioni',
                     'booking_url' => null,
+                    'modules' => [
+                        'promo' => true,
+                        'services' => true,
+                    ],
+                    'services_included_quota' => 3,
                 ],
             ]
         );

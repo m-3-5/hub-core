@@ -48,9 +48,9 @@ return [
         'services' => [
             'key' => 'services',
             'label' => 'Servizi',
-            'description' => 'Inserisci i tuoi servizi',
+            'description' => 'Link di pagamento Stripe per trattamenti',
             'emoji' => '💆',
-            'active' => false,
+            'active' => true,
         ],
         'shop' => [
             'key' => 'shop',

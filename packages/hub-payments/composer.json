@@ -1,0 +1,23 @@
+{
+    "name": "m35/hub-payments",
+    "description": "Modulo Hub: servizi/prodotti a pagamento via Stripe Payment Links",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "illuminate/support": "^13.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "M35\\HubPayments\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "M35\\HubPayments\\HubPaymentsServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable"
+}

@@ -88,3 +88,4 @@ Vedi `docs/DEPLOY-PLESK.md` per il dettaglio.
 - Promo archivio, share, quota create form
 - Mail Aruba + `hub:test-mail`, `hub:reset-password`
 - Bridge WP `dest=promos` + pacchetto `deploy/beautyofimage-wordpress/`
+- **Modulo `hub-payments`**: servizi a pagamento Stripe (package `packages/hub-payments`)

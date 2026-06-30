@@ -8,7 +8,8 @@
     "require": {
         "php": "^8.3",
         "laravel/framework": "^13.8",
-        "laravel/tinker": "^3.0"
+        "laravel/tinker": "^3.0",
+        "m35/hub-payments": "@dev"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -23,9 +24,19 @@
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "Database\\Seeders\\": "database/seeders/",
+            "M35\\HubPayments\\": "packages/hub-payments/src/"
         }
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/hub-payments",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
