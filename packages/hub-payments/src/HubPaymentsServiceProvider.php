@@ -5,7 +5,7 @@ namespace M35\HubPayments;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Route;
 use M35\HubPayments\Http\Controllers\Admin\ServiceController;
-use M35\HubPayments\Http\Controllers\Admin\StripeCatalogController;
+use M35\HubPayments\Http\Controllers\Admin\StripePaymentLinksController;
 use M35\HubPayments\Http\Controllers\Api\ServiceApiController;
 use M35\HubPayments\Models\PayableService;
 use Illuminate\Support\ServiceProvider;
@@ -62,8 +62,8 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
                 Route::post('/services/{service}/publish', [ServiceController::class, 'togglePublish'])->name('services.publish');
                 Route::post('/services/{service}/refresh-payment-methods', [ServiceController::class, 'refreshPaymentMethods'])->name('services.refresh-payment-methods');
-                Route::get('/stripe-catalog', [StripeCatalogController::class, 'index'])->name('services.stripe-catalog');
-                Route::post('/stripe-catalog/{product}/archive', [StripeCatalogController::class, 'archive'])->name('services.stripe-catalog.archive');
+                Route::get('/payment-links', [StripePaymentLinksController::class, 'index'])->name('services.payment-links');
+                Route::post('/payment-links/{link}/deactivate', [StripePaymentLinksController::class, 'deactivate'])->name('services.payment-links.deactivate');
             });
 
         Route::prefix('api/v1')

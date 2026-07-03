@@ -11,7 +11,7 @@
         </div>
         @if ($stripeConfigured)
             <div style="display:flex;gap:8px">
-                <a class="btn btn-secondary" href="{{ route('admin.services.stripe-catalog', $tenant) }}">Catalogo Stripe</a>
+                <a class="btn btn-secondary" href="{{ route('admin.services.payment-links', $tenant) }}">Link di pagamento</a>
                 <a class="btn" href="{{ route('admin.services.create', $tenant) }}">+ Nuovo servizio</a>
             </div>
         @endif

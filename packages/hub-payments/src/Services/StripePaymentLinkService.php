@@ -76,17 +76,12 @@ class StripePaymentLinkService
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function listProducts(): array
+    public function listPaymentLinks(): array
     {
-        return $this->get('/v1/products', [
+        return $this->get('/v1/payment_links', [
             'limit' => 100,
-            'expand' => ['data.default_price'],
+            'expand' => ['data.line_items.data.price.product'],
         ])['data'] ?? [];
-    }
-
-    public function archiveProduct(string $productId): void
-    {
-        $this->post('/v1/products/'.$productId, ['active' => 'false']);
     }
 
     /**

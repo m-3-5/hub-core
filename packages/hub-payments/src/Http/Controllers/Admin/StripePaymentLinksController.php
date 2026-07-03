@@ -11,7 +11,7 @@ use M35\HubPayments\Services\StripePaymentLinkService;
 use M35\HubPayments\Support\TenantStripeConfig;
 use RuntimeException;
 
-class StripeCatalogController extends Controller
+class StripePaymentLinksController extends Controller
 {
     public function index(Tenant $tenant): View|RedirectResponse
     {
@@ -21,44 +21,44 @@ class StripeCatalogController extends Controller
                 ->withErrors(['stripe' => 'Configura prima le chiavi Stripe del salone.']);
         }
 
-        $linkedProductIds = PayableService::query()
+        $linkedPaymentLinkIds = PayableService::query()
             ->where('tenant_id', $tenant->id)
-            ->whereNotNull('stripe_product_id')
-            ->pluck('stripe_product_id')
+            ->whereNotNull('stripe_payment_link_id')
+            ->pluck('stripe_payment_link_id')
             ->all();
 
-        $secretKey = TenantStripeConfig::secretKey($tenant);
-
         try {
-            $products = (new StripePaymentLinkService($secretKey))->listProducts();
+            $paymentLinks = (new StripePaymentLinkService(TenantStripeConfig::secretKey($tenant)))->listPaymentLinks();
         } catch (RuntimeException $e) {
             return redirect()
                 ->route('admin.services.index', $tenant)
                 ->withErrors(['stripe' => $e->getMessage()]);
         }
 
-        return view('hub-payments::admin.services.stripe-catalog', [
+        return view('hub-payments::admin.services.payment-links', [
             'tenant' => $tenant,
-            'products' => $products,
-            'linkedProductIds' => $linkedProductIds,
-            'dashboardBase' => str_starts_with($secretKey, 'sk_test_')
-                ? 'https://dashboard.stripe.com/test'
-                : 'https://dashboard.stripe.com',
+            'paymentLinks' => $paymentLinks,
+            'linkedPaymentLinkIds' => $linkedPaymentLinkIds,
         ]);
     }
 
-    public function archive(Tenant $tenant, string $product): RedirectResponse
+    public function deactivate(Tenant $tenant, string $link): RedirectResponse
     {
         if (! TenantStripeConfig::isConfigured($tenant)) {
             return back()->withErrors(['stripe' => 'Configura prima le chiavi Stripe del salone.']);
         }
 
         try {
-            (new StripePaymentLinkService(TenantStripeConfig::secretKey($tenant)))->archiveProduct($product);
+            (new StripePaymentLinkService(TenantStripeConfig::secretKey($tenant)))->deactivatePaymentLink($link);
         } catch (RuntimeException $e) {
             return back()->withErrors(['stripe' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'Prodotto archiviato su Stripe.');
+        PayableService::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('stripe_payment_link_id', $link)
+            ->update(['published_to_site' => false]);
+
+        return back()->with('status', 'Link di pagamento disattivato.');
     }
 }
