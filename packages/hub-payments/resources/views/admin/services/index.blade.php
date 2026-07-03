@@ -10,7 +10,10 @@
             <p style="margin:0;color:#666">Crea link Stripe (carta + metodi extra attivi sul conto) per trattamenti e servizi del salone.</p>
         </div>
         @if ($stripeConfigured)
-            <a class="btn" href="{{ route('admin.services.create', $tenant) }}">+ Nuovo servizio</a>
+            <div style="display:flex;gap:8px">
+                <a class="btn btn-secondary" href="{{ route('admin.services.stripe-catalog', $tenant) }}">Catalogo Stripe</a>
+                <a class="btn" href="{{ route('admin.services.create', $tenant) }}">+ Nuovo servizio</a>
+            </div>
         @endif
     </div>
 

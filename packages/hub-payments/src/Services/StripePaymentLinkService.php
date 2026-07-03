@@ -74,6 +74,22 @@ class StripePaymentLinkService
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function listProducts(): array
+    {
+        return $this->get('/v1/products', [
+            'limit' => 100,
+            'expand' => ['data.default_price'],
+        ])['data'] ?? [];
+    }
+
+    public function archiveProduct(string $productId): void
+    {
+        $this->post('/v1/products/'.$productId, ['active' => 'false']);
+    }
+
+    /**
      * @return array{id: string, url: string}
      */
     public function replacePaymentLink(string $oldPaymentLinkId, string $priceId): array
@@ -123,6 +139,23 @@ class StripePaymentLinkService
                 'payment_method_types[0]' => 'card',
             ]);
         }
+    }
+
+    /** @param  array<string, mixed>  $query */
+    private function get(string $path, array $query = []): array
+    {
+        try {
+            $response = Http::withToken($this->secretKey)
+                ->timeout(30)
+                ->get('https://api.stripe.com'.$path, $query)
+                ->throw();
+        } catch (RequestException $e) {
+            $message = $e->response?->json('error.message') ?? $e->getMessage();
+
+            throw new RuntimeException('Stripe ('.$path.'): '.$message, 0, $e);
+        }
+
+        return $response->json();
     }
 
     /** @param  array<string, mixed>  $fields */
