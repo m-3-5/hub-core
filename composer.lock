@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "36793882908b6cbdd344b5a4840231db",
+    "content-hash": "382feb533902f1c58bd1ad45a3ba7679",
     "packages": [
         {
             "name": "brick/math",
@@ -2025,6 +2025,40 @@
                 }
             ],
             "time": "2026-03-08T20:05:35+00:00"
+        },
+        {
+            "name": "m35/hub-payments",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "packages/hub-payments",
+                "reference": "2b78d3f87f1fe856dc6b38d0d08e8c143427751a"
+            },
+            "require": {
+                "illuminate/support": "^13.0",
+                "php": "^8.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "M35\\HubPayments\\HubPaymentsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "M35\\HubPayments\\": "src/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Modulo Hub: servizi/prodotti a pagamento via Stripe Payment Links",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "monolog/monolog",
@@ -8263,7 +8297,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "m35/hub-payments": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
