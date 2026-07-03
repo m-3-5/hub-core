@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use M35\HubPayments\Models\PayableService;
 use M35\HubPayments\Services\StripePaymentLinkService;
@@ -20,6 +21,7 @@ class ServiceController extends Controller
         $services = PayableService::query()
             ->where('tenant_id', $tenant->id)
             ->where('type', 'service')
+            ->where('status', '!=', 'archived')
             ->latest()
             ->get();
 
@@ -28,12 +30,7 @@ class ServiceController extends Controller
             'services' => $services,
             'stripeConfigured' => TenantStripeConfig::isConfigured($tenant),
             'stripeMasked' => TenantStripeConfig::maskedSecret($tenant),
-            'quota' => [
-                'included' => TenantServiceQuota::includedLimit($tenant),
-                'used' => TenantServiceQuota::usedCount($tenant),
-                'remaining' => TenantServiceQuota::remaining($tenant),
-                'paid_price' => TenantServiceQuota::paidUnlockPrice($tenant),
-            ],
+            'quota' => $this->quotaFor($tenant),
         ]);
     }
 
@@ -63,12 +60,7 @@ class ServiceController extends Controller
 
         return view('hub-payments::admin.services.create', [
             'tenant' => $tenant,
-            'quota' => [
-                'included' => TenantServiceQuota::includedLimit($tenant),
-                'used' => TenantServiceQuota::usedCount($tenant),
-                'remaining' => TenantServiceQuota::remaining($tenant),
-                'paid_price' => TenantServiceQuota::paidUnlockPrice($tenant),
-            ],
+            'quota' => $this->quotaFor($tenant),
         ]);
     }
 
@@ -91,11 +83,13 @@ class ServiceController extends Controller
             'title' => ['required', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:2000'],
             'amount' => ['required', 'numeric', 'min:0.50', 'max:99999'],
+            'cover_image' => ['nullable', 'image', 'max:5120'],
             'published_to_site' => ['boolean'],
         ]);
 
         $amountCents = (int) round(((float) $validated['amount']) * 100);
         $secretKey = TenantStripeConfig::secretKey($tenant);
+        $coverImagePath = $this->storeCoverImage($request, $tenant);
 
         try {
             $stripe = new StripePaymentLinkService($secretKey);
@@ -104,8 +98,13 @@ class ServiceController extends Controller
                 $validated['description'] ?? null,
                 $amountCents,
                 config('hub-payments.currency', 'eur'),
+                $coverImagePath ? url(Storage::disk('public')->url($coverImagePath)) : null,
             );
         } catch (RuntimeException $e) {
+            if ($coverImagePath) {
+                Storage::disk('public')->delete($coverImagePath);
+            }
+
             return back()
                 ->withInput()
                 ->withErrors(['stripe' => $e->getMessage()]);
@@ -118,6 +117,7 @@ class ServiceController extends Controller
             'title' => $validated['title'],
             'slug' => PayableService::uniqueSlugForTenant($tenant->id, $validated['title']),
             'description' => $validated['description'] ?? null,
+            'cover_image_path' => $coverImagePath,
             'amount_cents' => $amountCents,
             'currency' => config('hub-payments.currency', 'eur'),
             'stripe_product_id' => $result['product_id'],
@@ -130,7 +130,7 @@ class ServiceController extends Controller
 
         return redirect()
             ->route('admin.services.show', [$tenant, $service])
-            ->with('status', 'Link di pagamento creato su Stripe (carta + Klarna se attivo sul conto).');
+            ->with('status', 'Link di pagamento creato su Stripe (carta + metodi extra attivi sul conto: Klarna, Scalapay, ecc.).');
     }
 
     public function show(Tenant $tenant, PayableService $service): View
@@ -138,6 +138,148 @@ class ServiceController extends Controller
         abort_unless($service->tenant_id === $tenant->id && $service->type === 'service', 404);
 
         return view('hub-payments::admin.services.show', compact('tenant', 'service'));
+    }
+
+    public function edit(Tenant $tenant, PayableService $service): View
+    {
+        abort_unless($service->tenant_id === $tenant->id && $service->type === 'service', 404);
+
+        return view('hub-payments::admin.services.edit', compact('tenant', 'service'));
+    }
+
+    public function update(Request $request, Tenant $tenant, PayableService $service): RedirectResponse
+    {
+        abort_unless($service->tenant_id === $tenant->id && $service->type === 'service', 404);
+
+        if (! TenantStripeConfig::isConfigured($tenant)) {
+            return back()->withErrors(['stripe' => 'Configura le chiavi Stripe prima di modificare il servizio.']);
+        }
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:120'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'amount' => ['required', 'numeric', 'min:0.50', 'max:99999'],
+            'cover_image' => ['nullable', 'image', 'max:5120'],
+            'remove_cover_image' => ['boolean'],
+            'published_to_site' => ['boolean'],
+        ]);
+
+        $amountCents = (int) round(((float) $validated['amount']) * 100);
+        $secretKey = TenantStripeConfig::secretKey($tenant);
+        $coverImagePath = $service->cover_image_path;
+
+        if ($request->boolean('remove_cover_image') && $coverImagePath) {
+            Storage::disk('public')->delete($coverImagePath);
+            $coverImagePath = null;
+        }
+
+        if ($request->hasFile('cover_image')) {
+            if ($coverImagePath) {
+                Storage::disk('public')->delete($coverImagePath);
+            }
+
+            $coverImagePath = $this->storeCoverImage($request, $tenant);
+        }
+
+        $stripeImageUrl = $coverImagePath ? url(Storage::disk('public')->url($coverImagePath)) : null;
+
+        try {
+            $stripe = new StripePaymentLinkService($secretKey);
+
+            if ($service->stripe_product_id) {
+                $stripe->updateProduct(
+                    $service->stripe_product_id,
+                    $validated['title'],
+                    $validated['description'] ?? null,
+                    $stripeImageUrl,
+                );
+            }
+
+            $priceChanged = $amountCents !== $service->amount_cents;
+            $newPriceId = $service->stripe_price_id;
+
+            if ($priceChanged && $service->stripe_product_id) {
+                $price = $stripe->createPrice(
+                    $service->stripe_product_id,
+                    $amountCents,
+                    $service->currency,
+                );
+                $newPriceId = $price['id'];
+            }
+
+            if ($priceChanged && $service->stripe_payment_link_id && $newPriceId) {
+                $stripe->updatePaymentLinkPrice($service->stripe_payment_link_id, $newPriceId);
+            }
+
+            $titleChanged = $validated['title'] !== $service->title;
+
+            $service->update([
+                'title' => $validated['title'],
+                'slug' => $titleChanged
+                    ? PayableService::uniqueSlugForTenant($tenant->id, $validated['title'], $service->id)
+                    : $service->slug,
+                'description' => $validated['description'] ?? null,
+                'cover_image_path' => $coverImagePath,
+                'amount_cents' => $amountCents,
+                'stripe_price_id' => $newPriceId,
+                'published_to_site' => $request->boolean('published_to_site'),
+            ]);
+        } catch (RuntimeException $e) {
+            return back()
+                ->withInput()
+                ->withErrors(['stripe' => $e->getMessage()]);
+        }
+
+        return redirect()
+            ->route('admin.services.show', [$tenant, $service])
+            ->with('status', 'Servizio aggiornato su Hub e Stripe.');
+    }
+
+    public function destroy(Tenant $tenant, PayableService $service): RedirectResponse
+    {
+        abort_unless($service->tenant_id === $tenant->id && $service->type === 'service', 404);
+
+        if (TenantStripeConfig::isConfigured($tenant) && $service->stripe_payment_link_id) {
+            try {
+                (new StripePaymentLinkService(TenantStripeConfig::secretKey($tenant)))
+                    ->deactivatePaymentLink($service->stripe_payment_link_id);
+            } catch (RuntimeException) {
+                // Il link può essere già disattivato manualmente su Stripe.
+            }
+        }
+
+        if ($service->cover_image_path) {
+            Storage::disk('public')->delete($service->cover_image_path);
+        }
+
+        $service->update(['status' => 'archived']);
+
+        return redirect()
+            ->route('admin.services.index', $tenant)
+            ->with('status', 'Servizio archiviato e link Stripe disattivato.');
+    }
+
+    public function refreshPaymentMethods(Tenant $tenant, PayableService $service): RedirectResponse
+    {
+        abort_unless($service->tenant_id === $tenant->id && $service->type === 'service', 404);
+
+        if (! TenantStripeConfig::isConfigured($tenant) || ! $service->stripe_price_id || ! $service->stripe_payment_link_id) {
+            return back()->withErrors(['stripe' => 'Servizio non collegato correttamente a Stripe.']);
+        }
+
+        try {
+            $stripe = new StripePaymentLinkService(TenantStripeConfig::secretKey($tenant));
+            $link = $stripe->replacePaymentLink($service->stripe_payment_link_id, $service->stripe_price_id);
+
+            $service->update([
+                'stripe_payment_link_id' => $link['id'],
+                'payment_url' => $link['url'],
+            ]);
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['stripe' => $e->getMessage()]);
+        }
+
+        return back()->with('status', 'Nuovo link generato con i metodi di pagamento attivi su Stripe. Aggiorna il link inviato ai clienti.');
     }
 
     public function togglePublish(Tenant $tenant, PayableService $service): RedirectResponse
@@ -149,5 +291,28 @@ class ServiceController extends Controller
         return back()->with('status', $service->published_to_site
             ? 'Servizio visibile sul sito (API).'
             : 'Servizio nascosto dal sito.');
+    }
+
+    /** @return array{included: int, used: int, remaining: int, paid_price: int} */
+    private function quotaFor(Tenant $tenant): array
+    {
+        return [
+            'included' => TenantServiceQuota::includedLimit($tenant),
+            'used' => TenantServiceQuota::usedCount($tenant),
+            'remaining' => TenantServiceQuota::remaining($tenant),
+            'paid_price' => TenantServiceQuota::paidUnlockPrice($tenant),
+        ];
+    }
+
+    private function storeCoverImage(Request $request, Tenant $tenant): ?string
+    {
+        if (! $request->hasFile('cover_image')) {
+            return null;
+        }
+
+        return $request->file('cover_image')->store(
+            'services/'.$tenant->slug,
+            'public',
+        );
     }
 }

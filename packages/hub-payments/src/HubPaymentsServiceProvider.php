@@ -2,6 +2,7 @@
 
 namespace M35\HubPayments;
 
+use App\Models\Tenant;
 use Illuminate\Support\Facades\Route;
 use M35\HubPayments\Http\Controllers\Admin\ServiceController;
 use M35\HubPayments\Http\Controllers\Api\ServiceApiController;
@@ -33,6 +34,10 @@ class HubPaymentsServiceProvider extends ServiceProvider
         Route::bind('service', function (string $value, $route) {
             $tenant = $route->parameter('tenant');
 
+            if (! $tenant instanceof Tenant) {
+                $tenant = Tenant::where('slug', $tenant)->firstOrFail();
+            }
+
             return PayableService::query()
                 ->where('tenant_id', $tenant->id)
                 ->where('slug', $value)
@@ -51,7 +56,11 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
                 Route::post('/services/stripe-settings', [ServiceController::class, 'storeStripeSettings'])->name('services.stripe-settings');
                 Route::get('/services/{service}', [ServiceController::class, 'show'])->name('services.show');
+                Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
+                Route::put('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
+                Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
                 Route::post('/services/{service}/publish', [ServiceController::class, 'togglePublish'])->name('services.publish');
+                Route::post('/services/{service}/refresh-payment-methods', [ServiceController::class, 'refreshPaymentMethods'])->name('services.refresh-payment-methods');
             });
 
         Route::prefix('api/v1')

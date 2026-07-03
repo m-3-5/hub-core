@@ -7,7 +7,7 @@
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
         <div>
             <h1 style="margin:0 0 6px">Servizi a pagamento</h1>
-            <p style="margin:0;color:#666">Crea link Stripe (carta + Klarna) per trattamenti e servizi del salone.</p>
+            <p style="margin:0;color:#666">Crea link Stripe (carta + metodi extra attivi sul conto) per trattamenti e servizi del salone.</p>
         </div>
         @if ($stripeConfigured)
             <a class="btn" href="{{ route('admin.services.create', $tenant) }}">+ Nuovo servizio</a>

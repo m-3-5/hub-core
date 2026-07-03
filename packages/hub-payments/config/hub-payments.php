@@ -10,8 +10,6 @@ return [
 
     'currency' => env('HUB_PAYMENTS_CURRENCY', 'eur'),
 
-    'payment_methods' => ['card', 'klarna'],
-
     'types' => [
         'service' => 'Servizio',
         'promo' => 'Promo a pagamento',

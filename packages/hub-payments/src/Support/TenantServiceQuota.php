@@ -18,6 +18,7 @@ class TenantServiceQuota
         return PayableService::query()
             ->where('tenant_id', $tenant->id)
             ->where('type', 'service')
+            ->where('status', '!=', 'archived')
             ->count();
     }
 

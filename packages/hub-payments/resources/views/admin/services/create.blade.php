@@ -5,7 +5,7 @@
 @section('content')
 <div class="card" style="max-width:640px">
     <h1 style="margin:0 0 8px">Nuovo servizio a pagamento</h1>
-    <p style="margin:0 0 20px;color:#666">Genera un link Stripe con carta e Klarna (se attivo sul conto del salone).</p>
+    <p style="margin:0 0 20px;color:#666">Genera un link Stripe con carta e gli altri metodi attivi sul conto del salone (Klarna, Scalapay, ecc.).</p>
 
     <div class="alert" style="background:#eef2ff;color:#312e81;margin-bottom:20px">
         Servizi demo rimasti: <strong>{{ $quota['remaining'] }}</strong> su {{ $quota['included'] }}.
@@ -18,7 +18,7 @@
         <p class="error">{{ $message }}</p>
     @enderror
 
-    <form method="POST" action="{{ route('admin.services.store', $tenant) }}">
+    <form method="POST" action="{{ route('admin.services.store', $tenant) }}" enctype="multipart/form-data">
         @csrf
         <label for="title">Titolo servizio *</label>
         <input type="text" name="title" id="title" value="{{ old('title') }}" required maxlength="120"
@@ -31,6 +31,9 @@
         <label for="amount">Prezzo (€) *</label>
         <input type="number" name="amount" id="amount" value="{{ old('amount') }}" required min="0.5" step="0.01"
                placeholder="45.00" style="width:100%;padding:10px;margin-bottom:16px;border:1px solid #ddd;border-radius:8px">
+
+        <label for="cover_image">Foto servizio (opzionale)</label>
+        <input type="file" name="cover_image" id="cover_image" accept="image/*" style="margin-bottom:16px">
 
         <label style="display:flex;align-items:center;gap:8px;margin-bottom:20px;font-weight:500">
             <input type="checkbox" name="published_to_site" value="1" @checked(old('published_to_site'))>

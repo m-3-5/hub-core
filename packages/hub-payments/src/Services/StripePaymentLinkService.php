@@ -18,18 +18,10 @@ class StripePaymentLinkService
         ?string $description,
         int $amountCents,
         string $currency = 'eur',
+        ?string $imageUrl = null,
     ): array {
-        $product = $this->post('/v1/products', array_filter([
-            'name' => $title,
-            'description' => $description,
-        ]));
-
-        $price = $this->post('/v1/prices', [
-            'product' => $product['id'],
-            'unit_amount' => $amountCents,
-            'currency' => strtolower($currency),
-        ]);
-
+        $product = $this->createProduct($title, $description, $imageUrl);
+        $price = $this->createPrice($product['id'], $amountCents, $currency);
         $link = $this->createPaymentLinkForPrice($price['id']);
 
         return [
@@ -38,6 +30,81 @@ class StripePaymentLinkService
             'payment_link_id' => $link['id'],
             'url' => $link['url'],
         ];
+    }
+
+    public function updateProduct(string $productId, string $title, ?string $description, ?string $imageUrl = null): void
+    {
+        $fields = array_filter([
+            'name' => $title,
+            'description' => $description,
+        ], fn ($value) => $value !== null);
+
+        if ($imageUrl !== null) {
+            $fields['images[0]'] = $imageUrl;
+        }
+
+        $this->post('/v1/products/'.$productId, $fields);
+    }
+
+    /**
+     * @return array{id: string, unit_amount: int}
+     */
+    public function createPrice(string $productId, int $amountCents, string $currency = 'eur'): array
+    {
+        return $this->post('/v1/prices', [
+            'product' => $productId,
+            'unit_amount' => $amountCents,
+            'currency' => strtolower($currency),
+        ]);
+    }
+
+    public function updatePaymentLinkPrice(string $paymentLinkId, string $priceId): void
+    {
+        $this->post('/v1/payment_links/'.$paymentLinkId, [
+            'line_items[0][price]' => $priceId,
+            'line_items[0][quantity]' => 1,
+        ]);
+    }
+
+    public function deactivatePaymentLink(string $paymentLinkId): void
+    {
+        $this->post('/v1/payment_links/'.$paymentLinkId, [
+            'active' => 'false',
+        ]);
+    }
+
+    /**
+     * @return array{id: string, url: string}
+     */
+    public function replacePaymentLink(string $oldPaymentLinkId, string $priceId): array
+    {
+        $link = $this->createPaymentLinkForPrice($priceId);
+
+        try {
+            $this->deactivatePaymentLink($oldPaymentLinkId);
+        } catch (RuntimeException) {
+            // Il vecchio link può essere già disattivato o rimosso da Stripe.
+        }
+
+        return [
+            'id' => $link['id'],
+            'url' => $link['url'],
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function createProduct(string $title, ?string $description, ?string $imageUrl = null): array
+    {
+        $fields = array_filter([
+            'name' => $title,
+            'description' => $description,
+        ]);
+
+        if ($imageUrl) {
+            $fields['images[0]'] = $imageUrl;
+        }
+
+        return $this->post('/v1/products', $fields);
     }
 
     /** @return array<string, mixed> */

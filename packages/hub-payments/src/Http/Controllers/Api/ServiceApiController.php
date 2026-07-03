@@ -32,6 +32,7 @@ class ServiceApiController extends Controller
                 'title' => $s->title,
                 'slug' => $s->slug,
                 'description' => $s->description,
+                'cover_image_url' => $s->coverImageUrl(),
                 'amount_cents' => $s->amount_cents,
                 'amount_label' => $s->amountEuros().' €',
                 'currency' => $s->currency,

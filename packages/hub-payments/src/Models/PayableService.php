@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PayableService extends Model
@@ -17,6 +18,7 @@ class PayableService extends Model
         'title',
         'slug',
         'description',
+        'cover_image_path',
         'amount_cents',
         'currency',
         'stripe_product_id',
@@ -56,6 +58,30 @@ class PayableService extends Model
     public function amountEuros(): string
     {
         return number_format($this->amount_cents / 100, 2, ',', '.');
+    }
+
+    public function coverImageUrl(): ?string
+    {
+        if (! $this->cover_image_path) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->cover_image_path);
+    }
+
+    public function stripeImageUrl(): ?string
+    {
+        $url = $this->coverImageUrl();
+
+        if (! $url) {
+            return null;
+        }
+
+        if (str_starts_with($url, 'http')) {
+            return $url;
+        }
+
+        return url($url);
     }
 
     public function isActive(): bool
