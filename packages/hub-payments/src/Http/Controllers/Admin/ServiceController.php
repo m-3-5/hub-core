@@ -4,6 +4,7 @@ namespace M35\HubPayments\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Services\WordPressWebhookDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -128,6 +129,10 @@ class ServiceController extends Controller
             'published_to_site' => $request->boolean('published_to_site'),
         ]);
 
+        if ($service->published_to_site) {
+            app(WordPressWebhookDispatcher::class)->servicePublished($tenant, $service);
+        }
+
         return redirect()
             ->route('admin.services.show', [$tenant, $service])
             ->with('status', 'Link di pagamento creato su Stripe (carta + metodi extra attivi sul conto: Klarna, Scalapay, ecc.).');
@@ -230,6 +235,10 @@ class ServiceController extends Controller
                 ->withErrors(['stripe' => $e->getMessage()]);
         }
 
+        if ($service->published_to_site) {
+            app(WordPressWebhookDispatcher::class)->servicesSync($tenant);
+        }
+
         return redirect()
             ->route('admin.services.show', [$tenant, $service])
             ->with('status', 'Servizio aggiornato su Hub e Stripe.');
@@ -238,6 +247,8 @@ class ServiceController extends Controller
     public function destroy(Tenant $tenant, PayableService $service): RedirectResponse
     {
         abort_unless($service->tenant_id === $tenant->id && $service->type === 'service', 404);
+
+        $wasPublished = $service->published_to_site;
 
         if (TenantStripeConfig::isConfigured($tenant) && $service->stripe_payment_link_id) {
             try {
@@ -252,7 +263,11 @@ class ServiceController extends Controller
             Storage::disk('public')->delete($service->cover_image_path);
         }
 
-        $service->update(['status' => 'archived']);
+        $service->update(['status' => 'archived', 'published_to_site' => false]);
+
+        if ($wasPublished) {
+            app(WordPressWebhookDispatcher::class)->servicesSync($tenant);
+        }
 
         return redirect()
             ->route('admin.services.index', $tenant)
@@ -288,8 +303,10 @@ class ServiceController extends Controller
 
         $service->update(['published_to_site' => ! $service->published_to_site]);
 
+        app(WordPressWebhookDispatcher::class)->servicesSync($tenant);
+
         return back()->with('status', $service->published_to_site
-            ? 'Servizio visibile sul sito (API).'
+            ? 'Servizio visibile su inm35.it e beautyofimage.com.'
             : 'Servizio nascosto dal sito.');
     }
 

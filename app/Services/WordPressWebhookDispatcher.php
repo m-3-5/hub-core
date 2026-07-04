@@ -7,40 +7,63 @@ use App\Models\Tenant;
 use App\Support\PromoPublicPresenter;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use M35\HubPayments\Models\PayableService;
 
 class WordPressWebhookDispatcher
 {
     public function promoPublished(Tenant $tenant, Promo $promo): void
     {
-        $this->dispatch('promo.published', $tenant, $promo);
+        $promo->loadMissing('tenant');
+
+        $this->dispatch('promo.published', $tenant, [
+            'promos_index_url' => route('api.promos.index', ['tenantSlug' => $tenant->slug]),
+            'promo' => PromoPublicPresenter::promo($promo),
+            'featured' => PromoPublicPresenter::promo($promo),
+        ]);
     }
 
     public function promosSync(Tenant $tenant): void
     {
-        $this->dispatch('promos.sync', $tenant, $tenant->activePromo());
+        $promo = $tenant->activePromo();
+
+        $this->dispatch('promos.sync', $tenant, [
+            'promos_index_url' => route('api.promos.index', ['tenantSlug' => $tenant->slug]),
+            ...($promo ? [
+                'promo' => PromoPublicPresenter::promo($promo),
+                'featured' => PromoPublicPresenter::promo($promo),
+            ] : []),
+        ]);
     }
 
-    public function dispatch(string $event, Tenant $tenant, ?Promo $promo): void
+    public function servicePublished(Tenant $tenant, PayableService $service): void
     {
-        $url = config('services.hub.webhook_url');
+        $this->dispatch('service.published', $tenant, [
+            'services_index_url' => route('api.services.index', ['tenantSlug' => $tenant->slug]),
+        ], config('services.hub.services_webhook_url'));
+    }
+
+    public function servicesSync(Tenant $tenant): void
+    {
+        $this->dispatch('services.sync', $tenant, [
+            'services_index_url' => route('api.services.index', ['tenantSlug' => $tenant->slug]),
+        ], config('services.hub.services_webhook_url'));
+    }
+
+    /** @param  array<string, mixed>  $extra */
+    private function dispatch(string $event, Tenant $tenant, array $extra = [], ?string $urlOverride = null): void
+    {
+        $url = $urlOverride ?? config('services.hub.webhook_url');
         $secret = config('services.hub.webhook_secret');
 
         if (! $url || ! $secret) {
             return;
         }
 
-        $payload = [
+        $payload = array_merge([
             'event' => $event,
             'tenant' => PromoPublicPresenter::tenant($tenant),
-            'promos_index_url' => route('api.promos.index', ['tenantSlug' => $tenant->slug]),
             'synced_at' => now()->toIso8601String(),
-        ];
-
-        if ($promo) {
-            $promo->loadMissing('tenant');
-            $payload['promo'] = PromoPublicPresenter::promo($promo);
-            $payload['featured'] = PromoPublicPresenter::promo($promo);
-        }
+        ], $extra);
 
         $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $signature = hash_hmac('sha256', $body, $secret);

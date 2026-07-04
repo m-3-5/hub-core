@@ -54,6 +54,7 @@ return [
     'hub' => [
         'webhook_url' => env('HUB_WEBHOOK_URL'),
         'webhook_secret' => env('HUB_WEBHOOK_SECRET'),
+        'services_webhook_url' => env('HUB_SERVICES_WEBHOOK_URL'),
     ],
 
 ];

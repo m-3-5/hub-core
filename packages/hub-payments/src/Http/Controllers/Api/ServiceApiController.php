@@ -37,6 +37,7 @@ class ServiceApiController extends Controller
                 'amount_label' => $s->amountEuros().' €',
                 'currency' => $s->currency,
                 'payment_url' => $s->payment_url,
+                'public_url' => route('services.public.show', [$tenant, $s]),
                 'status' => $s->status,
             ])->values(),
             'meta' => [

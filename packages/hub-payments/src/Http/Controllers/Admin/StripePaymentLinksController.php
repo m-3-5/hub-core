@@ -4,6 +4,7 @@ namespace M35\HubPayments\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Services\WordPressWebhookDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use M35\HubPayments\Models\PayableService;
@@ -82,6 +83,8 @@ class StripePaymentLinksController extends Controller
             'published_to_site' => true,
         ]);
 
+        app(WordPressWebhookDispatcher::class)->servicePublished($tenant, $service);
+
         return redirect()
             ->route('admin.services.edit', [$tenant, $service])
             ->with('status', 'Servizio importato e pubblicato sul sito. Aggiungi una foto se vuoi.');
@@ -99,10 +102,15 @@ class StripePaymentLinksController extends Controller
             return back()->withErrors(['stripe' => $e->getMessage()]);
         }
 
-        PayableService::query()
+        $updated = PayableService::query()
             ->where('tenant_id', $tenant->id)
             ->where('stripe_payment_link_id', $link)
+            ->where('published_to_site', true)
             ->update(['published_to_site' => false]);
+
+        if ($updated > 0) {
+            app(WordPressWebhookDispatcher::class)->servicesSync($tenant);
+        }
 
         return back()->with('status', 'Link di pagamento disattivato.');
     }
