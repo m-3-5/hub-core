@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use M35\HubPayments\Http\Controllers\Admin\ServiceController;
 use M35\HubPayments\Http\Controllers\Admin\StripePaymentLinksController;
 use M35\HubPayments\Http\Controllers\Api\ServiceApiController;
+use M35\HubPayments\Http\Controllers\Public\ServicePublicController;
 use M35\HubPayments\Models\PayableService;
 use Illuminate\Support\ServiceProvider;
 
@@ -64,12 +65,21 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 Route::post('/services/{service}/refresh-payment-methods', [ServiceController::class, 'refreshPaymentMethods'])->name('services.refresh-payment-methods');
                 Route::get('/payment-links', [StripePaymentLinksController::class, 'index'])->name('services.payment-links');
                 Route::post('/payment-links/{link}/deactivate', [StripePaymentLinksController::class, 'deactivate'])->name('services.payment-links.deactivate');
+                Route::post('/payment-links/{link}/import', [StripePaymentLinksController::class, 'import'])->name('services.payment-links.import');
             });
 
         Route::prefix('api/v1')
             ->name('api.')
             ->group(function () {
                 Route::get('{tenantSlug}/services', [ServiceApiController::class, 'index'])->name('services.index');
+            });
+
+        Route::middleware('web')
+            ->group(function () {
+                Route::get('/s/{tenant}', [ServicePublicController::class, 'archive'])->name('services.public.archive');
+                Route::get('/s/{tenant}/{service}', [ServicePublicController::class, 'show'])->name('services.public.show');
+                Route::get('/client/{tenant}/services/{service}/embed', [ServicePublicController::class, 'embed'])->name('client.services.embed');
+                Route::get('/client/{tenant}/services/{service}/iframe-snippet', [ServicePublicController::class, 'iframeSnippet'])->name('client.services.iframe');
             });
     }
 }

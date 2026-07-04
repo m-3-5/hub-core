@@ -81,16 +81,31 @@ class StripePaymentLinkService
         $links = $this->get('/v1/payment_links', ['limit' => 100])['data'] ?? [];
 
         foreach ($links as &$link) {
-            try {
-                $link['line_items']['data'] = $this->get('/v1/payment_links/'.$link['id'].'/line_items', [
-                    'expand' => ['data.price.product'],
-                ])['data'] ?? [];
-            } catch (RuntimeException) {
-                $link['line_items']['data'] = [];
-            }
+            $link['line_items']['data'] = $this->fetchLineItems($link['id']);
         }
 
         return $links;
+    }
+
+    /** @return array<string, mixed> */
+    public function getPaymentLink(string $paymentLinkId): array
+    {
+        $link = $this->get('/v1/payment_links/'.$paymentLinkId);
+        $link['line_items']['data'] = $this->fetchLineItems($paymentLinkId);
+
+        return $link;
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    private function fetchLineItems(string $paymentLinkId): array
+    {
+        try {
+            return $this->get('/v1/payment_links/'.$paymentLinkId.'/line_items', [
+                'expand' => ['data.price.product'],
+            ])['data'] ?? [];
+        } catch (RuntimeException) {
+            return [];
+        }
     }
 
     /**

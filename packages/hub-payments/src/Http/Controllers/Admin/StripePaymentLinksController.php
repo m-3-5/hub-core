@@ -21,11 +21,11 @@ class StripePaymentLinksController extends Controller
                 ->withErrors(['stripe' => 'Configura prima le chiavi Stripe del salone.']);
         }
 
-        $linkedPaymentLinkIds = PayableService::query()
+        $linkedServices = PayableService::query()
             ->where('tenant_id', $tenant->id)
             ->whereNotNull('stripe_payment_link_id')
-            ->pluck('stripe_payment_link_id')
-            ->all();
+            ->get()
+            ->keyBy('stripe_payment_link_id');
 
         try {
             $paymentLinks = (new StripePaymentLinkService(TenantStripeConfig::secretKey($tenant)))->listPaymentLinks();
@@ -35,11 +35,56 @@ class StripePaymentLinksController extends Controller
                 ->withErrors(['stripe' => $e->getMessage()]);
         }
 
+        $paymentLinks = array_values(array_filter($paymentLinks, fn (array $link) => $link['active'] ?? false));
+
         return view('hub-payments::admin.services.payment-links', [
             'tenant' => $tenant,
             'paymentLinks' => $paymentLinks,
-            'linkedPaymentLinkIds' => $linkedPaymentLinkIds,
+            'linkedServices' => $linkedServices,
         ]);
+    }
+
+    public function import(Tenant $tenant, string $link): RedirectResponse
+    {
+        if (! TenantStripeConfig::isConfigured($tenant)) {
+            return back()->withErrors(['stripe' => 'Configura prima le chiavi Stripe del salone.']);
+        }
+
+        try {
+            $data = (new StripePaymentLinkService(TenantStripeConfig::secretKey($tenant)))->getPaymentLink($link);
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['stripe' => $e->getMessage()]);
+        }
+
+        $price = $data['line_items']['data'][0]['price'] ?? null;
+        $product = is_array($price) ? ($price['product'] ?? null) : null;
+
+        if (! is_array($price) || ! is_array($product)) {
+            return back()->withErrors(['stripe' => 'Impossibile leggere prezzo e prodotto per questo link.']);
+        }
+
+        $title = $product['name'] ?? 'Servizio Stripe';
+
+        $service = PayableService::create([
+            'tenant_id' => $tenant->id,
+            'created_by' => auth()->id(),
+            'type' => 'service',
+            'title' => $title,
+            'slug' => PayableService::uniqueSlugForTenant($tenant->id, $title),
+            'description' => $product['description'] ?? null,
+            'amount_cents' => $price['unit_amount'] ?? 0,
+            'currency' => $price['currency'] ?? config('hub-payments.currency', 'eur'),
+            'stripe_product_id' => $product['id'] ?? null,
+            'stripe_price_id' => $price['id'] ?? null,
+            'stripe_payment_link_id' => $data['id'],
+            'payment_url' => $data['url'],
+            'status' => 'active',
+            'published_to_site' => true,
+        ]);
+
+        return redirect()
+            ->route('admin.services.edit', [$tenant, $service])
+            ->with('status', 'Servizio importato e pubblicato sul sito. Aggiungi una foto se vuoi.');
     }
 
     public function deactivate(Tenant $tenant, string $link): RedirectResponse

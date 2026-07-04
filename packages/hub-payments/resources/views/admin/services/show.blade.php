@@ -48,6 +48,17 @@
         <p style="margin:12px 0 0;font-size:.85rem;color:#666">Il cliente può pagare con carta o con gli altri metodi attivi sul vostro Stripe (Klarna, Scalapay, ecc.).</p>
     </div>
 
+    @if ($service->published_to_site)
+        <div style="background:#f6f7fb;border-radius:12px;padding:20px;margin:24px 0">
+            <label style="font-size:.85rem;color:#666">Pubblicato sul sito</label>
+            <p style="margin:8px 0 12px;font-size:.9rem;color:#666">Visibile su inm35.it e incorporabile su {{ $tenant->website ?? 'beautyofimage.com' }} tramite iframe.</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <a class="btn btn-secondary" target="_blank" rel="noopener" href="{{ route('services.public.show', [$tenant, $service]) }}">Vedi pagina pubblica</a>
+                <a class="btn btn-secondary" target="_blank" rel="noopener" href="{{ route('client.services.iframe', [$tenant, $service]) }}">Apri snippet da incollare sul sito</a>
+            </div>
+        </div>
+    @endif
+
     <form method="POST" action="{{ route('admin.services.publish', [$tenant, $service]) }}" style="margin-bottom:20px;display:inline">
         @csrf
         <button type="submit" class="btn btn-secondary">
