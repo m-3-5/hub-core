@@ -78,10 +78,19 @@ class StripePaymentLinkService
      */
     public function listPaymentLinks(): array
     {
-        return $this->get('/v1/payment_links', [
-            'limit' => 100,
-            'expand' => ['data.line_items.data.price.product'],
-        ])['data'] ?? [];
+        $links = $this->get('/v1/payment_links', ['limit' => 100])['data'] ?? [];
+
+        foreach ($links as &$link) {
+            try {
+                $link['line_items']['data'] = $this->get('/v1/payment_links/'.$link['id'].'/line_items', [
+                    'expand' => ['data.price.product'],
+                ])['data'] ?? [];
+            } catch (RuntimeException) {
+                $link['line_items']['data'] = [];
+            }
+        }
+
+        return $links;
     }
 
     /**

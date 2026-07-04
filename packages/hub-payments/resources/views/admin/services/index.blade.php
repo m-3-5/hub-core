@@ -20,6 +20,9 @@
     @if (session('status'))
         <p class="alert">{{ session('status') }}</p>
     @endif
+    @error('stripe')
+        <p class="error">{{ $message }}</p>
+    @enderror
 
     <div class="alert" style="background:#eef2ff;color:#312e81;margin-bottom:20px">
         <strong>Demo inclusa:</strong>
