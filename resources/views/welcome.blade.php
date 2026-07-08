@@ -239,21 +239,49 @@
 
 <section class="register" id="registrazione">
     <div class="register-card">
-        <h2>Registrazione in arrivo</h2>
-        <p>Stiamo aprendo l'accesso a nuove attività e privati. Scegli il profilo che fa per te — ti avviseremo appena è attivo.</p>
+        <h2>Registra la tua azienda</h2>
+        <p>Prova gratis con {{ config('hub-payments.services_included_quota', 3) }} servizi a pagamento inclusi — poi solo €{{ config('hub-payments.services_paid_price', 9) }}/mese per continuare. Nessuna carta richiesta ora.</p>
+
+        @if (session('success'))
+            <p style="background:#e8f5e9;color:#2e7d32;padding:12px 16px;border-radius:12px;margin-bottom:20px">{{ session('success') }}</p>
+        @endif
+
+        <form method="POST" action="{{ route('registration.store') }}" style="text-align:left;display:grid;gap:14px;margin-bottom:24px">
+            @csrf
+            <div>
+                <label for="company_name" style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Nome azienda *</label>
+                <input type="text" name="company_name" id="company_name" value="{{ old('company_name') }}" required maxlength="120"
+                       style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
+                @error('company_name')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="contact_name" style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Il tuo nome *</label>
+                <input type="text" name="contact_name" id="contact_name" value="{{ old('contact_name') }}" required maxlength="120"
+                       style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
+                @error('contact_name')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="email" style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Email *</label>
+                <input type="email" name="email" id="email" value="{{ old('email') }}" required maxlength="190"
+                       style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
+                @error('email')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="phone" style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Telefono (opzionale)</label>
+                <input type="tel" name="phone" id="phone" value="{{ old('phone') }}" maxlength="30"
+                       style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
+            </div>
+            <button type="submit" class="btn btn-primary" style="border:0;cursor:pointer">Inizia la demo gratuita</button>
+        </form>
+
         <div class="register-types">
             <div class="register-type">
-                <strong>🏢 Azienda</strong>
-                <span>Centri estetici, negozi, B&B, professionisti</span>
-            </div>
-            <div class="register-type">
                 <strong>👤 Privato</strong>
-                <span>Vendi prodotti o pubblica annunci in bakeca</span>
+                <span>Vendi prodotti o pubblica annunci in bakeca — in arrivo</span>
             </div>
         </div>
         <div class="cta">
-            <a class="btn btn-primary" href="{{ route('admin.login') }}">Hai già un account? Accedi</a>
-            <a class="btn btn-secondary" href="mailto:startupm3.5@gmail.com?subject=Registrazione%20Hub%20Core">Richiedi accesso anticipato</a>
+            <a class="btn btn-secondary" href="{{ route('admin.login') }}">Hai già un account? Accedi</a>
         </div>
     </div>
 </section>

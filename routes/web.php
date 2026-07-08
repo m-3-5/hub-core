@@ -10,11 +10,16 @@ use App\Http\Controllers\ClientSiteController;
 use App\Http\Controllers\EmbedController;
 use App\Http\Controllers\PromoArchiveController;
 use App\Http\Controllers\PromoPublicController;
+use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\WelcomeController;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', WelcomeController::class)->name('welcome');
+
+Route::post('/registrati', [RegistrationController::class, 'store'])
+    ->middleware('throttle:5,10')
+    ->name('registration.store');
 
 Route::get('/auth/wp-bridge', WordPressBridgeController::class)->name('auth.wp-bridge');
 
