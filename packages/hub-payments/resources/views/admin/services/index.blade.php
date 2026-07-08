@@ -3,6 +3,33 @@
 @section('title', 'Servizi a pagamento — '.$tenant->name)
 
 @section('content')
+<style>
+    .svc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .svc-card { background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid rgba(0,0,0,.06); box-shadow: 0 6px 20px rgba(0,0,0,.06); display: flex; flex-direction: column; }
+    .svc-card__media { display: block; aspect-ratio: 4/3; background: linear-gradient(135deg,#fdf2f8,#fff); }
+    .svc-card__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .svc-card__placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: #b8879e; }
+    .svc-card__placeholder span { font-size: .75rem; }
+    .svc-card__body { padding: 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .svc-card h3 { margin: 0; font-size: 1.05rem; }
+    .svc-card h3 a { color: #1a1a2e; text-decoration: none; }
+    .svc-card__price { margin: 0 0 4px; font-weight: 700; color: #444; }
+    .svc-badge { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; width: fit-content; }
+    .svc-badge--live { background: #e8f5e9; color: #2e7d32; }
+    .svc-badge--off { background: #f1f1f4; color: #777; }
+    .svc-card__actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 10px; }
+    .svc-inline { display: contents; }
+    .svc-btn { background: #f4f4f8; color: #333; border: 0; border-radius: 999px; padding: 7px 12px; font-size: .82rem; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
+    .svc-btn:hover { background: #e9e9f0; }
+    .svc-btn--danger { background: #fdecea; color: #c62828; }
+    .svc-btn--danger:hover { background: #fbdedb; }
+    @media (max-width: 480px) {
+        .svc-grid { grid-template-columns: 1fr; }
+        .svc-card__actions { justify-content: space-between; }
+        .svc-btn { flex: 1; text-align: center; }
+    }
+</style>
+
 <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
         <div>
@@ -10,7 +37,7 @@
             <p style="margin:0;color:#666">Crea link Stripe (carta + metodi extra attivi sul conto) per trattamenti e servizi del salone.</p>
         </div>
         @if ($stripeConfigured)
-            <div style="display:flex;gap:8px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <a class="btn btn-secondary" href="{{ route('admin.services.payment-links', $tenant) }}">Link di pagamento</a>
                 <a class="btn" href="{{ route('admin.services.create', $tenant) }}">+ Nuovo servizio</a>
             </div>
@@ -57,30 +84,11 @@
     @if ($services->isEmpty())
         <p style="color:#666">Nessun servizio ancora. Crea il primo link di pagamento per un trattamento.</p>
     @else
-        <table style="width:100%;border-collapse:collapse">
-            <thead>
-                <tr style="text-align:left;border-bottom:2px solid #eee">
-                    <th style="padding:10px 8px">Servizio</th>
-                    <th style="padding:10px 8px">Prezzo</th>
-                    <th style="padding:10px 8px">Sito</th>
-                    <th style="padding:10px 8px"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($services as $service)
-                    <tr style="border-bottom:1px solid #f0f0f0">
-                        <td style="padding:12px 8px">
-                            <a href="{{ route('admin.services.show', [$tenant, $service]) }}" style="color:#1a1a2e;font-weight:600;text-decoration:none">{{ $service->title }}</a>
-                        </td>
-                        <td style="padding:12px 8px">{{ $service->amountEuros() }} €</td>
-                        <td style="padding:12px 8px">{{ $service->published_to_site ? 'Pubblicato' : '—' }}</td>
-                        <td style="padding:12px 8px;text-align:right">
-                            <a href="{{ route('admin.services.show', [$tenant, $service]) }}">Apri link →</a>
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+        <div class="svc-grid">
+            @foreach ($services as $service)
+                @include('hub-payments::admin.services._service-card', ['tenant' => $tenant, 'service' => $service])
+            @endforeach
+        </div>
     @endif
 </div>
 @endsection

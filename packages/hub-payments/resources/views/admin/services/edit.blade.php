@@ -13,7 +13,15 @@
 
     @if ($service->coverImageUrl())
         <img src="{{ $service->coverImageUrl() }}" alt="{{ $service->title }}"
-             style="width:100%;max-width:280px;border-radius:12px;margin-bottom:16px;display:block">
+             style="width:100%;max-width:280px;aspect-ratio:4/3;object-fit:cover;border-radius:12px;margin-bottom:16px;display:block">
+    @else
+        <div style="width:100%;max-width:280px;aspect-ratio:4/3;border-radius:12px;margin-bottom:16px;background:linear-gradient(135deg,#fdf2f8,#fff);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#b8879e">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 7a2 2 0 0 1 2-2h2l1.5-2h7L17 5h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>
+                <circle cx="12" cy="13" r="3.5"/>
+            </svg>
+            <span style="font-size:.8rem">Nessuna foto — verrà usata quella di default</span>
+        </div>
     @endif
 
     <form method="POST" action="{{ route('admin.services.update', [$tenant, $service]) }}" enctype="multipart/form-data">

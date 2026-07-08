@@ -27,7 +27,15 @@
 
     @if ($service->coverImageUrl())
         <img src="{{ $service->coverImageUrl() }}" alt="{{ $service->title }}"
-             style="width:100%;max-width:420px;border-radius:12px;margin-bottom:20px;display:block">
+             style="width:100%;max-width:420px;aspect-ratio:4/3;object-fit:cover;border-radius:12px;margin-bottom:20px;display:block">
+    @else
+        <div style="width:100%;max-width:420px;aspect-ratio:4/3;border-radius:12px;margin-bottom:20px;background:linear-gradient(135deg,#fdf2f8,#fff);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#b8879e">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 7a2 2 0 0 1 2-2h2l1.5-2h7L17 5h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>
+                <circle cx="12" cy="13" r="3.5"/>
+            </svg>
+            <span style="font-size:.85rem">Nessuna foto</span>
+        </div>
     @endif
 
     @if ($service->description)
@@ -51,7 +59,7 @@
     @if ($service->published_to_site)
         <div style="background:#f6f7fb;border-radius:12px;padding:20px;margin:24px 0">
             <label style="font-size:.85rem;color:#666">Pubblicato sul sito</label>
-            <p style="margin:8px 0 12px;font-size:.9rem;color:#666">Visibile su inm35.it e incorporabile su {{ $tenant->website ?? 'beautyofimage.com' }} tramite iframe.</p>
+            <p style="margin:8px 0 12px;font-size:.9rem;color:#666">Visibile su inm35.it e sincronizzato automaticamente su {{ $tenant->website ?? 'beautyofimage.com' }} (nessuna azione manuale necessaria).</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <a class="btn btn-secondary" target="_blank" rel="noopener" href="{{ route('services.public.show', [$tenant, $service]) }}">Vedi pagina pubblica</a>
                 <a class="btn btn-secondary" target="_blank" rel="noopener" href="{{ route('client.services.iframe', [$tenant, $service]) }}">Apri snippet da incollare sul sito</a>
