@@ -54,6 +54,19 @@
     @if (session('warning'))
         <div class="alert alert-warning">{{ session('warning') }}</div>
     @endif
+    @isset($tenant)
+        @if ($tenant->trialExpired())
+            <div class="alert alert-warning">
+                La demo gratuita di {{ $tenant->name }} è scaduta —
+                <a href="{{ route('admin.billing.show', $tenant) }}">abbonati per continuare</a>.
+            </div>
+        @elseif ($tenant->onTrial() && $tenant->trial_ends_at->diffInDays(now()) <= 7)
+            <div class="alert alert-warning">
+                Demo gratuita in scadenza tra {{ $tenant->trial_ends_at->diffInDays(now()) }} giorni —
+                <a href="{{ route('admin.billing.show', $tenant) }}">abbonati ora</a>.
+            </div>
+        @endif
+    @endisset
     @yield('content')
 </main>
 </body>

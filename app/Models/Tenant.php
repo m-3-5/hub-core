@@ -20,13 +20,43 @@ class Tenant extends Model
         'workspace_database',
         'workspace_url',
         'settings',
+        'trial_ends_at',
+        'subscription_status',
+        'billing_interval',
+        'stripe_customer_id',
+        'stripe_subscription_id',
     ];
 
     protected function casts(): array
     {
         return [
             'settings' => 'array',
+            'trial_ends_at' => 'datetime',
         ];
+    }
+
+    public function onTrial(): bool
+    {
+        return $this->subscription_status === 'trialing'
+            && $this->trial_ends_at
+            && $this->trial_ends_at->isFuture();
+    }
+
+    public function hasActiveSubscription(): bool
+    {
+        return $this->subscription_status === 'active';
+    }
+
+    public function trialExpired(): bool
+    {
+        return $this->subscription_status === 'trialing'
+            && $this->trial_ends_at
+            && $this->trial_ends_at->isPast();
+    }
+
+    public function needsBilling(): bool
+    {
+        return ! $this->hasActiveSubscription() && ! $this->onTrial();
     }
 
     public function getRouteKeyName(): string

@@ -27,14 +27,16 @@ class TenantWelcomeNotification extends Notification
         ], false));
 
         $included = config('hub-payments.services_included_quota', 3);
-        $price = config('hub-payments.services_paid_price', 9);
+        $monthlyPrice = config('services.hub_billing.monthly_price_eur', 29);
+        $annualPrice = config('services.hub_billing.annual_price_eur', 290);
+        $trialEnds = $this->tenant->trial_ends_at?->format('d/m/Y');
 
         return (new MailMessage)
             ->subject('Benvenuto su Hub Core — la tua demo gratuita è pronta')
             ->greeting('Ciao, '.$notifiable->name.'!')
             ->line('Grazie per aver registrato **'.$this->tenant->name.'** su Hub Core.')
-            ->line('Hai subito a disposizione una **demo gratuita** con '.$included.' servizi a pagamento inclusi (link Stripe per i tuoi trattamenti/prodotti, pubblicabili sul tuo sito in automatico).')
-            ->line('Dopo la demo, per continuare a usufruire dei servizi scontati basta un canone di **€'.$price.'/mese** — nessun impegno, nessuna carta richiesta ora.')
+            ->line('Hai subito a disposizione una **demo gratuita** con '.$included.' servizi a pagamento inclusi (link Stripe per i tuoi trattamenti/prodotti, pubblicabili sul tuo sito in automatico)'.($trialEnds ? ', valida fino al **'.$trialEnds.'**' : '').'.')
+            ->line('Dopo la demo, per continuare basta un canone di **€'.$monthlyPrice.'/mese** oppure **€'.$annualPrice.'/anno** (risparmi rispetto al mensile) — nessuna carta richiesta ora.')
             ->action('Imposta password e inizia', $url)
             ->line('Il link è valido per **'.config('auth.passwords.users.expire').' minuti**.')
             ->line('Domande? Rispondi pure a questa email.')

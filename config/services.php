@@ -57,4 +57,14 @@ return [
         'services_webhook_url' => env('HUB_SERVICES_WEBHOOK_URL'),
     ],
 
+    'hub_billing' => [
+        'secret_key' => env('HUB_STRIPE_SECRET_KEY'),
+        'webhook_secret' => env('HUB_STRIPE_WEBHOOK_SECRET'),
+        'price_monthly' => env('HUB_STRIPE_PRICE_MONTHLY'),
+        'price_annual' => env('HUB_STRIPE_PRICE_ANNUAL'),
+        'trial_days' => (int) env('HUB_TRIAL_DAYS', 30),
+        'monthly_price_eur' => (int) env('HUB_MONTHLY_PRICE_EUR', 29),
+        'annual_price_eur' => (int) env('HUB_ANNUAL_PRICE_EUR', 290),
+    ],
+
 ];

@@ -26,6 +26,8 @@ class RegistrationController extends Controller
             'slug' => $this->uniqueTenantSlug($validated['company_name']),
             'phone' => $validated['phone'] ?? null,
             'plan' => 'demo',
+            'trial_ends_at' => now()->addDays(config('services.hub_billing.trial_days', 30)),
+            'subscription_status' => 'trialing',
         ]);
 
         $user = User::create([

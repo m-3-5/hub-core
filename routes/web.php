@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AppController;
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\BillingController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PromoController;
 use App\Http\Controllers\Admin\PromoPreviewController;
@@ -61,6 +62,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/tenants/{tenant}/promos/{promo}', [PromoController::class, 'update'])->name('promos.update');
         Route::post('/tenants/{tenant}/promos/{promo}/publish', [PromoController::class, 'publish'])->name('promos.publish');
         Route::delete('/tenants/{tenant}/promos/{promo}', [PromoController::class, 'destroy'])->name('promos.destroy');
+
+        Route::get('/tenants/{tenant}/billing', [BillingController::class, 'show'])->name('billing.show');
+        Route::post('/tenants/{tenant}/billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');
     });
 });
 
