@@ -2,7 +2,12 @@
 <html lang="it">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <link rel="icon" href="/images/icon-192.png">
     <title>@yield('title', 'Hub Core Admin')</title>
     <style>
         * { box-sizing: border-box; }

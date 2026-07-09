@@ -6,6 +6,10 @@
     <meta name="theme-color" content="{{ $tenant->primary_color ?? '#6366f1' }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Hub Core">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icon-192.png">
+    <link rel="icon" href="/images/icon-192.png">
     <title>@yield('title', 'Hub') — {{ $tenant->name ?? 'Hub Core' }}</title>
     <style>
         :root {
@@ -108,5 +112,10 @@
     @endif
     @yield('content')
 </div>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+    }
+</script>
 </body>
 </html>
