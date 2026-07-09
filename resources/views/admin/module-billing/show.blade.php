@@ -20,7 +20,7 @@
                     <tr><td style="padding:4px 0;color:#666">Attivazione una tantum</td><td style="text-align:right;font-weight:600">€{{ number_format($module['activation_cents']/100,2,',','.') }}</td></tr>
                     <tr><td style="padding:4px 0;color:#666">Canone mensile</td><td style="text-align:right;font-weight:600">€{{ number_format($module['monthly_cents']/100,2,',','.') }}</td></tr>
                     <tr><td style="padding:4px 0;color:#666">Incluso al mese</td><td style="text-align:right;font-weight:600">{{ $module['included_per_month'] }}</td></tr>
-                    <tr><td style="padding:4px 0;color:#666">Extra creato da staff</td><td style="text-align:right;font-weight:600">€{{ number_format($module['extra_staff_cents']/100,2,',','.') }}</td></tr>
+                    <tr><td style="padding:4px 0;color:#666">Extra creato dallo staff M 3.5</td><td style="text-align:right;font-weight:600">€{{ number_format($module['extra_staff_cents']/100,2,',','.') }}</td></tr>
                     <tr><td style="padding:4px 0;color:#666">Extra creato dal cliente</td><td style="text-align:right;font-weight:600">€{{ number_format($module['extra_self_cents']/100,2,',','.') }}</td></tr>
                 </table>
             </div>
