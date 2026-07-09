@@ -11,7 +11,8 @@
     <title>@yield('title', 'Hub Core Admin')</title>
     <style>
         * { box-sizing: border-box; }
-        body { margin: 0; font-family: system-ui, sans-serif; background: #f6f7fb; color: #1a1a2e; }
+        body { margin: 0; font-family: system-ui, sans-serif; background: #f6f7fb; color: #1a1a2e; animation: app-fade-in .18s ease; }
+        @keyframes app-fade-in { from { opacity: 0; } to { opacity: 1; } }
         header { background: #1a1a2e; color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
         header a { color: #fff; text-decoration: none; }
         main { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
@@ -30,7 +31,7 @@
         input[type=file], input[type=password] { width: 100%; margin-bottom: 16px; }
     </style>
 </head>
-<body>
+<body class="@isset($tenant) has-bottom-nav @endisset">
 <header>
     <div>
         <strong>Hub Core</strong>
@@ -74,5 +75,6 @@
     @endisset
     @yield('content')
 </main>
+@include('layouts.partials.bottom-nav')
 </body>
 </html>

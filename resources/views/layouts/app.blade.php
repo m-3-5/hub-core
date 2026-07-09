@@ -28,7 +28,9 @@
             background: var(--bg);
             color: var(--text);
             min-height: 100dvh;
+            animation: app-fade-in .18s ease;
         }
+        @keyframes app-fade-in { from { opacity: 0; } to { opacity: 1; } }
         .app-shell { max-width: 1200px; margin: 0 auto; padding: 20px 16px 40px; }
         .app-top {
             display: flex;
@@ -105,13 +107,14 @@
         .alert { background: #dcfce7; color: #166534; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; }
     </style>
 </head>
-<body>
+<body class="@isset($tenant) has-bottom-nav @endisset">
 <div class="app-shell">
     @if (session('success'))
         <div class="alert">{{ session('success') }}</div>
     @endif
     @yield('content')
 </div>
+@include('layouts.partials.bottom-nav')
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
