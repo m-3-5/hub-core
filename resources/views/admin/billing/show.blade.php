@@ -21,7 +21,7 @@
         @if ($tenant->hasActiveSubscription())
             <p style="margin:0;color:#2e7d32;font-weight:600">✓ Abbonamento attivo ({{ $tenant->billing_interval === 'year' ? 'annuale' : 'mensile' }})</p>
         @elseif ($tenant->onTrial())
-            <p style="margin:0;font-weight:600">Demo gratuita — {{ $tenant->trial_ends_at->diffInDays(now()) }} giorni rimasti (scade il {{ $tenant->trial_ends_at->format('d/m/Y') }})</p>
+            <p style="margin:0;font-weight:600">Demo gratuita — {{ $tenant->trialDaysRemaining() }} giorni rimasti (scade il {{ $tenant->trial_ends_at->format('d/m/Y') }})</p>
         @else
             <p style="margin:0;color:#c62828;font-weight:600">Demo scaduta — abbonati per continuare a usare Hub Core</p>
         @endif

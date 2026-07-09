@@ -55,6 +55,15 @@ class Tenant extends Model
             && $this->trial_ends_at->isPast();
     }
 
+    public function trialDaysRemaining(): int
+    {
+        if (! $this->trial_ends_at || $this->trial_ends_at->isPast()) {
+            return 0;
+        }
+
+        return (int) ceil(now()->diffInDays($this->trial_ends_at, absolute: true));
+    }
+
     public function needsBilling(): bool
     {
         return ! $this->hasActiveSubscription() && ! $this->onTrial();

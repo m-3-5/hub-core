@@ -60,9 +60,9 @@
                 La demo gratuita di {{ $tenant->name }} è scaduta —
                 <a href="{{ route('admin.billing.show', $tenant) }}">abbonati per continuare</a>.
             </div>
-        @elseif ($tenant->onTrial() && $tenant->trial_ends_at->diffInDays(now()) <= 7)
+        @elseif ($tenant->onTrial() && $tenant->trialDaysRemaining() <= 7)
             <div class="alert alert-warning">
-                Demo gratuita in scadenza tra {{ $tenant->trial_ends_at->diffInDays(now()) }} giorni —
+                Demo gratuita in scadenza tra {{ $tenant->trialDaysRemaining() }} giorni —
                 <a href="{{ route('admin.billing.show', $tenant) }}">abbonati ora</a>.
             </div>
         @endif
