@@ -37,6 +37,9 @@ return [
         ],
     ],
 
+    // 'for_types' elenca a chi è rivolto il modulo (azienda, privato, ente).
+    // Se un tenant non rientra, il modulo compare comunque in home ma come suggerimento
+    // ("Solo per Aziende/Enti"), non cliccabile — vedi HubModules::forTenant().
     'modules' => [
         'promo' => [
             'key' => 'promo',
@@ -44,6 +47,7 @@ return [
             'description' => 'Volantini e landing promozionali',
             'emoji' => '✨',
             'active' => true,
+            'for_types' => ['azienda', 'privato', 'ente'],
         ],
         'services' => [
             'key' => 'services',
@@ -51,6 +55,7 @@ return [
             'description' => 'Link di pagamento Stripe per trattamenti',
             'emoji' => '💆',
             'active' => true,
+            'for_types' => ['azienda', 'ente'],
         ],
         'shop' => [
             'key' => 'shop',
@@ -58,6 +63,7 @@ return [
             'description' => 'Store e prodotti online',
             'emoji' => '🛍️',
             'active' => false,
+            'for_types' => ['azienda', 'ente'],
         ],
         'agenda' => [
             'key' => 'agenda',
@@ -65,6 +71,7 @@ return [
             'description' => 'Prenotazioni e appuntamenti',
             'emoji' => '📅',
             'active' => false,
+            'for_types' => ['azienda', 'ente'],
         ],
         'rentals' => [
             'key' => 'rentals',
@@ -72,6 +79,7 @@ return [
             'description' => 'B&B e case vacanza',
             'emoji' => '🏠',
             'active' => false,
+            'for_types' => ['azienda', 'privato', 'ente'],
         ],
         'website' => [
             'key' => 'website',
@@ -79,6 +87,7 @@ return [
             'description' => 'Sito web della tua attività',
             'emoji' => '🌐',
             'active' => false,
+            'for_types' => ['azienda', 'ente'],
         ],
         'classifieds' => [
             'key' => 'classifieds',
@@ -86,6 +95,7 @@ return [
             'description' => 'Bakeca e marketplace',
             'emoji' => '📋',
             'active' => false,
+            'for_types' => ['azienda', 'privato', 'ente'],
         ],
         'giftcard' => [
             'key' => 'giftcard',
@@ -93,6 +103,7 @@ return [
             'description' => 'Buoni regalo e sconti in card',
             'emoji' => '🎁',
             'active' => false,
+            'for_types' => ['azienda', 'ente'],
         ],
         'loyalty' => [
             'key' => 'loyalty',
@@ -100,6 +111,7 @@ return [
             'description' => 'Tessere fedeltà e sconti condivisi tra strutture',
             'emoji' => '💳',
             'active' => false,
+            'for_types' => ['azienda', 'ente'],
         ],
         'billing' => [
             'key' => 'billing',
@@ -107,6 +119,7 @@ return [
             'description' => 'Stato demo e pagamento Hub Core',
             'emoji' => '🧾',
             'active' => true,
+            'for_types' => ['azienda', 'privato', 'ente'],
         ],
     ],
 ];

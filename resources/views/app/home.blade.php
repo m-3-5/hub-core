@@ -3,10 +3,17 @@
 @section('title', 'Home')
 
 @section('content')
+@php
+    $typeLabels = ['azienda' => 'Azienda', 'privato' => 'Privato', 'ente' => 'Ente'];
+    $tenantType = $tenant->type ?: 'azienda';
+    $ownModules = collect($hubModules)->filter(fn ($m) => $m['fits_type']);
+    $otherModules = collect($hubModules)->reject(fn ($m) => $m['fits_type']);
+@endphp
+
 <div class="app-top">
     <div>
         <h1>{{ $tenant->name }}</h1>
-        <p>Cosa vuoi fare oggi?</p>
+        <p>{{ $typeLabels[$tenantType] ?? 'Azienda' }} · Cosa vuoi fare oggi?</p>
     </div>
     <div class="app-actions">
         @if (auth()->user()->isSuperAdmin())
@@ -21,7 +28,7 @@
 </div>
 
 <div class="module-grid">
-    @foreach ($hubModules as $module)
+    @foreach ($ownModules as $module)
         @if ($module['active'] && $module['url'])
             <a class="module-tile" href="{{ $module['url'] }}">
                 <div class="module-icon">{{ $module['emoji'] }}</div>
@@ -38,6 +45,23 @@
         @endif
     @endforeach
 </div>
+
+@if ($otherModules->isNotEmpty())
+    <div class="section-card" style="margin-top:24px">
+        <h2 style="margin:0 0 4px">Altre possibilità su Hub Core</h2>
+        <p style="margin:0 0 16px;color:#666;font-size:.9rem">Funzioni pensate per altri tipi di account — puoi vedere cosa offrono, non sono attivabili da qui.</p>
+        <div class="module-grid">
+            @foreach ($otherModules as $module)
+                <div class="module-tile is-disabled" aria-disabled="true">
+                    <div class="module-icon">{{ $module['emoji'] }}</div>
+                    <div class="module-label">{{ $module['label'] }}</div>
+                    <div class="module-desc">{{ $module['description'] }}</div>
+                    <span class="badge-soon">Solo per {{ implode('/', array_map(fn ($t) => $typeLabels[$t] ?? $t, $module['for_types'] ?? [])) }}</span>
+                </div>
+            @endforeach
+        </div>
+    </div>
+@endif
 
 @if ($recentPromos->isNotEmpty() || ($expiredCount ?? 0) > 0)
     <div class="section-card">
