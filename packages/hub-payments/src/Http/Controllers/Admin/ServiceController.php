@@ -4,6 +4,7 @@ namespace M35\HubPayments\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Models\TenantModuleCharge;
 use App\Services\WordPressWebhookDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -71,14 +72,7 @@ class ServiceController extends Controller
             return back()->withErrors(['stripe' => 'Configura le chiavi Stripe prima di creare un link.']);
         }
 
-        if (! TenantServiceQuota::hasIncludedSlot($tenant)) {
-            return back()
-                ->withInput()
-                ->withErrors([
-                    'quota' => 'Hai usato i '.TenantServiceQuota::includedLimit($tenant).' servizi inclusi nella demo. '
-                        .'Per crearne altri servirà il pacchetto a pagamento (€'.TenantServiceQuota::paidUnlockPrice($tenant).'/mese o per servizio — pagamento in arrivo).',
-                ]);
-        }
+        $overQuota = ! TenantServiceQuota::hasIncludedSlot($tenant);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:120'],
@@ -133,9 +127,25 @@ class ServiceController extends Controller
             app(WordPressWebhookDispatcher::class)->servicePublished($tenant, $service);
         }
 
+        $status = 'Link di pagamento creato su Stripe (carta + metodi extra attivi sul conto: Klarna, Scalapay, ecc.).';
+
+        if ($overQuota) {
+            TenantModuleCharge::create([
+                'tenant_id' => $tenant->id,
+                'module' => 'servizi',
+                'charge_type' => 'extra_item',
+                'period' => now()->format('Y-m'),
+                'description' => 'Servizio "'.$service->title.'" oltre la quota inclusa (creato dal cliente)',
+                'amount_cents' => config('module_pricing.servizi.extra_self_cents', 1200),
+                'paid' => false,
+            ]);
+
+            $status .= ' Hai superato i '.TenantServiceQuota::includedLimit($tenant).' servizi inclusi: questo è stato registrato come extra a pagamento.';
+        }
+
         return redirect()
             ->route('admin.services.show', [$tenant, $service])
-            ->with('status', 'Link di pagamento creato su Stripe (carta + metodi extra attivi sul conto: Klarna, Scalapay, ecc.).');
+            ->with('status', $status);
     }
 
     public function show(Tenant $tenant, PayableService $service): View
