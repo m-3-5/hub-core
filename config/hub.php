@@ -101,5 +101,12 @@ return [
             'emoji' => '💳',
             'active' => false,
         ],
+        'billing' => [
+            'key' => 'billing',
+            'label' => 'Abbonamento',
+            'description' => 'Stato demo e pagamento Hub Core',
+            'emoji' => '🧾',
+            'active' => true,
+        ],
     ],
 ];
