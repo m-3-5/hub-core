@@ -20,6 +20,13 @@
     <div style="background:#f6f7fb;border-radius:12px;padding:20px;margin-bottom:24px">
         @if ($tenant->hasActiveSubscription())
             <p style="margin:0;color:#2e7d32;font-weight:600">✓ Abbonamento attivo ({{ $tenant->billing_interval === 'year' ? 'annuale' : 'mensile' }})</p>
+        @elseif ($tenant->isFreeTier())
+            <p style="margin:0;color:#2e7d32;font-weight:600">✓ Piano gratuito Privato — nessuna scadenza</p>
+            <p style="margin:8px 0 0;font-size:.9rem;color:#666">
+                Incluse {{ \App\Support\TenantPromoQuota::includedLimit($tenant) }} promo al mese gratis
+                ({{ \App\Support\TenantPromoQuota::remaining($tenant) }} rimaste questo mese) —
+                oltre la quota, ogni promo extra è a pagamento (vedi registro sotto).
+            </p>
         @elseif ($tenant->onTrial())
             <p style="margin:0;font-weight:600">Demo gratuita — {{ $tenant->trialDaysRemaining() }} giorni rimasti (scade il {{ $tenant->trial_ends_at->format('d/m/Y') }})</p>
         @else
@@ -27,7 +34,9 @@
         @endif
     </div>
 
-    @if (! $configured)
+    @if ($tenant->isFreeTier())
+        {{-- Niente pulsanti abbonamento hub per i privati: il loro modello è a quota, non a canone fisso --}}
+    @elseif (! $configured)
         <p style="color:#666">La fatturazione non è ancora attiva — contatta il team Hub Core.</p>
     @elseif (! $tenant->hasActiveSubscription())
         <div style="display:grid;gap:12px;grid-template-columns:1fr 1fr">

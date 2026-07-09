@@ -53,14 +53,16 @@ class RegistrationController extends Controller
                 ->withErrors(['registration' => 'Link di conferma non valido o scaduto. Registrati di nuovo.']);
         }
 
+        $isPrivato = $pending->type === 'privato';
+
         $tenant = Tenant::create([
             'name' => $pending->name,
             'type' => $pending->type,
             'slug' => $this->uniqueTenantSlug($pending->name),
             'phone' => $pending->phone,
             'plan' => 'demo',
-            'trial_ends_at' => now()->addDays(config('services.hub_billing.trial_days', 30)),
-            'subscription_status' => 'trialing',
+            'trial_ends_at' => $isPrivato ? null : now()->addDays(config('services.hub_billing.trial_days', 30)),
+            'subscription_status' => $isPrivato ? 'free' : 'trialing',
         ]);
 
         $user = User::create([

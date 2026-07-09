@@ -48,6 +48,11 @@ class Tenant extends Model
         return $this->subscription_status === 'active';
     }
 
+    public function isFreeTier(): bool
+    {
+        return $this->subscription_status === 'free';
+    }
+
     public function trialExpired(): bool
     {
         return $this->subscription_status === 'trialing'
@@ -66,7 +71,7 @@ class Tenant extends Model
 
     public function needsBilling(): bool
     {
-        return ! $this->hasActiveSubscription() && ! $this->onTrial();
+        return ! $this->hasActiveSubscription() && ! $this->onTrial() && ! $this->isFreeTier();
     }
 
     public function getRouteKeyName(): string

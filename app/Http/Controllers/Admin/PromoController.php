@@ -6,6 +6,7 @@ use App\Exceptions\GeminiApiException;
 use App\Http\Controllers\Controller;
 use App\Models\Promo;
 use App\Models\Tenant;
+use App\Models\TenantModuleCharge;
 use App\Services\GeminiImageGenerator;
 use App\Services\GeminiPromoGenerator;
 use App\Services\PromoVisualBuilder;
@@ -147,6 +148,16 @@ class PromoController extends Controller
         if ($overQuota) {
             $flashWarning = ($flashWarning ? $flashWarning.' ' : '')
                 .'Hai superato le '.TenantPromoQuota::includedLimit($tenant).' promo incluse nel pacchetto mensile. Le promo extra saranno a pagamento.';
+
+            TenantModuleCharge::create([
+                'tenant_id' => $tenant->id,
+                'module' => 'promo',
+                'charge_type' => 'extra_item',
+                'period' => now()->format('Y-m'),
+                'description' => 'Promo "'.$promo->title.'" oltre la quota mensile gratuita (creata dal cliente)',
+                'amount_cents' => config('module_pricing.promo.extra_self_cents', 3500),
+                'paid' => false,
+            ]);
         }
 
         $redirect = redirect()
