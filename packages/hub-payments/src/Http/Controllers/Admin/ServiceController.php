@@ -8,7 +8,9 @@ use App\Models\TenantModuleCharge;
 use App\Services\WordPressWebhookDispatcher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use M35\HubPayments\Models\PayableService;
 use M35\HubPayments\Services\StripePaymentLinkService;
@@ -337,9 +339,62 @@ class ServiceController extends Controller
             return null;
         }
 
-        return $request->file('cover_image')->store(
-            'services/'.$tenant->slug,
-            'public',
-        );
+        $file = $request->file('cover_image');
+        $directory = 'services/'.$tenant->slug;
+
+        try {
+            return $this->storeCoverImageAsWebp($file, $directory);
+        } catch (\Throwable $e) {
+            return $file->store($directory, 'public');
+        }
+    }
+
+    /**
+     * Re-encodes the upload as a resized WebP so service cover photos stay light
+     * on mobile — raw phone-camera uploads were being stored as-is, up to 5MB each.
+     */
+    private function storeCoverImageAsWebp(UploadedFile $file, string $directory): string
+    {
+        $source = match ($file->getMimeType()) {
+            'image/png' => imagecreatefrompng($file->getRealPath()),
+            'image/gif' => imagecreatefromgif($file->getRealPath()),
+            'image/webp' => imagecreatefromwebp($file->getRealPath()),
+            default => imagecreatefromjpeg($file->getRealPath()),
+        };
+
+        if ($source === false) {
+            throw new RuntimeException('Formato immagine non leggibile.');
+        }
+
+        imagepalettetotruecolor($source);
+        imagealphablending($source, true);
+        imagesavealpha($source, true);
+
+        $maxWidth = 1200;
+        $width = imagesx($source);
+        $height = imagesy($source);
+
+        if ($width > $maxWidth) {
+            $newWidth = $maxWidth;
+            $newHeight = (int) round($height * ($maxWidth / $width));
+            $resized = imagecreatetruecolor($newWidth, $newHeight);
+            imagealphablending($resized, false);
+            imagesavealpha($resized, true);
+            imagecopyresampled($resized, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
+            imagedestroy($source);
+            $source = $resized;
+        }
+
+        Storage::disk('public')->makeDirectory($directory);
+        $path = $directory.'/'.Str::random(32).'.webp';
+
+        if (! imagewebp($source, Storage::disk('public')->path($path), 82)) {
+            imagedestroy($source);
+            throw new RuntimeException('Conversione WebP fallita.');
+        }
+
+        imagedestroy($source);
+
+        return $path;
     }
 }

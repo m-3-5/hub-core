@@ -63,6 +63,30 @@
     </div>
 @endif
 
+@if ($recentServices->isNotEmpty())
+    <div class="section-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+            <h2 style="margin:0">I tuoi servizi</h2>
+            <a href="{{ route('admin.services.index', $tenant) }}">Gestisci</a>
+        </div>
+        <div class="services-scroll">
+            @foreach ($recentServices as $service)
+                <a href="{{ route('admin.services.show', [$tenant, $service]) }}" class="service-scroll-card">
+                    <div class="service-scroll-cover">
+                        @if ($service->coverImageUrl())
+                            <img src="{{ $service->coverImageUrl() }}" alt="{{ $service->title }}" loading="lazy">
+                        @else
+                            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem">💆</div>
+                        @endif
+                    </div>
+                    <div class="service-scroll-title">{{ $service->title }}</div>
+                    <div class="service-scroll-price">{{ $service->amountEuros() }} €</div>
+                </a>
+            @endforeach
+        </div>
+    </div>
+@endif
+
 @if ($recentPromos->isNotEmpty() || ($expiredCount ?? 0) > 0)
     <div class="section-card">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">

@@ -34,6 +34,7 @@
         .app-shell { max-width: 1200px; margin: 0 auto; padding: 20px 16px 40px; }
         .app-top {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
             gap: 12px;
@@ -58,6 +59,26 @@
             .module-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 24px; }
             .app-shell { padding: 32px 24px 48px; }
         }
+        .services-scroll {
+            display: flex;
+            gap: 14px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        .service-scroll-card { flex: 0 0 132px; text-decoration: none; color: inherit; scroll-snap-align: start; }
+        .service-scroll-cover {
+            width: 132px; height: 132px;
+            border-radius: 18px;
+            overflow: hidden;
+            background: var(--bg);
+            box-shadow: var(--shadow);
+            margin-bottom: 8px;
+        }
+        .service-scroll-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .service-scroll-title { font-size: .82rem; font-weight: 700; line-height: 1.25; }
+        .service-scroll-price { font-size: .74rem; color: var(--muted); margin-top: 2px; }
         .module-tile {
             background: var(--card);
             border-radius: var(--radius);
@@ -105,6 +126,14 @@
         .status-published { background: #dcfce7; color: #166534; }
         .status-draft { background: #ffedd5; color: #9a3412; }
         .alert { background: #dcfce7; color: #166534; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; }
+        @media (max-width: 640px) {
+            .module-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+            .module-tile { min-width: 0; padding: 10px 2px 8px; border-radius: 18px; }
+            .module-icon { width: 52px; height: 52px; border-radius: 16px; font-size: 1.4rem; margin-bottom: 6px; }
+            .module-desc { display: none; }
+            .module-label { font-size: .68rem; overflow-wrap: anywhere; }
+            .badge-soon { font-size: .55rem; margin-top: 2px; overflow-wrap: anywhere; white-space: normal; }
+        }
     </style>
 </head>
 <body class="@isset($tenant) has-bottom-nav @endisset">
