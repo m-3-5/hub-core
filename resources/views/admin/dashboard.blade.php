@@ -11,9 +11,18 @@
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
                 <div>
                     <strong>{{ $tenant->name }}</strong>
+                    <span style="font-size:11px;font-weight:700;text-transform:uppercase;color:#666;background:#f1f1f4;padding:2px 8px;border-radius:999px;margin-left:6px">{{ ucfirst($tenant->type ?? 'azienda') }}</span>
                     <div style="color:#888;font-size:14px">{{ $tenant->website }} · {{ $tenant->promos_count }} promo</div>
                 </div>
-                <a class="btn" href="{{ route('admin.promos.create', $tenant) }}">Nuova promo</a>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <a class="btn" href="{{ route('admin.promos.create', $tenant) }}">Nuova promo</a>
+                    <form method="POST" action="{{ route('admin.tenants.destroy', $tenant) }}"
+                          onsubmit="return confirm('Eliminare definitivamente {{ $tenant->name }}? Verranno cancellati anche servizi, promo, registro pagamenti e gli utenti collegati solo a questo tenant. Azione irreversibile.')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">Elimina</button>
+                    </form>
+                </div>
             </div>
             @if ($tenant->promos->isNotEmpty())
                 <ul style="list-style:none;padding:0;margin:0">

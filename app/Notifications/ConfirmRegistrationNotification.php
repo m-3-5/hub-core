@@ -22,10 +22,16 @@ class ConfirmRegistrationNotification extends Notification
     {
         $url = route('registration.confirm', ['token' => $this->pending->token]);
 
+        $typeLabel = match ($this->pending->type) {
+            'privato' => 'Privato',
+            'ente' => 'Ente',
+            default => 'Azienda',
+        };
+
         return (new MailMessage)
             ->subject('Conferma la tua registrazione a Hub Core')
             ->greeting('Ciao, '.$this->pending->contact_name.'!')
-            ->line('Hai richiesto di registrare **'.$this->pending->name.'** su Hub Core.')
+            ->line('Hai richiesto di registrare **'.$this->pending->name.'** su Hub Core come **'.$typeLabel.'**.')
             ->line('Clicca il pulsante qui sotto per confermare il tuo indirizzo email e completare la registrazione.')
             ->action('Conferma email', $url)
             ->line('Il link è valido per 48 ore.')

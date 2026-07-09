@@ -56,6 +56,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['auth', 'tenant.access'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::delete('/tenants/{tenant}', [DashboardController::class, 'destroy'])->name('tenants.destroy');
 
         Route::get('/tenants/{tenant}/promos', [PromoController::class, 'index'])->name('promos.index');
         Route::get('/tenants/{tenant}/promos/create', [PromoController::class, 'create'])->name('promos.create');

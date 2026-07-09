@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -18,5 +20,25 @@ class DashboardController extends Controller
             ->get();
 
         return view('admin.dashboard', compact('tenants'));
+    }
+
+    public function destroy(Tenant $tenant): RedirectResponse
+    {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+
+        $orphanUserIds = $tenant->users()
+            ->where('is_super_admin', false)
+            ->get()
+            ->filter(fn (User $user) => $user->tenants()->where('tenants.id', '!=', $tenant->id)->doesntExist())
+            ->pluck('id');
+
+        $tenantName = $tenant->name;
+        $tenant->delete();
+
+        User::whereIn('id', $orphanUserIds)->delete();
+
+        return redirect()
+            ->route('admin.dashboard')
+            ->with('success', 'Tenant "'.$tenantName.'" eliminato, con tutti i suoi dati (servizi, promo, registro pagamenti).');
     }
 }
