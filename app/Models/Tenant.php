@@ -10,6 +10,7 @@ class Tenant extends Model
 {
     protected $fillable = [
         'name',
+        'type',
         'slug',
         'domain',
         'website',

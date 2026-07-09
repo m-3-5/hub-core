@@ -239,17 +239,32 @@
 
 <section class="register" id="registrazione">
     <div class="register-card">
-        <h2>Registra la tua azienda</h2>
+        <h2>Registrati su Hub Core</h2>
         <p>Prova gratis con {{ config('hub-payments.services_included_quota', 3) }} servizi a pagamento inclusi — poi solo €{{ config('hub-payments.services_paid_price', 9) }}/mese per continuare. Nessuna carta richiesta ora.</p>
 
         @if (session('success'))
             <p style="background:#e8f5e9;color:#2e7d32;padding:12px 16px;border-radius:12px;margin-bottom:20px">{{ session('success') }}</p>
         @endif
+        @error('registration')
+            <p style="background:#fdecea;color:#c62828;padding:12px 16px;border-radius:12px;margin-bottom:20px">{{ $message }}</p>
+        @enderror
 
         <form method="POST" action="{{ route('registration.store') }}" style="text-align:left;display:grid;gap:14px;margin-bottom:24px">
             @csrf
             <div>
-                <label for="company_name" style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Nome azienda *</label>
+                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Tipo di registrazione *</label>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                    @foreach (['azienda' => '🏢 Azienda', 'privato' => '👤 Privato', 'ente' => '🏛️ Ente'] as $value => $label)
+                        <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;font-size:.88rem;font-weight:600;has-[:checked]:border-color:var(--accent)">
+                            <input type="radio" name="type" value="{{ $value }}" @checked(old('type', 'azienda') === $value) required style="accent-color:var(--accent)">
+                            {{ $label }}
+                        </label>
+                    @endforeach
+                </div>
+                @error('type')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
+            </div>
+            <div>
+                <label for="company_name" style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Nome / Ragione sociale *</label>
                 <input type="text" name="company_name" id="company_name" value="{{ old('company_name') }}" required maxlength="120"
                        style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
                 @error('company_name')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
@@ -271,15 +286,8 @@
                 <input type="tel" name="phone" id="phone" value="{{ old('phone') }}" maxlength="30"
                        style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
             </div>
-            <button type="submit" class="btn btn-primary" style="border:0;cursor:pointer">Inizia la demo gratuita</button>
+            <button type="submit" class="btn btn-primary" style="border:0;cursor:pointer">Registrati — ti mandiamo un'email di conferma</button>
         </form>
-
-        <div class="register-types">
-            <div class="register-type">
-                <strong>👤 Privato</strong>
-                <span>Vendi prodotti o pubblica annunci in bakeca — in arrivo</span>
-            </div>
-        </div>
         <div class="cta">
             <a class="btn btn-secondary" href="{{ route('admin.login') }}">Hai già un account? Accedi</a>
         </div>

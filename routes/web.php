@@ -23,6 +23,9 @@ Route::post('/registrati', [RegistrationController::class, 'store'])
     ->middleware('throttle:5,10')
     ->name('registration.store');
 
+Route::get('/registrati/conferma/{token}', [RegistrationController::class, 'confirm'])
+    ->name('registration.confirm');
+
 Route::get('/auth/wp-bridge', WordPressBridgeController::class)->name('auth.wp-bridge');
 
 Route::get('/p/{tenant}', PromoArchiveController::class)->name('promo.archive');
