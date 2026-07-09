@@ -36,12 +36,13 @@
             <h1 style="margin:0 0 6px">Servizi a pagamento</h1>
             <p style="margin:0;color:#666">Crea link Stripe (carta + metodi extra attivi sul conto) per trattamenti e servizi del salone.</p>
         </div>
-        @if ($stripeConfigured)
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a class="btn btn-secondary" href="{{ route('admin.module-billing.show', $tenant) }}">Costi e pagamenti</a>
+            @if ($stripeConfigured)
                 <a class="btn btn-secondary" href="{{ route('admin.services.payment-links', $tenant) }}">Link di pagamento</a>
                 <a class="btn" href="{{ route('admin.services.create', $tenant) }}">+ Nuovo servizio</a>
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
 
     @if (session('status'))

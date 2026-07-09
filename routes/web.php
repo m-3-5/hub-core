@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AppController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BillingController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ModuleBillingController;
 use App\Http\Controllers\Admin\PromoController;
 use App\Http\Controllers\Admin\PromoPreviewController;
 use App\Http\Controllers\Auth\WordPressBridgeController;
@@ -65,6 +66,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/tenants/{tenant}/billing', [BillingController::class, 'show'])->name('billing.show');
         Route::post('/tenants/{tenant}/billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');
+
+        Route::get('/tenants/{tenant}/module-billing', [ModuleBillingController::class, 'show'])->name('module-billing.show');
+        Route::post('/tenants/{tenant}/module-billing', [ModuleBillingController::class, 'store'])->name('module-billing.store');
+        Route::post('/tenants/{tenant}/module-billing/{charge}/toggle-paid', [ModuleBillingController::class, 'togglePaid'])->name('module-billing.toggle-paid');
+        Route::delete('/tenants/{tenant}/module-billing/{charge}', [ModuleBillingController::class, 'destroy'])->name('module-billing.destroy');
     });
 });
 

@@ -74,6 +74,11 @@ class Tenant extends Model
         return $this->hasMany(\M35\HubPayments\Models\PayableService::class);
     }
 
+    public function moduleCharges(): HasMany
+    {
+        return $this->hasMany(TenantModuleCharge::class);
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
