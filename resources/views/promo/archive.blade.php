@@ -6,6 +6,18 @@
     <title>Promozioni — {{ $tenant->name }}</title>
     <meta name="description" content="Promozioni attive e archivio offerte di {{ $tenant->name }}.">
     <meta name="theme-color" content="{{ $tenant->primary_color }}">
+    <link rel="canonical" href="{{ route('promo.archive', $tenant) }}">
+    @php $ogImage = optional($active->first())->variantUrl('og') ?? asset('images/og-hub-core.png'); @endphp
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ $tenant->name }}">
+    <meta property="og:title" content="Promozioni — {{ $tenant->name }}">
+    <meta property="og:description" content="Promozioni attive e archivio offerte di {{ $tenant->name }}.">
+    <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:url" content="{{ route('promo.archive', $tenant) }}">
+    <meta property="og:locale" content="it_IT">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Promozioni — {{ $tenant->name }}">
+    <meta name="twitter:image" content="{{ $ogImage }}">
     <style>
         :root { --primary: {{ $tenant->primary_color }}; --text: #1f1a24; --muted: #5c5563; }
         * { box-sizing: border-box; margin: 0; padding: 0; }

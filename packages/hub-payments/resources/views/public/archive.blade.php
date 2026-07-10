@@ -6,6 +6,18 @@
     <title>Servizi — {{ $tenant->name }}</title>
     <meta name="description" content="Trattamenti e servizi prenotabili online di {{ $tenant->name }}.">
     <meta name="theme-color" content="{{ $tenant->primary_color }}">
+    <link rel="canonical" href="{{ url()->current() }}">
+    @php $ogImage = optional($services->first(fn ($s) => $s->coverImageUrl()))?->coverImageUrl() ?? asset('images/og-hub-core.png'); @endphp
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ $tenant->name }}">
+    <meta property="og:title" content="Servizi — {{ $tenant->name }}">
+    <meta property="og:description" content="Trattamenti e servizi prenotabili online di {{ $tenant->name }}.">
+    <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:locale" content="it_IT">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Servizi — {{ $tenant->name }}">
+    <meta name="twitter:image" content="{{ $ogImage }}">
     <style>
         :root { --primary: {{ $tenant->primary_color }}; --text: #1f1a24; --muted: #5c5563; }
         * { box-sizing: border-box; margin: 0; padding: 0; }

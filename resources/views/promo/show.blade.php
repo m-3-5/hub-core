@@ -15,6 +15,8 @@
     <meta name="twitter:description" content="{{ $promo->seo_description }}">
     <meta name="twitter:image" content="{{ $promo->variantUrl('og') }}">
     <meta property="og:url" content="{{ $promo->publicUrl() }}">
+    <meta property="og:locale" content="it_IT">
+    <link rel="canonical" href="{{ $promo->publicUrl() }}">
     <meta name="theme-color" content="{{ $tenant->primary_color }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -219,7 +221,7 @@
     <script type="application/ld+json">
     {!! json_encode([
         '@context' => 'https://schema.org',
-        '@type' => 'BeautySalon',
+        '@type' => 'LocalBusiness',
         'name' => $tenant->name,
         'url' => $tenant->website,
         'address' => $tenant->address,

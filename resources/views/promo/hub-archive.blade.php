@@ -6,6 +6,17 @@
     <title>Tutte le promozioni — Hub Core</title>
     <meta name="description" content="Le promozioni attive di tutte le attività su Hub Core.">
     <meta name="theme-color" content="#e91e8c">
+    <link rel="canonical" href="{{ route('promo.hub-archive') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Hub Core">
+    <meta property="og:title" content="Tutte le promozioni — Hub Core">
+    <meta property="og:description" content="Le promozioni attive di tutte le attività su Hub Core, in un unico posto.">
+    <meta property="og:image" content="{{ asset('images/og-hub-core.png') }}">
+    <meta property="og:url" content="{{ route('promo.hub-archive') }}">
+    <meta property="og:locale" content="it_IT">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tutte le promozioni — Hub Core">
+    <meta name="twitter:image" content="{{ asset('images/og-hub-core.png') }}">
     <style>
         :root { --primary: #e91e8c; --text: #1f1a24; --muted: #5c5563; }
         * { box-sizing: border-box; margin: 0; padding: 0; }

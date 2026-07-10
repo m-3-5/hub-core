@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#6366f1">
     <title>Hub Core — La tua attività online, semplice</title>
+    <meta name="description" content="Promo, servizi, negozio, agenda, affitti e sito web in un'unica app. Per aziende, privati ed enti — provalo gratis, nessuna carta richiesta.">
+    <link rel="canonical" href="{{ url('/') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Hub Core">
+    <meta property="og:title" content="Hub Core — Tutto per la tua attività, in un'unica app">
+    <meta property="og:description" content="Promo, servizi, negozio, agenda, affitti e sito web in un'unica app. Provalo gratis, nessuna carta richiesta.">
+    <meta property="og:image" content="{{ asset('images/og-hub-core.png') }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="{{ url('/') }}">
+    <meta property="og:locale" content="it_IT">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Hub Core — Tutto per la tua attività, in un'unica app">
+    <meta name="twitter:description" content="Promo, servizi, negozio, agenda, affitti e sito web in un'unica app.">
+    <meta name="twitter:image" content="{{ asset('images/og-hub-core.png') }}">
     <style>
         :root {
             --accent: #6366f1;

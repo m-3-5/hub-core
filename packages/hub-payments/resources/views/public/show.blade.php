@@ -12,7 +12,14 @@
     @endif
     <meta property="og:type" content="product">
     <meta property="og:site_name" content="{{ $tenant->name }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:locale" content="it_IT">
+    <link rel="canonical" href="{{ url()->current() }}">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $service->title }} — {{ $tenant->name }}">
+    @if ($service->coverImageUrl())
+        <meta name="twitter:image" content="{{ $service->coverImageUrl() }}">
+    @endif
     <meta name="theme-color" content="{{ $tenant->primary_color }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
