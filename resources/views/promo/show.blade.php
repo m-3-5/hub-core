@@ -339,10 +339,13 @@
             o passa in salone negli orari di apertura. Il team di {{ $tenant->name }} è a disposizione
             per consigliarti il trattamento più adatto a te.
         </p>
+        @php
+            $offerNames = collect($promo->offers ?? [])->pluck('name')->filter()->implode(', ');
+        @endphp
         <div class="steps">
             <div class="step">
                 <strong>1. Scegli l'offerta</strong>
-                <span>Piega, trattamento corpo o entrambi: indica cosa desideri al telefono o via sito.</span>
+                <span>{{ $offerNames ?: 'Indica cosa desideri' }}: fatti sentire al telefono o via sito.</span>
             </div>
             <div class="step">
                 <strong>2. Prenota</strong>
@@ -350,7 +353,7 @@
             </div>
             <div class="step">
                 <strong>3. Vieni in salone</strong>
-                <span>Ti accogliamo in Corso Garibaldi e iniziamo il tuo percorso di bellezza.</span>
+                <span>Ti accogliamo in {{ $tenant->address ?? 'salone' }} e iniziamo il tuo percorso di bellezza.</span>
             </div>
         </div>
     </section>
