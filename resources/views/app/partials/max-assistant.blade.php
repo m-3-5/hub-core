@@ -133,15 +133,17 @@
             <div class="max-bubble">Ciao! Cosa vuoi fare oggi?</div>
             <div class="max-choices">
                 <button type="button" class="max-chip" data-next-target="what">✨ Pubblica una promo</button>
-                @foreach ($ownModules as $module)
-                    @continue($module['key'] === 'promo')
-                    @if ($module['active'] && $module['url'])
-                        <a href="{{ $module['url'] }}" class="max-chip" style="display:block;text-decoration:none">{{ $module['emoji'] }} {{ $module['label'] }}</a>
-                    @else
-                        <button type="button" class="max-chip" data-request-module="{{ $module['label'] }}">{{ $module['emoji'] }} Richiedi «{{ $module['label'] }}»</button>
-                    @endif
-                @endforeach
+                @php $servicesModule = $ownModules->firstWhere('key', 'services'); @endphp
+                @if ($servicesModule && $servicesModule['active'] && $servicesModule['url'])
+                    <a href="{{ $servicesModule['url'] }}" class="max-chip" style="display:block;text-decoration:none">💆 Servizi</a>
+                @endif
             </div>
+            <div class="max-bubble" style="margin-top:14px">Altro? Scrivimi cosa ti serve, un problema o un'idea — ci penso io.</div>
+            <form method="POST" action="{{ route('admin.max.query', $tenant) }}">
+                @csrf
+                <textarea name="message" rows="2" maxlength="1000" required placeholder="Es. vorrei vendere prodotti online, oppure: il volantino non mi convince..." style="width:100%;padding:8px 10px;margin-top:8px;border:1px solid #e2e8f0;border-radius:10px;font-family:inherit;font-size:.88rem"></textarea>
+                <button type="submit" class="max-submit">Invia a Max</button>
+            </form>
         </div>
 
         <form method="POST" action="{{ route('admin.promos.store', $tenant) }}" enctype="multipart/form-data" id="max-promo-form">

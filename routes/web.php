@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AppController;
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\MaxController;
 use App\Http\Controllers\Admin\BillingController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ModuleBillingController;
@@ -92,6 +93,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/tickets/{ticket}/respond', [TicketController::class, 'respond'])->name('tickets.respond');
 
         Route::get('/activity', [ActivityLogController::class, 'index'])->name('activity.index');
+
+        Route::post('/tenants/{tenant}/max/query', [MaxController::class, 'query'])->name('max.query');
     });
 });
 
