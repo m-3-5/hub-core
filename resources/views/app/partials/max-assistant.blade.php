@@ -3,23 +3,45 @@
         position: fixed;
         right: 16px;
         bottom: 24px;
-        width: 56px; height: 56px;
-        border-radius: 50%;
-        background: linear-gradient(145deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #1e1b4b));
-        color: #fff;
-        font-size: 1.6rem;
+        width: 56px; height: auto;
         border: 0;
-        box-shadow: 0 10px 28px rgba(15, 23, 42, .22);
+        background: none;
+        padding: 0;
         cursor: pointer;
         z-index: 60;
-        animation: max-bounce 2.6s ease-in-out infinite;
+        filter: drop-shadow(0 10px 22px rgba(15, 23, 42, .28));
     }
     @media (max-width: 860px) {
         .max-fab { bottom: calc(64px + env(safe-area-inset-bottom) + 16px); }
     }
+    .max-mascot-body { animation: max-bounce 2.6s ease-in-out infinite; transform-origin: center; }
     @keyframes max-bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-6px); }
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-6px) rotate(-2.5deg); }
+    }
+    .max-mascot-lid { animation: max-mascot-blink 4.6s ease-in-out .1s infinite; transform-origin: center; }
+    @keyframes max-mascot-blink {
+        0%, 90%, 100% { transform: scaleY(1); }
+        93% { transform: scaleY(.08); }
+    }
+    .max-mascot-intro { animation: max-mascot-look-intro 2.4s cubic-bezier(.4,0,.2,1) forwards; }
+    @keyframes max-mascot-look-intro {
+        0%   { transform: translate(0, 0); }
+        18%  { transform: translate(4.5px, 0); }
+        38%  { transform: translate(-4.5px, .5px); }
+        58%  { transform: translate(-1px, -3px); }
+        78%  { transform: translate(2px, 1.5px); }
+        100% { transform: translate(0, 0); }
+    }
+    .max-mascot-idle { animation: max-mascot-look-idle 7s ease-in-out infinite; }
+    @keyframes max-mascot-look-idle {
+        0%, 55%, 100% { transform: translate(0, 0); }
+        62% { transform: translate(3px, .5px); }
+        75% { transform: translate(-3px, 0); }
+        85% { transform: translate(0, -2px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .max-mascot-body, .max-mascot-lid, .max-mascot-pupil { animation: none !important; }
     }
     .max-panel {
         position: fixed;
@@ -45,7 +67,7 @@
         background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #1e1b4b));
         color: #fff;
     }
-    .max-header .max-avatar { font-size: 1.4rem; }
+    .max-header .max-avatar { display: flex; }
     .max-header strong { flex: 1; }
     .max-header button {
         background: rgba(255,255,255,.2); border: 0; color: #fff;
@@ -96,11 +118,13 @@
     }
 </style>
 
-<button type="button" class="max-fab" id="max-fab" aria-label="Apri Max, il tuo assistente">🙂</button>
+<button type="button" class="max-fab" id="max-fab" aria-label="Apri Max, il tuo assistente">
+    @include('app.partials.max-avatar', ['size' => 56, 'animated' => true])
+</button>
 
 <div class="max-panel" id="max-panel" hidden>
     <div class="max-header">
-        <span class="max-avatar">🙂</span>
+        <span class="max-avatar">@include('app.partials.max-avatar', ['size' => 30, 'animated' => false])</span>
         <strong>Max</strong>
         <button type="button" id="max-close" aria-label="Chiudi">✕</button>
     </div>
@@ -208,7 +232,17 @@
         panel.hidden = !panel.hidden;
         if (!panel.hidden) showStep('greeting');
     });
-    close.addEventListener('click', () => { panel.hidden = true; });
+    close.addEventListener('click', () => {
+        panel.hidden = true;
+        sessionStorage.setItem('maxDismissed', '1');
+    });
+
+    if (!sessionStorage.getItem('maxDismissed')) {
+        setTimeout(() => {
+            panel.hidden = false;
+            showStep('greeting');
+        }, 1200);
+    }
 
     body.querySelectorAll('[data-next-target]').forEach(btn => {
         btn.addEventListener('click', () => showStep(btn.dataset.nextTarget));
@@ -238,5 +272,14 @@
             nextImage.disabled = !imageInput.files.length;
         });
     }
+
+    document.querySelectorAll('.max-mascot-pupil').forEach(el => {
+        el.addEventListener('animationend', e => {
+            if (e.animationName === 'max-mascot-look-intro') {
+                el.classList.remove('max-mascot-intro');
+                el.classList.add('max-mascot-idle');
+            }
+        });
+    });
 })();
 </script>
