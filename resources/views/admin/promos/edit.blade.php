@@ -7,9 +7,19 @@
     <h1>Modifica promo</h1>
     <p style="color:#666">{{ $tenant->name }} · {{ $promo->isDraft() ? 'Bozza' : 'Pubblicata' }}</p>
 
-    <form method="POST" action="{{ route('admin.promos.update', [$tenant, $promo]) }}" style="margin-top:24px">
+    <form method="POST" action="{{ route('admin.promos.update', [$tenant, $promo]) }}" enctype="multipart/form-data" style="margin-top:24px">
         @csrf
         @method('PUT')
+
+        <label>Foto / volantino</label>
+        <div style="margin-bottom:16px">
+            @if ($promo->imageUrl())
+                <img src="{{ $promo->imageUrl() }}" alt="" style="max-width:200px;display:block;border-radius:8px;margin-bottom:8px">
+            @endif
+            <input type="file" name="image" accept="image/*" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:8px">
+            <p style="color:#666;font-size:13px;margin:6px 0 0">Lascia vuoto per mantenere quella attuale. Caricandone una nuova, le illustrazioni decorative si rigenerano da questa.</p>
+            @error('image')<p class="error" style="color:#c62828;font-size:13px;margin-top:4px">{{ $message }}</p>@enderror
+        </div>
 
         <label for="title">Titolo promo</label>
         <input type="text" name="title" id="title" value="{{ old('title', $promo->title) }}" required style="width:100%;padding:10px;margin-bottom:16px;border:1px solid #ddd;border-radius:8px">

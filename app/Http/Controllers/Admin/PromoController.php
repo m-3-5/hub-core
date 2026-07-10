@@ -310,7 +310,7 @@ class PromoController extends Controller
         return view('admin.promos.edit', compact('tenant', 'promo'));
     }
 
-    public function update(Request $request, Tenant $tenant, Promo $promo): RedirectResponse
+    public function update(Request $request, Tenant $tenant, Promo $promo, PromoVisualBuilder $visuals): RedirectResponse
     {
         abort_unless($promo->tenant_id === $tenant->id, 404);
 
@@ -324,6 +324,7 @@ class PromoController extends Controller
             'always_active' => ['boolean'],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
+            'image' => ['nullable', 'image', 'max:10240'],
         ]);
 
         $alwaysActive = $request->boolean('always_active');
@@ -332,7 +333,27 @@ class PromoController extends Controller
             ->values()
             ->all();
 
-        $before = $promo->only(['title', 'description', 'offers']);
+        $before = $promo->only(['title', 'description', 'offers', 'image_path']);
+
+        $imagePath = $promo->image_path;
+        $imageVariants = $promo->image_variants;
+
+        if ($request->hasFile('image')) {
+            $oldPath = $promo->image_path;
+
+            $imagePath = $request->file('image')->store('promos/'.$tenant->slug, 'public');
+            $imageVariants = $visuals->build(
+                $tenant,
+                $promo,
+                $imagePath,
+                Storage::disk('public')->path($imagePath),
+                aiImages: false,
+            );
+
+            if ($oldPath && $oldPath !== $imagePath) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
 
         $promo->update([
             'title' => $validated['title'],
@@ -341,12 +362,15 @@ class PromoController extends Controller
             'always_active' => $alwaysActive,
             'starts_at' => $alwaysActive ? null : ($validated['starts_at'] ?? null),
             'ends_at' => $alwaysActive ? null : ($validated['ends_at'] ?? null),
+            'image_path' => $imagePath,
+            'image_variants' => $imageVariants,
         ]);
 
         ActivityLog::record($tenant, 'promo_updated', input: $before, output: [
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'offers' => $offers,
+            'image_path' => $imagePath,
         ], subject: $promo);
 
         if ($promo->isPublished()) {

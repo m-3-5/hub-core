@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant.access' => \App\Http\Middleware\EnsureTenantAccess::class,
         ]);
+
+        $middleware->redirectGuestsTo(fn (Request $request) => route('admin.login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
