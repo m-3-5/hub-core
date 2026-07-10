@@ -90,6 +90,9 @@
             animation: scroll 42s linear infinite;
         }
         .carousel-wrap:hover .carousel-track { animation-play-state: paused; }
+        @media (prefers-reduced-motion: reduce) {
+            .carousel-track { animation: none; }
+        }
         @keyframes scroll {
             0% { transform: translateX(0); }
             100% { transform: translateX(-50%); }
@@ -194,6 +197,14 @@
             margin: 0 auto 8px;
             padding: 0 20px;
         }
+        .app-preview-intro {
+            text-align: center;
+            max-width: 480px;
+            margin: 0 auto 20px;
+            color: var(--muted);
+            font-size: .92rem;
+        }
+        .app-preview-intro strong { color: var(--text); }
         .app-preview-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -224,6 +235,30 @@
             .app-preview-grid { grid-template-columns: repeat(7, 1fr); }
             .app-preview-icon { width: 68px; height: 68px; font-size: 1.9rem; }
         }
+
+        .how-it-works {
+            max-width: 720px;
+            margin: 36px auto 8px;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 18px;
+        }
+        @media (min-width: 720px) {
+            .how-it-works { grid-template-columns: repeat(3, 1fr); }
+        }
+        .how-step { display: flex; gap: 14px; align-items: flex-start; }
+        .how-step-num {
+            flex: 0 0 auto;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            display: grid; place-items: center;
+            font-size: .85rem; font-weight: 700;
+        }
+        .how-step h3 { margin: 2px 0 4px; font-size: .95rem; }
+        .how-step p { margin: 0; color: var(--muted); font-size: .85rem; line-height: 1.45; }
 
         .gmax-overlay {
             position: fixed; inset: 0; background: rgba(15,23,42,.5);
@@ -277,6 +312,7 @@
 </section>
 
 <div class="app-preview">
+    <p class="app-preview-intro">Così sarà la tua home appena entri — <strong>tocca una voce per iniziare</strong>, il resto lo trovi qui sotto spiegato per bene.</p>
     <div class="app-preview-grid">
         @foreach ($slides as $slide)
             <a class="app-preview-tile" href="{{ $slide['cta_url'] }}">
@@ -284,6 +320,30 @@
                 <div class="app-preview-label">{{ $slide['title'] }}</div>
             </a>
         @endforeach
+    </div>
+</div>
+
+<div class="how-it-works">
+    <div class="how-step">
+        <span class="how-step-num">1</span>
+        <div>
+            <h3>Scegli cosa ti serve</h3>
+            <p>Promo, servizi, negozio o affitti — attivi solo i moduli utili alla tua attività.</p>
+        </div>
+    </div>
+    <div class="how-step">
+        <span class="how-step-num">2</span>
+        <div>
+            <h3>Provalo gratis</h3>
+            <p>Demo completa da subito, nessuna carta richiesta per cominciare.</p>
+        </div>
+    </div>
+    <div class="how-step">
+        <span class="how-step-num">3</span>
+        <div>
+            <h3>Vai online quando sei pronto</h3>
+            <p>Le tue promo e i tuoi servizi compaiono subito sul tuo sito, senza toccare codice.</p>
+        </div>
     </div>
 </div>
 
