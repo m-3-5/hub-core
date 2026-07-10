@@ -108,7 +108,15 @@
         <div class="max-step" data-step="greeting">
             <div class="max-bubble">Ciao! Cosa vuoi fare oggi?</div>
             <div class="max-choices">
-                <button type="button" class="max-chip" data-next-target="what">📢 Pubblica una promo</button>
+                <button type="button" class="max-chip" data-next-target="what">✨ Pubblica una promo</button>
+                @foreach ($ownModules as $module)
+                    @continue($module['key'] === 'promo')
+                    @if ($module['active'] && $module['url'])
+                        <a href="{{ $module['url'] }}" class="max-chip" style="display:block;text-decoration:none">{{ $module['emoji'] }} {{ $module['label'] }}</a>
+                    @else
+                        <button type="button" class="max-chip" data-request-module="{{ $module['label'] }}">{{ $module['emoji'] }} Richiedi «{{ $module['label'] }}»</button>
+                    @endif
+                @endforeach
             </div>
         </div>
 
