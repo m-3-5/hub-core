@@ -113,4 +113,6 @@
         @endif
     </div>
 @endif
+
+@include('app.partials.max-assistant')
 @endsection

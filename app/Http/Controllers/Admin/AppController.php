@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Services\TenantBrandManager;
 use App\Support\HubModules;
 use Illuminate\View\View;
 use M35\HubPayments\Models\PayableService;
@@ -18,7 +19,7 @@ class AppController extends Controller
         return view('app.index', compact('tenants', 'user'));
     }
 
-    public function home(Tenant $tenant, HubModules $modules): View
+    public function home(Tenant $tenant, HubModules $modules, TenantBrandManager $brand): View
     {
         $user = auth()->user();
         $hubModules = $modules->forTenant($tenant);
@@ -33,7 +34,12 @@ class AppController extends Controller
                 ->limit(8)
                 ->get()
             : collect();
+        $brandHasColor = $brand->hasColor($tenant);
+        $brandHasLogo = $brand->hasLogo($tenant);
 
-        return view('app.home', compact('tenant', 'user', 'hubModules', 'recentPromos', 'expiredCount', 'recentServices'));
+        return view('app.home', compact(
+            'tenant', 'user', 'hubModules', 'recentPromos', 'expiredCount', 'recentServices',
+            'brandHasColor', 'brandHasLogo',
+        ));
     }
 }

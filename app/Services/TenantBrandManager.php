@@ -53,4 +53,26 @@ class TenantBrandManager
 
         return is_file($full) ? $full : null;
     }
+
+    public function color(Tenant $tenant): ?string
+    {
+        $color = $tenant->settings['brand']['color'] ?? null;
+
+        return is_string($color) && preg_match('/^#[0-9a-fA-F]{6}$/', $color) ? $color : null;
+    }
+
+    public function hasColor(Tenant $tenant): bool
+    {
+        return $this->color($tenant) !== null;
+    }
+
+    public function storeColor(Tenant $tenant, string $color): void
+    {
+        $settings = $tenant->settings ?? [];
+        $settings['brand'] = array_merge($settings['brand'] ?? [], [
+            'color' => $color,
+            'updated_at' => now()->toIso8601String(),
+        ]);
+        $tenant->update(['settings' => $settings]);
+    }
 }

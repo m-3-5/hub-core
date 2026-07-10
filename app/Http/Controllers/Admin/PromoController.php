@@ -9,6 +9,7 @@ use App\Models\Tenant;
 use App\Models\TenantModuleCharge;
 use App\Services\GeminiImageGenerator;
 use App\Services\GeminiPromoGenerator;
+use App\Services\GeminiSvgFlyerGenerator;
 use App\Services\PromoVisualBuilder;
 use App\Services\TenantBrandManager;
 use App\Services\WordPressWebhookDispatcher;
@@ -51,18 +52,22 @@ class PromoController extends Controller
         Tenant $tenant,
         GeminiPromoGenerator $generator,
         GeminiImageGenerator $imageGenerator,
+        GeminiSvgFlyerGenerator $svgFlyerGenerator,
         PromoVisualBuilder $visuals,
         TenantBrandManager $brand,
     ): RedirectResponse {
         $request->validate([
-            'promo_source' => ['required', 'in:upload,generate'],
+            'promo_source' => ['required', 'in:upload,generate,svg'],
             'visual_tier' => ['required', 'in:base,ai_flyer'],
             'image' => ['required_if:promo_source,upload', 'nullable', 'image', 'max:10240'],
             'brand_mode' => ['required_if:promo_source,generate', 'nullable', 'in:tenant,once,save'],
             'logo' => ['nullable', 'image', 'max:5120'],
-            'promo_hint' => ['nullable', 'string', 'max:500'],
+            'promo_hint' => ['required_if:promo_source,svg', 'nullable', 'string', 'max:500'],
             'always_active' => ['boolean'],
             'skip_ai' => ['boolean'],
+            'manual_title' => ['nullable', 'string', 'max:255'],
+            'manual_description' => ['nullable', 'string', 'max:2000'],
+            'brand_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
         ]);
 
         if ($request->input('visual_tier') === 'ai_flyer') {
@@ -82,25 +87,56 @@ class PromoController extends Controller
                 ]);
         }
 
-        $flashWarning = null;
-
-        try {
-            [$path, $absolutePath, $mime] = $this->resolvePromoImage(
-                $request,
-                $tenant,
-                $brand,
-                $imageGenerator,
-            );
-        } catch (Throwable $e) {
-            return back()->withInput()->withErrors(['image' => $e->getMessage()]);
+        if (! $brand->hasColor($tenant) && $request->filled('brand_color')) {
+            $brand->storeColor($tenant, $request->input('brand_color'));
         }
 
-        if ($request->boolean('skip_ai')) {
-            $generated = GeminiPromoGenerator::fallbackData($tenant->name);
-            $flashMessage = 'Promo creata in bozza (senza IA). Controlla anteprima e pubblica quando pronta.';
+        if (! $brand->hasLogo($tenant) && $request->hasFile('logo')) {
+            $brand->storeLogo($tenant, $request->file('logo'));
+        }
+
+        $flashWarning = null;
+
+        if ($request->input('promo_source') === 'svg') {
+            $headline = trim((string) $request->input('manual_title')) ?: (string) $request->input('promo_hint');
+            $subline = trim((string) $request->input('manual_description')) ?: null;
+
+            $flyer = $svgFlyerGenerator->generate(
+                $tenant,
+                $headline,
+                $subline,
+                $brand->absolutePath($brand->logoPath($tenant)),
+                'promos/'.$tenant->slug.'/'.Str::uuid(),
+            );
+
+            if (! $flyer) {
+                return back()->withInput()->withErrors([
+                    'promo_source' => 'Non sono riuscito a generare il volantino automaticamente. Riprova o carica una tua immagine.',
+                ]);
+            }
+
+            $path = $flyer['path'];
+            $mime = $flyer['mime'];
+            $absolutePath = Storage::disk('public')->path($path);
         } else {
             try {
-                $generated = $generator->generateFromImage($absolutePath, $mime);
+                [$path, $absolutePath, $mime] = $this->resolvePromoImage(
+                    $request,
+                    $tenant,
+                    $brand,
+                    $imageGenerator,
+                );
+            } catch (Throwable $e) {
+                return back()->withInput()->withErrors(['image' => $e->getMessage()]);
+            }
+        }
+
+        if ($request->boolean('skip_ai') || $request->input('promo_source') === 'svg') {
+            $generated = GeminiPromoGenerator::fallbackData($tenant->name);
+            $flashMessage = 'Promo creata in bozza. Controlla anteprima e pubblica quando pronta.';
+        } else {
+            try {
+                $generated = $generator->generateFromImage($absolutePath, $mime, $request->input('promo_hint'));
                 $flashMessage = 'Promo generata con Gemini. Controlla anteprima e clicca Pubblica per inviarla su Beauty of Image.';
             } catch (GeminiApiException $e) {
                 if ($e->quotaExceeded) {
@@ -116,15 +152,22 @@ class PromoController extends Controller
             }
         }
 
-        $slug = Str::slug($generated['suggested_slug'] ?? $generated['title'] ?? 'promo');
+        $manualTitle = trim((string) $request->input('manual_title', ''));
+        $manualDescription = trim((string) $request->input('manual_description', ''));
+        $title = $manualTitle !== '' ? $manualTitle : ($generated['title'] ?? 'Nuova promozione');
+        $description = $manualDescription !== '' ? $manualDescription : ($generated['description'] ?? null);
+
+        $slug = Str::slug($manualTitle !== '' ? $manualTitle : ($generated['suggested_slug'] ?? $generated['title'] ?? 'promo'));
         $slug = $this->uniqueSlug($tenant, $slug);
+
+        $hashtags = $this->generateHashtags($tenant, $title, $description);
 
         $overQuota = ! TenantPromoQuota::hasIncludedSlot($tenant);
 
         $promo = $tenant->promos()->create([
-            'title' => $generated['title'] ?? 'Nuova promozione',
+            'title' => $title,
             'slug' => $slug,
-            'description' => $generated['description'] ?? null,
+            'description' => $description,
             'offers' => $generated['offers'] ?? [],
             'cta_label' => $generated['cta_label'] ?? 'Scopri l\'offerta',
             'cta_url' => $tenant->website,
@@ -138,6 +181,7 @@ class PromoController extends Controller
                 'promo_source' => $request->input('promo_source'),
                 'brand_mode' => $request->input('brand_mode'),
                 'visual_tier' => $request->input('visual_tier', 'base'),
+                'hashtags' => $hashtags,
             ]),
         ]);
 
@@ -362,5 +406,40 @@ class PromoController extends Controller
         }
 
         return $slug;
+    }
+
+    /** @return string[] */
+    private function generateHashtags(Tenant $tenant, string $title, ?string $description): array
+    {
+        $stopwords = [
+            'il', 'lo', 'la', 'i', 'gli', 'le', 'di', 'a', 'da', 'in', 'con', 'su', 'per', 'tra', 'fra',
+            'e', 'o', 'un', 'uno', 'una', 'che', 'del', 'della', 'dei', 'delle', 'al', 'allo', 'alla',
+            'ai', 'agli', 'alle', 'nel', 'nello', 'nella', 'nei', 'negli', 'nelle', 'sul', 'sullo',
+            'sulla', 'sui', 'sugli', 'sulle', 'non', 'più', 'anche', 'solo', 'tutti', 'tutte', 'nostro', 'nostra',
+        ];
+
+        $text = mb_strtolower($title.' '.($description ?? ''));
+        $words = preg_split('/[^\p{L}0-9]+/u', $text, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $keywords = [];
+        foreach ($words as $word) {
+            if (mb_strlen($word) < 4 || in_array($word, $stopwords, true)) {
+                continue;
+            }
+
+            $tag = '#'.mb_convert_case($word, MB_CASE_TITLE, 'UTF-8');
+
+            if (! in_array($tag, $keywords, true)) {
+                $keywords[] = $tag;
+            }
+
+            if (count($keywords) >= 4) {
+                break;
+            }
+        }
+
+        $companyTag = '#'.Str::studly(Str::slug($tenant->name));
+
+        return array_values(array_unique(array_merge(['#Promo', $companyTag], $keywords)));
     }
 }

@@ -13,7 +13,7 @@ class GeminiPromoGenerator
         private GeminiModelResolver $models,
     ) {}
 
-    public function generateFromImage(string $imagePath, string $mimeType): array
+    public function generateFromImage(string $imagePath, string $mimeType, ?string $hint = null): array
     {
         $apiKey = config('services.gemini.api_key');
 
@@ -39,6 +39,10 @@ Analizza questa immagine promozionale (volantino/banner) e rispondi SOLO con un 
 }
 Estrai tutti i testi visibili (prezzi, servizi, indirizzo, telefono). Usa italiano per i contenuti visibili all'utente.
 PROMPT;
+
+        if ($hint) {
+            $prompt .= "\n\nContesto fornito dal cliente su cosa vuole promuovere: \"{$hint}\". Tienine conto nel titolo e nella descrizione.";
+        }
 
         $models = $this->models->textModels();
         $lastError = null;
