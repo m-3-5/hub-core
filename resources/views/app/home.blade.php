@@ -36,12 +36,12 @@
                 <div class="module-desc">{{ $module['description'] }}</div>
             </a>
         @else
-            <div class="module-tile is-disabled" aria-disabled="true">
+            <button type="button" class="module-tile is-disabled" data-request-module="{{ $module['label'] }}">
                 <div class="module-icon">{{ $module['emoji'] }}</div>
                 <div class="module-label">{{ $module['label'] }}</div>
                 <div class="module-desc">{{ $module['description'] }}</div>
                 <span class="badge-soon">Prossimamente</span>
-            </div>
+            </button>
         @endif
     @endforeach
 </div>
@@ -115,4 +115,5 @@
 @endif
 
 @include('app.partials.max-assistant')
+@include('app.partials.module-request-modal')
 @endsection

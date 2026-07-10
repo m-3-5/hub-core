@@ -25,7 +25,9 @@
                 </span>
             </div>
             <p style="color:#444;margin:0 0 8px">{{ $ticket->message }}</p>
-            @if ($ticket->context_type)
+            @if ($ticket->context_label)
+                <p style="font-size:12px;color:#888;margin:0 0 10px">📎 {{ $ticket->context_label }}</p>
+            @elseif ($ticket->context_type)
                 <p style="font-size:12px;color:#888;margin:0 0 10px">Contesto: {{ $ticket->context_type }} #{{ $ticket->context_id }}</p>
             @endif
             <p style="font-size:12px;color:#888;margin:0 0 12px">{{ $ticket->created_at->format('d/m/Y H:i') }} ({{ $ticket->hoursOld() }}h fa)</p>

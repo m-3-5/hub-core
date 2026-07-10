@@ -63,6 +63,7 @@
                     @csrf
                     <input type="hidden" name="context_type" value="promo">
                     <input type="hidden" name="context_id" value="{{ $promo->id }}">
+                    <input type="hidden" name="context_label" value="Promo: {{ $promo->title }}">
                     <textarea name="message" rows="3" maxlength="2000" required placeholder="Cosa vorresti cambiare?" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit"></textarea>
                     <button type="submit" class="btn btn-secondary" style="margin-top:8px">Invia a Max — risposta entro 24 ore</button>
                 </form>

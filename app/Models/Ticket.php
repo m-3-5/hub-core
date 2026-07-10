@@ -12,6 +12,7 @@ class Ticket extends Model
         'user_id',
         'context_type',
         'context_id',
+        'context_label',
         'message',
         'status',
         'response',

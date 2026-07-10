@@ -17,16 +17,28 @@ class TicketController extends Controller
     public function store(Request $request, Tenant $tenant): RedirectResponse
     {
         $validated = $request->validate([
-            'message' => ['required', 'string', 'max:2000'],
+            'message' => ['nullable', 'string', 'max:2000'],
             'context_type' => ['nullable', 'string', 'max:50'],
             'context_id' => ['nullable', 'integer'],
+            'context_label' => ['nullable', 'string', 'max:120'],
         ]);
+
+        $message = trim((string) ($validated['message'] ?? ''));
+
+        if ($message === '' && ! empty($validated['context_label'])) {
+            $message = 'Interessato a: '.$validated['context_label'];
+        }
+
+        if ($message === '') {
+            return back()->withErrors(['message' => 'Scrivi qualche parola prima di inviare.']);
+        }
 
         $ticket = $tenant->tickets()->create([
             'user_id' => auth()->id(),
             'context_type' => $validated['context_type'] ?? null,
             'context_id' => $validated['context_id'] ?? null,
-            'message' => $validated['message'],
+            'context_label' => $validated['context_label'] ?? null,
+            'message' => $message,
             'status' => 'open',
         ]);
 

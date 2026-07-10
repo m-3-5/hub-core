@@ -87,11 +87,14 @@
             text-align: center;
             text-decoration: none;
             color: inherit;
+            font-family: inherit;
+            width: 100%;
             transition: transform .15s ease, box-shadow .15s ease;
             border: 1px solid rgba(255,255,255,.6);
         }
         .module-tile:hover:not(.is-disabled) { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(15,23,42,.12); }
-        .module-tile.is-disabled { opacity: .45; cursor: default; }
+        .module-tile.is-disabled { opacity: .55; cursor: pointer; }
+        .module-tile.is-disabled:hover { opacity: .8; }
         .module-icon {
             width: 64px; height: 64px; margin: 0 auto 10px;
             border-radius: 18px;
