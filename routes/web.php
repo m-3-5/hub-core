@@ -14,6 +14,7 @@ use App\Http\Controllers\Auth\WordPressBridgeController;
 use App\Http\Controllers\ClientSiteController;
 use App\Http\Controllers\EmbedController;
 use App\Http\Controllers\GuestController;
+use App\Http\Controllers\HubPromoArchiveController;
 use App\Http\Controllers\PromoArchiveController;
 use App\Http\Controllers\PromoPublicController;
 use App\Http\Controllers\RegistrationController;
@@ -38,6 +39,8 @@ Route::get('/ospite/conferma/{token}', [GuestController::class, 'confirmPublish'
     ->name('guest.confirm-publish');
 
 Route::get('/auth/wp-bridge', WordPressBridgeController::class)->name('auth.wp-bridge');
+
+Route::get('/promo', HubPromoArchiveController::class)->name('promo.hub-archive');
 
 Route::get('/p/{tenant}', PromoArchiveController::class)->name('promo.archive');
 

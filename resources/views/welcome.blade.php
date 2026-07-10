@@ -436,7 +436,10 @@
     </div>
 </section>
 
-<footer>Hub Core — piattaforma multiservizi per aziende e privati</footer>
+<footer>
+    Hub Core — piattaforma multiservizi per aziende e privati<br>
+    <a href="{{ route('promo.hub-archive') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Guarda tutte le promozioni attive →</a>
+</footer>
 
 <div class="gmax-overlay" id="gmax-overlay" hidden>
     <div class="gmax-card">

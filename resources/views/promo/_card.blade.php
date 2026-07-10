@@ -10,6 +10,9 @@
         </a>
     @endif
     <div class="promo-card__body">
+        @if ($showTenant ?? false)
+            <p class="promo-card__tenant">{{ $tenant->name }}</p>
+        @endif
         @if ($expiry)
             <span class="promo-card__badge {{ $isExpired ? 'promo-card__badge--expired' : 'promo-card__badge--active' }}">
                 {{ $expiry }}
