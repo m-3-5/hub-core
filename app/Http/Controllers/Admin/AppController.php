@@ -23,8 +23,9 @@ class AppController extends Controller
     {
         $user = auth()->user();
         $hubModules = $modules->forTenant($tenant);
-        $recentPromos = $tenant->promos()->published()->active()->latest('published_at')->limit(4)->get();
-        $expiredCount = $tenant->promos()->expired()->count();
+        $recentPromos = $tenant->promos()->published()->active()->latest('published_at')->limit(8)->get();
+        $archivedPromos = $tenant->promos()->expired()->latest('ends_at')->limit(8)->get();
+        $expiredCount = $archivedPromos->count();
         $recentServices = $tenant->type !== 'privato'
             ? PayableService::query()
                 ->where('tenant_id', $tenant->id)
@@ -38,7 +39,7 @@ class AppController extends Controller
         $brandHasLogo = $brand->hasLogo($tenant);
 
         return view('app.home', compact(
-            'tenant', 'user', 'hubModules', 'recentPromos', 'expiredCount', 'recentServices',
+            'tenant', 'user', 'hubModules', 'recentPromos', 'archivedPromos', 'expiredCount', 'recentServices',
             'brandHasColor', 'brandHasLogo',
         ));
     }

@@ -87,7 +87,7 @@
     </div>
 @endif
 
-@if ($recentPromos->isNotEmpty() || ($expiredCount ?? 0) > 0)
+@if ($recentPromos->isNotEmpty() || $archivedPromos->isNotEmpty())
     <div class="section-card">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
             <h2 style="margin:0">Promozioni</h2>
@@ -96,21 +96,35 @@
                 <a href="{{ route('promo.archive', $tenant) }}" target="_blank">Archivio pubblico ↗</a>
             </div>
         </div>
-        @if ($recentPromos->isNotEmpty())
-            <ul class="promo-list">
-                @foreach ($recentPromos as $promo)
-                    <li>
-                        <a href="{{ route('admin.promos.show', [$tenant, $promo]) }}">{{ $promo->title }}</a>
-                        @if ($promo->expiryLabel())
-                            <small style="color:#666"> · {{ $promo->expiryLabel() }}</small>
+        <div class="services-scroll">
+            @foreach ($recentPromos as $promo)
+                <a href="{{ route('admin.promos.show', [$tenant, $promo]) }}" class="service-scroll-card">
+                    <div class="service-scroll-cover">
+                        @if ($promo->imageUrl())
+                            <img src="{{ $promo->imageUrl() }}" alt="{{ $promo->title }}" loading="lazy">
+                        @else
+                            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem">✨</div>
                         @endif
-                    </li>
-                @endforeach
-            </ul>
-        @endif
-        @if (($expiredCount ?? 0) > 0)
-            <p style="color:#64748b;font-size:.9rem;margin-top:12px">{{ $expiredCount }} promo in archivio (scadute)</p>
-        @endif
+                    </div>
+                    <div class="service-scroll-title">{{ $promo->title }}</div>
+                    <div class="service-scroll-price">{{ $promo->expiryLabel() ?? 'Attiva' }}</div>
+                </a>
+            @endforeach
+            @foreach ($archivedPromos as $promo)
+                <a href="{{ route('admin.promos.show', [$tenant, $promo]) }}" class="service-scroll-card">
+                    <div class="service-scroll-cover" style="position:relative">
+                        @if ($promo->imageUrl())
+                            <img src="{{ $promo->imageUrl() }}" alt="{{ $promo->title }}" loading="lazy" style="filter:grayscale(.55);opacity:.75">
+                        @else
+                            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;opacity:.6">✨</div>
+                        @endif
+                        <span style="position:absolute;top:6px;left:6px;background:rgba(15,23,42,.75);color:#fff;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px">Scaduta</span>
+                    </div>
+                    <div class="service-scroll-title">{{ $promo->title }}</div>
+                    <div class="service-scroll-price">{{ $promo->expiryLabel() }}</div>
+                </a>
+            @endforeach
+        </div>
     </div>
 @endif
 
