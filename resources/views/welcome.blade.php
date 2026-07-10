@@ -22,10 +22,9 @@
             overflow-x: hidden;
         }
         .hero {
-            min-height: 88dvh;
             display: grid;
             place-items: center;
-            padding: 48px 20px 32px;
+            padding: 40px 20px 24px;
             text-align: center;
             background:
                 radial-gradient(circle at 18% 22%, #eef2ff, transparent 42%),
@@ -189,7 +188,41 @@
         }
         @media (min-width: 1100px) {
             :root { --card-w: 300px; }
-            .hero { min-height: 78dvh; }
+        }
+        .app-preview {
+            max-width: 720px;
+            margin: 0 auto 8px;
+            padding: 0 20px;
+        }
+        .app-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+        .app-preview-tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: inherit;
+            text-align: center;
+        }
+        .app-preview-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            font-size: 1.6rem;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .1);
+            transition: transform .15s ease;
+        }
+        .app-preview-tile:hover .app-preview-icon { transform: translateY(-3px); }
+        .app-preview-label { font-size: .74rem; font-weight: 700; line-height: 1.2; }
+        @media (min-width: 640px) {
+            .app-preview-grid { grid-template-columns: repeat(7, 1fr); }
+            .app-preview-icon { width: 68px; height: 68px; font-size: 1.9rem; }
         }
     </style>
 </head>
@@ -204,6 +237,17 @@
         </div>
     </div>
 </section>
+
+<div class="app-preview">
+    <div class="app-preview-grid">
+        @foreach ($slides as $slide)
+            <a class="app-preview-tile" href="{{ $slide['cta_url'] }}">
+                <div class="app-preview-icon" style="background: linear-gradient(145deg, color-mix(in srgb, {{ $slide['accent'] }} 20%, #fff), #fff)">{{ $slide['emoji'] }}</div>
+                <div class="app-preview-label">{{ $slide['title'] }}</div>
+            </a>
+        @endforeach
+    </div>
+</div>
 
 <p class="section-label" id="funzioni">Sfoglia le possibilità</p>
 

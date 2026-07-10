@@ -9,6 +9,7 @@ return [
             'cta' => 'Crea la tua prima promo',
             'href' => 'login',
             'accent' => '#a855f7',
+            'emoji' => '✨',
         ],
         [
             'image' => 'images/welcome/welcome-services.png',
@@ -17,6 +18,7 @@ return [
             'cta' => 'Registra la tua attività',
             'href' => 'register',
             'accent' => '#ec4899',
+            'emoji' => '💆',
         ],
         [
             'image' => 'images/welcome/welcome-shop.png',
@@ -25,6 +27,7 @@ return [
             'cta' => 'Apri il tuo store',
             'href' => 'register',
             'accent' => '#6366f1',
+            'emoji' => '🛍️',
         ],
         [
             'image' => 'images/welcome/welcome-agenda.png',
@@ -33,6 +36,7 @@ return [
             'cta' => 'Provalo gratis',
             'href' => 'login',
             'accent' => '#0ea5e9',
+            'emoji' => '📅',
         ],
         [
             'image' => 'images/welcome/welcome-rentals.png',
@@ -41,6 +45,7 @@ return [
             'cta' => 'Gestisci i tuoi affitti',
             'href' => 'register',
             'accent' => '#14b8a6',
+            'emoji' => '🏠',
         ],
         [
             'image' => 'images/welcome/welcome-website.png',
@@ -49,6 +54,7 @@ return [
             'cta' => 'Crea il tuo sito',
             'href' => 'register',
             'accent' => '#8b5cf6',
+            'emoji' => '🌐',
         ],
         [
             'image' => 'images/welcome/welcome-classifieds.png',
@@ -57,6 +63,7 @@ return [
             'cta' => 'Registrati come privato',
             'href' => 'register',
             'accent' => '#f59e0b',
+            'emoji' => '📋',
         ],
     ],
 ];
