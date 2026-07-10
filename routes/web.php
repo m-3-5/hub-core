@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ModuleBillingController;
 use App\Http\Controllers\Admin\PromoController;
 use App\Http\Controllers\Admin\PromoPreviewController;
+use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Auth\WordPressBridgeController;
 use App\Http\Controllers\ClientSiteController;
 use App\Http\Controllers\EmbedController;
@@ -76,6 +77,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/tenants/{tenant}/module-billing', [ModuleBillingController::class, 'store'])->name('module-billing.store');
         Route::post('/tenants/{tenant}/module-billing/{charge}/toggle-paid', [ModuleBillingController::class, 'togglePaid'])->name('module-billing.toggle-paid');
         Route::delete('/tenants/{tenant}/module-billing/{charge}', [ModuleBillingController::class, 'destroy'])->name('module-billing.destroy');
+
+        Route::post('/tenants/{tenant}/tickets', [TicketController::class, 'store'])->name('tickets.store');
+        Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
+        Route::post('/tickets/{ticket}/respond', [TicketController::class, 'respond'])->name('tickets.respond');
     });
 });
 

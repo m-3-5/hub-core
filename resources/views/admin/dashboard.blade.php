@@ -4,7 +4,15 @@
 
 @section('content')
 <div class="card">
-    <h1>Clienti</h1>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <h1 style="margin:0">Clienti</h1>
+        <a class="btn btn-secondary" href="{{ route('admin.tickets.index') }}">
+            🎫 Ticket clienti
+            @if ($openTicketsCount > 0)
+                <span style="background:#c62828;color:#fff;border-radius:999px;padding:1px 8px;font-size:12px;margin-left:6px">{{ $openTicketsCount }}</span>
+            @endif
+        </a>
+    </div>
     <p style="color:#666">Crea promo in bozza, controlla anteprima, poi pubblica su Beauty of Image.</p>
     @foreach ($tenants as $t)
         <div style="padding:20px 0;border-bottom:1px solid #eee">

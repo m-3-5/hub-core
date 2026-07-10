@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -19,7 +20,9 @@ class DashboardController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('admin.dashboard', compact('tenants'));
+        $openTicketsCount = Ticket::where('status', 'open')->count();
+
+        return view('admin.dashboard', compact('tenants', 'openTicketsCount'));
     }
 
     public function destroy(Tenant $tenant): RedirectResponse

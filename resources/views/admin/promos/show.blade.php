@@ -56,7 +56,17 @@
     <div class="card">
         <h2 style="margin:0 0 16px;font-size:1.1rem">Contenuto</h2>
         @if ($promo->imageUrl())
-            <img src="{{ $promo->imageUrl() }}" alt="" style="max-width:100%;border-radius:8px;margin-bottom:16px">
+            <img src="{{ $promo->imageUrl() }}" alt="" style="max-width:100%;border-radius:8px;margin-bottom:8px">
+            <details style="margin-bottom:16px">
+                <summary style="cursor:pointer;color:#666;font-size:13px">Il volantino non ti convince? Scrivi a Max</summary>
+                <form method="POST" action="{{ route('admin.tickets.store', $tenant) }}" style="margin-top:10px">
+                    @csrf
+                    <input type="hidden" name="context_type" value="promo">
+                    <input type="hidden" name="context_id" value="{{ $promo->id }}">
+                    <textarea name="message" rows="3" maxlength="2000" required placeholder="Cosa vorresti cambiare?" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit"></textarea>
+                    <button type="submit" class="btn btn-secondary" style="margin-top:8px">Invia a Max — risposta entro 24 ore</button>
+                </form>
+            </details>
         @endif
         <p style="color:#444;line-height:1.6">{{ $promo->description }}</p>
 

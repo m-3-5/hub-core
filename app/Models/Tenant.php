@@ -84,6 +84,11 @@ class Tenant extends Model
         return $this->hasMany(Promo::class);
     }
 
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class);
+    }
+
     public function payableServices(): HasMany
     {
         return $this->hasMany(\M35\HubPayments\Models\PayableService::class);
