@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exceptions\GeminiApiException;
 use App\Http\Controllers\Controller;
+use App\Models\ActivityLog;
 use App\Models\Promo;
 use App\Models\Tenant;
 use App\Models\TenantModuleCharge;
@@ -206,6 +207,20 @@ class PromoController extends Controller
             ]);
         }
 
+        ActivityLog::record($tenant, 'promo_created', input: [
+            'promo_source' => $request->input('promo_source'),
+            'promo_hint' => $request->input('promo_hint'),
+            'manual_title' => $manualTitle !== '' ? $manualTitle : null,
+            'manual_description' => $manualDescription !== '' ? $manualDescription : null,
+            'skip_ai' => $request->boolean('skip_ai'),
+        ], output: [
+            'title' => $title,
+            'description' => $description,
+            'offers' => $generated['offers'] ?? [],
+            'hashtags' => $hashtags,
+            'image_path' => $path,
+        ], subject: $promo);
+
         $redirect = redirect()
             ->route('admin.promos.show', [$tenant, $promo])
             ->with('success', $flashMessage);
@@ -317,6 +332,8 @@ class PromoController extends Controller
             ->values()
             ->all();
 
+        $before = $promo->only(['title', 'description', 'offers']);
+
         $promo->update([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
@@ -325,6 +342,12 @@ class PromoController extends Controller
             'starts_at' => $alwaysActive ? null : ($validated['starts_at'] ?? null),
             'ends_at' => $alwaysActive ? null : ($validated['ends_at'] ?? null),
         ]);
+
+        ActivityLog::record($tenant, 'promo_updated', input: $before, output: [
+            'title' => $validated['title'],
+            'description' => $validated['description'] ?? null,
+            'offers' => $offers,
+        ], subject: $promo);
 
         if ($promo->isPublished()) {
             app(WordPressWebhookDispatcher::class)->promoPublished($tenant, $promo->fresh());

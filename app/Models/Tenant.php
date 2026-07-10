@@ -99,6 +99,11 @@ class Tenant extends Model
         return $this->hasMany(Ticket::class);
     }
 
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
+
     public function payableServices(): HasMany
     {
         return $this->hasMany(\M35\HubPayments\Models\PayableService::class);

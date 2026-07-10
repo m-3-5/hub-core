@@ -106,6 +106,29 @@
     </div>
 </div>
 
+@if (auth()->user()->isSuperAdmin())
+    <div class="card" style="margin-top:20px">
+        <details>
+            <summary style="cursor:pointer;font-weight:700">🔍 Dati diagnostici (solo super admin)</summary>
+            <div style="margin-top:14px;font-size:13px;color:#444;line-height:1.7">
+                <p><strong>Creata:</strong> {{ $promo->created_at->format('d/m/Y H:i:s') }} · <strong>Ultima modifica:</strong> {{ $promo->updated_at->format('d/m/Y H:i:s') }}</p>
+                <p><strong>Slug:</strong> {{ $promo->slug }} · <strong>Immagine:</strong> {{ $promo->image_path }}</p>
+                <p><strong>Origine (promo_source):</strong> {{ $promo->ai_metadata['promo_source'] ?? 'n/d' }}
+                    @if (!empty($promo->ai_metadata['generated_without_ai'])) · <span style="color:#c62828">generata senza IA (fallback)</span>@endif
+                    @if (!empty($promo->ai_metadata['gemini_error'])) · <span style="color:#c62828">errore Gemini: {{ $promo->ai_metadata['gemini_error'] }}</span>@endif
+                </p>
+                <p><strong>Hashtag:</strong> {{ implode(' ', $promo->ai_metadata['hashtags'] ?? []) ?: 'n/d' }}</p>
+                <p><strong>Offers (grezzo):</strong></p>
+                <pre style="background:#f6f7fb;padding:10px;border-radius:8px;overflow:auto;font-size:12px">{{ json_encode($promo->offers, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                <p><strong>ai_metadata (grezzo):</strong></p>
+                <pre style="background:#f6f7fb;padding:10px;border-radius:8px;overflow:auto;font-size:12px">{{ json_encode($promo->ai_metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                <p><strong>image_variants (grezzo):</strong></p>
+                <pre style="background:#f6f7fb;padding:10px;border-radius:8px;overflow:auto;font-size:12px">{{ json_encode($promo->image_variants, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+            </div>
+        </details>
+    </div>
+@endif
+
 <div class="card" style="margin-top:20px">
     <h3>Integrazione WordPress</h3>
     <p style="font-size:14px;color:#666">Popup footer:</p>
