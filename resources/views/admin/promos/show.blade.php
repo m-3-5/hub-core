@@ -24,7 +24,17 @@
             @endif
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:10px">
-            @if ($promo->isDraft())
+            @if ($promo->isDraft() && $tenant->isGuestPending())
+                <form method="POST" action="{{ route('admin.promos.publish', [$tenant, $promo]) }}" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
+                    @csrf
+                    <div>
+                        <input type="email" name="guest_email" required placeholder="la-tua-email@esempio.it"
+                               style="padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;min-width:220px">
+                        @error('guest_email')<div class="error" style="color:#c62828;font-size:13px;margin-top:4px">{{ $message }}</div>@enderror
+                    </div>
+                    <button type="submit" class="btn">Conferma email e pubblica</button>
+                </form>
+            @elseif ($promo->isDraft())
                 <form method="POST" action="{{ route('admin.promos.publish', [$tenant, $promo]) }}">
                     @csrf
                     <button type="submit" class="btn">Pubblica su Beauty of Image</button>

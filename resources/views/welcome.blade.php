@@ -224,6 +224,44 @@
             .app-preview-grid { grid-template-columns: repeat(7, 1fr); }
             .app-preview-icon { width: 68px; height: 68px; font-size: 1.9rem; }
         }
+
+        .gmax-overlay {
+            position: fixed; inset: 0; background: rgba(15,23,42,.5);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; z-index: 80;
+        }
+        .gmax-overlay[hidden] { display: none; }
+        .gmax-card {
+            background: #fff; border-radius: 24px; padding: 28px 26px 26px;
+            width: 100%; max-width: 380px; box-shadow: 0 30px 80px rgba(15,23,42,.3);
+            position: relative; text-align: center;
+        }
+        .gmax-close {
+            position: absolute; top: 14px; right: 14px; width: 28px; height: 28px;
+            border-radius: 50%; border: 0; background: #f1f5f9; color: #475569;
+            cursor: pointer; font-size: .85rem;
+        }
+        .gmax-avatar { display: flex; justify-content: center; margin-bottom: 14px; }
+        .gmax-step[hidden] { display: none; }
+        .gmax-step h3 { margin: 0 0 8px; font-size: 1.15rem; }
+        .gmax-step p { margin: 0 0 16px; color: var(--muted); font-size: .9rem; }
+        .gmax-choices { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+        .gmax-chip {
+            display: block; padding: 12px 16px; border-radius: 12px;
+            background: color-mix(in srgb, var(--accent) 10%, #fff);
+            border: 1px solid color-mix(in srgb, var(--accent) 28%, #fff);
+            color: var(--text); font-weight: 700; font-size: .92rem;
+            cursor: pointer; text-decoration: none;
+        }
+        .gmax-step input[type=text] {
+            width: 100%; padding: 12px; margin-bottom: 14px; margin-top: 4px;
+            border: 1px solid #e2e8f0; border-radius: 10px; font-family: inherit; font-size: .95rem;
+        }
+        .gmax-submit {
+            width: 100%; padding: 12px; border: 0; border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff; font-weight: 700; cursor: pointer; font-size: .95rem;
+        }
     </style>
 </head>
 <body>
@@ -339,5 +377,81 @@
 </section>
 
 <footer>Hub Core — piattaforma multiservizi per aziende e privati</footer>
+
+<div class="gmax-overlay" id="gmax-overlay" hidden>
+    <div class="gmax-card">
+        <button type="button" class="gmax-close" id="gmax-close" aria-label="Chiudi">✕</button>
+        <div class="gmax-avatar">@include('app.partials.max-avatar', ['size' => 64, 'animated' => true])</div>
+
+        <div class="gmax-step" data-gstep="greeting">
+            <h3>Ciao! Cosa vuoi fare?</h3>
+            <p>Sono Max — ti aiuto a orientarti su Hub Core.</p>
+            <div class="gmax-choices">
+                <a href="{{ route('admin.login') }}" class="gmax-chip">Accedi</a>
+                <a href="#registrazione" class="gmax-chip" id="gmax-goto-register">Registrati</a>
+                <button type="button" class="gmax-chip" data-gmax-goto="type">👋 Continua come ospite</button>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ route('guest.start') }}" id="gmax-guest-form">
+            @csrf
+            <div class="gmax-step" data-gstep="type" hidden>
+                <h3>Sei un'azienda, un privato o un ente?</h3>
+                <p>Ti creo subito uno spazio di prova — puoi decidere dopo se tenerlo.</p>
+                <div class="gmax-choices">
+                    <button type="button" class="gmax-chip" data-gmax-type="azienda">🏢 Azienda</button>
+                    <button type="button" class="gmax-chip" data-gmax-type="privato">👤 Privato</button>
+                    <button type="button" class="gmax-chip" data-gmax-type="ente">🏛️ Ente</button>
+                </div>
+                <input type="hidden" name="type" id="gmax-type">
+            </div>
+            <div class="gmax-step" data-gstep="name" hidden>
+                <h3>Come si chiama la tua attività?</h3>
+                <p>La useremo per personalizzare quello che crei.</p>
+                <input type="text" name="company_name" maxlength="120" required placeholder="Es. Salone Anna">
+                <button type="submit" class="gmax-submit">Inizia →</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+(function () {
+    const overlay = document.getElementById('gmax-overlay');
+    const close = document.getElementById('gmax-close');
+    const steps = Array.from(overlay.querySelectorAll('.gmax-step'));
+    const typeInput = document.getElementById('gmax-type');
+    const registerLink = document.getElementById('gmax-goto-register');
+
+    function showStep(name) {
+        steps.forEach(s => { s.hidden = s.dataset.gstep !== name; });
+    }
+
+    overlay.querySelectorAll('[data-gmax-goto]').forEach(btn => {
+        btn.addEventListener('click', () => showStep(btn.dataset.gmaxGoto));
+    });
+
+    overlay.querySelectorAll('[data-gmax-type]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            typeInput.value = btn.dataset.gmaxType;
+            showStep('name');
+        });
+    });
+
+    close.addEventListener('click', () => {
+        overlay.hidden = true;
+        sessionStorage.setItem('gmaxDismissed', '1');
+    });
+
+    registerLink.addEventListener('click', () => { overlay.hidden = true; });
+
+    if (!sessionStorage.getItem('gmaxDismissed')) {
+        setTimeout(() => {
+            overlay.hidden = false;
+            showStep('greeting');
+        }, 1200);
+    }
+})();
+</script>
 </body>
 </html>

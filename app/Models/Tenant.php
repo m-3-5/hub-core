@@ -26,6 +26,9 @@ class Tenant extends Model
         'billing_interval',
         'stripe_customer_id',
         'stripe_subscription_id',
+        'guest_verified_at',
+        'guest_email_token',
+        'guest_email_token_expires_at',
     ];
 
     protected function casts(): array
@@ -33,7 +36,14 @@ class Tenant extends Model
         return [
             'settings' => 'array',
             'trial_ends_at' => 'datetime',
+            'guest_verified_at' => 'datetime',
+            'guest_email_token_expires_at' => 'datetime',
         ];
+    }
+
+    public function isGuestPending(): bool
+    {
+        return $this->guest_verified_at === null;
     }
 
     public function onTrial(): bool

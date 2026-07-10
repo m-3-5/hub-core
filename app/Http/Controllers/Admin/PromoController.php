@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Promo;
 use App\Models\Tenant;
 use App\Models\TenantModuleCharge;
+use App\Notifications\ConfirmGuestPublishNotification;
 use App\Services\GeminiImageGenerator;
 use App\Services\GeminiPromoGenerator;
 use App\Services\GeminiSvgFlyerGenerator;
@@ -16,6 +17,7 @@ use App\Services\WordPressWebhookDispatcher;
 use App\Support\TenantPromoQuota;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -333,9 +335,35 @@ class PromoController extends Controller
             ->with('success', 'Promo aggiornata.');
     }
 
-    public function publish(Tenant $tenant, Promo $promo, WordPressWebhookDispatcher $webhook): RedirectResponse
+    public function publish(Request $request, Tenant $tenant, Promo $promo, WordPressWebhookDispatcher $webhook): RedirectResponse
     {
         abort_unless($promo->tenant_id === $tenant->id, 404);
+
+        if ($tenant->isGuestPending()) {
+            $validated = $request->validate([
+                'guest_email' => ['required', 'email', 'max:190', 'unique:users,email'],
+            ]);
+
+            $user = $tenant->users()->first();
+            $token = Str::random(48);
+
+            try {
+                Notification::route('mail', $validated['guest_email'])
+                    ->notify(new ConfirmGuestPublishNotification($tenant, $promo, $token));
+            } catch (Throwable $e) {
+                return back()->withErrors([
+                    'guest_email' => 'Non sono riuscito a inviare l\'email di conferma a questo indirizzo. Controlla che sia scritto correttamente e riprova.',
+                ]);
+            }
+
+            $user->update(['email' => $validated['guest_email']]);
+            $tenant->update([
+                'guest_email_token' => $token,
+                'guest_email_token_expires_at' => now()->addHours(48),
+            ]);
+
+            return back()->with('success', 'Controlla '.$validated['guest_email'].' e clicca il link per pubblicare davvero la promo.');
+        }
 
         if ($promo->isDraft()) {
             $promo->update([
