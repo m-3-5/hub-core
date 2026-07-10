@@ -27,6 +27,10 @@ class GeminiSvgFlyerGenerator
             return null;
         }
 
+        if (function_exists('set_time_limit')) {
+            set_time_limit(90);
+        }
+
         $this->models->ensureDiscovered();
 
         $color = $tenant->primary_color ?: '#6366f1';

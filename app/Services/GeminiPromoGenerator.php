@@ -21,6 +21,10 @@ class GeminiPromoGenerator
             throw new RuntimeException('GEMINI_API_KEY non configurata nel file .env');
         }
 
+        if (function_exists('set_time_limit')) {
+            set_time_limit(150);
+        }
+
         $this->models->ensureDiscovered();
         $imageData = base64_encode(file_get_contents($imagePath));
 
