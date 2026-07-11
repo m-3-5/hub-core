@@ -59,7 +59,7 @@
     @if ($service->published_to_site)
         <div style="background:#f6f7fb;border-radius:12px;padding:20px;margin:24px 0">
             <label style="font-size:.85rem;color:#666">Pubblicato sul sito</label>
-            <p style="margin:8px 0 12px;font-size:.9rem;color:#666">Visibile su inm35.it e sincronizzato automaticamente su {{ $tenant->website ?? 'beautyofimage.com' }} (nessuna azione manuale necessaria).</p>
+            <p style="margin:8px 0 12px;font-size:.9rem;color:#666">Visibile su inm35.it e sincronizzato automaticamente su {{ $tenant->website ? preg_replace('#^https?://#', '', $tenant->website) : 'il tuo sito' }} (nessuna azione manuale necessaria).</p>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <a class="btn btn-secondary" target="_blank" rel="noopener" href="{{ route('services.public.show', [$tenant, $service]) }}">Vedi pagina pubblica</a>
                 <a class="btn btn-secondary" target="_blank" rel="noopener" href="{{ route('client.services.iframe', [$tenant, $service]) }}">Apri snippet da incollare sul sito</a>

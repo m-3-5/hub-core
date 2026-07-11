@@ -140,7 +140,7 @@ class PromoController extends Controller
         } else {
             try {
                 $generated = $generator->generateFromImage($absolutePath, $mime, $request->input('promo_hint'));
-                $flashMessage = 'Promo generata con Gemini. Controlla anteprima e clicca Pubblica per inviarla su Beauty of Image.';
+                $flashMessage = 'Promo generata con Gemini. Controlla anteprima e clicca Pubblica per inviarla su '.$tenant->name.'.';
             } catch (GeminiApiException $e) {
                 if ($e->quotaExceeded) {
                     $generated = GeminiPromoGenerator::fallbackData($tenant->name);

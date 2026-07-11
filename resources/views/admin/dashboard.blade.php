@@ -16,7 +16,7 @@
             <a class="btn btn-secondary" href="{{ route('admin.activity.index') }}">📊 Attività</a>
         </div>
     </div>
-    <p style="color:#666">Crea promo in bozza, controlla anteprima, poi pubblica su Beauty of Image.</p>
+    <p style="color:#666">Crea promo in bozza, controlla anteprima, poi pubblica sul sito del cliente.</p>
     @foreach ($tenants as $t)
         <div style="padding:20px 0;border-bottom:1px solid #eee">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">

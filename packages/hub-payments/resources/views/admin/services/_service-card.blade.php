@@ -14,7 +14,7 @@
     </a>
     <div class="svc-card__body">
         <span class="svc-badge {{ $service->published_to_site ? 'svc-badge--live' : 'svc-badge--off' }}">
-            {{ $service->published_to_site ? '● Pubblicato (inm35.it + beautyofimage.com)' : 'Non pubblicato' }}
+            {{ $service->published_to_site ? '● Pubblicato (inm35.it + '.($tenant->website ? preg_replace('#^https?://#', '', $tenant->website) : 'sito').')' : 'Non pubblicato' }}
         </span>
         <h3><a href="{{ route('admin.services.show', [$tenant, $service]) }}">{{ $service->title }}</a></h3>
         <p class="svc-card__price">{{ $service->amountEuros() }} €</p>

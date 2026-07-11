@@ -316,8 +316,10 @@ class ServiceController extends Controller
 
         app(WordPressWebhookDispatcher::class)->servicesSync($tenant);
 
+        $tenantSite = $tenant->website ? preg_replace('#^https?://#', '', $tenant->website) : $tenant->name;
+
         return back()->with('status', $service->published_to_site
-            ? 'Servizio visibile su inm35.it e beautyofimage.com.'
+            ? 'Servizio visibile su inm35.it e '.$tenantSite.'.'
             : 'Servizio nascosto dal sito.');
     }
 

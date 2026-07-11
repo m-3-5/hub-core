@@ -37,7 +37,7 @@
             @elseif ($promo->isDraft())
                 <form method="POST" action="{{ route('admin.promos.publish', [$tenant, $promo]) }}">
                     @csrf
-                    <button type="submit" class="btn">Pubblica su Beauty of Image</button>
+                    <button type="submit" class="btn">Pubblica su {{ $tenant->name }}</button>
                 </form>
             @else
                 <form method="POST" action="{{ route('admin.promos.publish', [$tenant, $promo]) }}">
@@ -100,7 +100,7 @@
             </p>
         @else
             <p style="margin-top:20px;font-size:14px;color:#e65100;background:#fff3e0;padding:12px;border-radius:8px">
-                In bozza: non visibile su beautyofimage.com finché non clicchi <strong>Pubblica</strong>.
+                In bozza: non visibile su {{ $tenant->website ? preg_replace('#^https?://#', '', $tenant->website) : $tenant->name }} finché non clicchi <strong>Pubblica</strong>.
             </p>
         @endif
     </div>

@@ -37,7 +37,7 @@
 
         <label style="display:flex;align-items:center;gap:8px;margin-bottom:20px;font-weight:500">
             <input type="checkbox" name="published_to_site" value="1" @checked(old('published_to_site'))>
-            Mostra sul sito (API / beautyofimage.com — quando collegato)
+            Mostra sul sito (API / {{ $tenant->website ? preg_replace('#^https?://#', '', $tenant->website) : 'il tuo sito' }} — quando collegato)
         </label>
 
         <button type="submit" class="btn">Crea link di pagamento</button>

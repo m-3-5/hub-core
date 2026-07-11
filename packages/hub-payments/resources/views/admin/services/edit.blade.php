@@ -51,7 +51,7 @@
 
         <label style="display:flex;align-items:center;gap:8px;margin-bottom:20px;font-weight:500">
             <input type="checkbox" name="published_to_site" value="1" @checked(old('published_to_site', $service->published_to_site))>
-            Mostra sul sito (API / beautyofimage.com)
+            Mostra sul sito (API / {{ $tenant->website ? preg_replace('#^https?://#', '', $tenant->website) : 'il tuo sito' }})
         </label>
 
         <button type="submit" class="btn">Salva modifiche</button>
