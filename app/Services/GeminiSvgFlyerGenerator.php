@@ -9,8 +9,19 @@ use Illuminate\Support\Str;
 
 class GeminiSvgFlyerGenerator
 {
+    /** @var array<string, string> */
+    private const STYLE_DIRECTIVES = [
+        'elegante' => 'Stile elegante ed emozionale: curve morbide e organiche, texture leggera floreale o "grana" sottile, palette con più tonalità del colore brand (chiaro/scuro), tipografia raffinata con forte contrasto di peso tra titolo (bold) e sottotitolo (leggero, eventualmente corsivo).',
+        'moderno' => 'Stile moderno e diretto: blocchi geometrici puliti disposti in modo asimmetrico, forte contrasto tra il colore brand e il bianco/nero, tipografia sans-serif bold, un elemento grafico decorativo (forma organica o geometrica) come punto focale.',
+        'amichevole' => 'Stile amichevole e caldo: forme arrotondate morbide, palette calda e invitante, piccole illustrazioni semplici a linea (es. stelline, cuori, forme giocose) sparse con equilibrio, tipografia rotonda e accogliente.',
+        'tech' => 'Stile tech e professionale: forme geometriche nette (esagoni, triangoli, linee sottili), gradiente dal colore brand verso un tono più scuro, dettagli a griglia o circuito leggero, tipografia squadrata e sicura.',
+        'classico' => 'Stile classico e istituzionale: composizione simmetrica, cornice sottile decorativa, palette sobria (colore brand + crema/bianco), tipografia serif elegante, dettagli minimal e ordinati.',
+        'digitale' => 'Stile digitale/software-house: sfondo scuro quasi nero con un bagliore sfumato del colore brand in un angolo, una sottile "costellazione" di punti collegati da linee filiformi, una o più forme triangolari/geometriche nette, etichette in stile monospace maiuscolo, titolo sans-serif bold molto leggibile.',
+    ];
+
     public function __construct(
         private GeminiModelResolver $models,
+        private TenantBrandManager $brand,
     ) {}
 
     /**
@@ -35,10 +46,13 @@ class GeminiSvgFlyerGenerator
 
         $color = $tenant->primary_color ?: '#6366f1';
         $safeHeadline = Str::limit($headline, 60, '');
+        $fontKey = $this->brand->font($tenant);
+        $styleDirective = self::STYLE_DIRECTIVES[$fontKey] ?? self::STYLE_DIRECTIVES['moderno'];
 
         $prompt = <<<PROMPT
 Genera SOLO il codice SVG (nessun markdown, nessuna spiegazione, inizia direttamente con <svg) di un volantino promozionale verticale 800x1200px per l'attività "{$tenant->name}".
-Colore principale del brand: {$color} — usalo come sfondo o elemento grafico dominante.
+Colore principale del brand: {$color} — usa un gradiente (linearGradient o radialGradient) con 2-3 tonalità derivate da questo colore come sfondo, non un riempimento piatto a tinta unita.
+Direzione artistica da seguire: {$styleDirective}
 Testo principale grande e leggibile: "{$safeHeadline}"
 PROMPT;
 
@@ -46,7 +60,17 @@ PROMPT;
             $prompt .= "\nTesto secondario più piccolo sotto: \"".Str::limit($subline, 100, '')."\"";
         }
 
-        $prompt .= "\nStile moderno, pulito, elegante, adatto a un'attività commerciale italiana. Forme decorative semplici (cerchi, forme organiche), buon contrasto testo/sfondo. NO loghi disegnati, NO testo illeggibile, NO watermark.";
+        $prompt .= "\n\nRegole di composizione obbligatorie:\n"
+            ."- Layout con gerarchia visiva chiara: una piccola etichetta/eyebrow in alto, il titolo grande, il sottotitolo più piccolo, e almeno un elemento decorativo che faccia da punto focale (non simmetrico/centrato in modo banale).\n"
+            ."- Almeno 4-5 elementi grafici distinti (forme, linee, texture), non ripetitivi.\n"
+            ."- VIETATO lo schema banale \"due macchie/blob sfumati negli angoli opposti + tre pallini allineati al centro\": è già stato usato ed è troppo semplice, serve qualcosa di più elaborato e originale.\n"
+            ."- Buon contrasto testo/sfondo, tipografia coerente con lo stile indicato sopra.\n"
+            ."- NO loghi disegnati, NO testo illeggibile o sovrapposto, NO watermark, NO cornici bianche vuote enormi senza contenuto.\n\n"
+            ."Regole tipografiche OBBLIGATORIE (fondamentali, non violarle mai):\n"
+            ."- Margine di sicurezza di almeno 60px su ogni lato: nessun testo deve mai uscire dal canvas (x tra 60 e 740, considerando la larghezza del testo).\n"
+            ."- Se il titolo è lungo, spezzalo su 2-3 righe usando più <tspan x=\"...\" dy=\"...\"> con lo stesso x, invece di scriverlo tutto su una riga sola.\n"
+            ."- Scegli una dimensione font per il titolo (di solito tra 40 e 64px) tale che ogni singola riga, alla lunghezza del testo dato, resti dentro i margini di sicurezza: se non sei sicuro che entri, riduci il font-size o spezza su più righe.\n"
+            ."- Usa in modo coerente text-anchor=\"middle\" con x=\"400\" per titolo/sottotitolo/etichette centrate, oppure text-anchor=\"start\" con x=\"60\" per testo allineato a sinistra — mai un misto che porti il testo fuori dai margini.";
 
         foreach ($this->models->textModels() as $model) {
             $response = Http::timeout(60)->post(
