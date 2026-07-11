@@ -16,6 +16,7 @@
         <p>{{ $typeLabels[$tenantType] ?? 'Azienda' }} · Cosa vuoi fare oggi?</p>
     </div>
     <div class="app-actions">
+        <a class="btn btn-ghost" href="{{ route('admin.profile.edit', $tenant) }}">🪪 Profilo</a>
         @if (auth()->user()->isSuperAdmin())
             <a class="btn btn-ghost" href="{{ route('app.index') }}">Attività</a>
             <a class="btn btn-ghost" href="{{ route('admin.dashboard') }}">Admin</a>

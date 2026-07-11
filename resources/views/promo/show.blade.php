@@ -18,9 +18,6 @@
     <meta property="og:locale" content="it_IT">
     <link rel="canonical" href="{{ $promo->publicUrl() }}">
     <meta name="theme-color" content="{{ $tenant->primary_color }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700&family=Great+Vibes&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     @php
         $heroVisual = $promo->variantUrl('hero');
         $flyerUrl = $promo->variantUrl('flyer');
@@ -28,16 +25,24 @@
         $shareLinks = $shareLinks ?? \App\Support\PromoShareLinks::for($promo);
         $isExpiredPromo = $isExpiredPromo ?? $promo->isExpired();
         $expiryLabel = $promo->expiryLabel();
+        $brandFontKey = $tenant->settings['brand']['font'] ?? \App\Support\BrandFonts::default();
+        $brandFont = \App\Support\BrandFonts::get($brandFontKey);
     @endphp
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?{{ $brandFont['google_fonts'] }}&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: {{ $tenant->primary_color }};
             --primary-dark: color-mix(in srgb, var(--primary) 75%, #000);
             --text: #1f1a24;
             --muted: #5c5563;
+            --font-display: {{ $brandFont['display'] }};
+            --font-body: {{ $brandFont['body'] }};
+            --font-accent: {{ $brandFont['accent'] }};
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Outfit', system-ui, sans-serif; color: var(--text); background: #fdf8fb; line-height: 1.65; }
+        body { font-family: var(--font-body), system-ui, sans-serif; color: var(--text); background: #fdf8fb; line-height: 1.65; }
         .promo-hero {
             position: relative;
             min-height: 88vh;
@@ -72,7 +77,7 @@
             letter-spacing: .08em; text-transform: uppercase; margin-bottom: 16px;
         }
         .promo-hero h1 {
-            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-family: var(--font-display), Georgia, serif;
             font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.05; margin-bottom: 16px;
         }
         .promo-hero__lead { font-size: 1.1rem; opacity: .94; max-width: 46ch; margin-bottom: 20px; }
@@ -96,7 +101,7 @@
         .section { max-width: 1100px; margin: 0 auto; padding: 56px 24px; }
         .section--alt { background: #fff; border-radius: 32px 32px 0 0; margin-top: -24px; position: relative; }
         .section h2 {
-            font-family: 'Cormorant Garamond', serif;
+            font-family: var(--font-display), serif;
             font-size: clamp(1.8rem, 4vw, 2.4rem);
             color: var(--primary-dark); margin-bottom: 12px;
         }
@@ -126,7 +131,7 @@
         }
         .deco-img--1 { top: 80px; right: 3%; width: 160px; height: 160px; transform: rotate(6deg); }
         .deco-img--2 { bottom: 40px; left: 2%; width: 130px; height: 130px; transform: rotate(-8deg); }
-        .offer-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.65rem; color: var(--primary); margin-bottom: 8px; }
+        .offer-card h3 { font-family: var(--font-display), serif; font-size: 1.65rem; color: var(--primary); margin-bottom: 8px; }
         .offer-card .price { font-size: 2.1rem; font-weight: 700; color: var(--primary-dark); margin: 8px 0; }
         .offer-card p { color: var(--muted); font-size: .98rem; }
         .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 8px; }
@@ -147,7 +152,7 @@
             color: #fff; border-radius: 24px; padding: 40px 32px; text-align: center;
         }
         .contact-card h2 {
-            font-family: 'Great Vibes', 'Brush Script MT', cursive;
+            font-family: var(--font-accent), cursive;
             font-size: clamp(2.8rem, 7vw, 4.2rem);
             font-weight: 400;
             color: #fff;
@@ -157,7 +162,7 @@
             text-shadow: 0 2px 12px rgba(0,0,0,.15);
         }
         .contact-card .contact-tagline {
-            font-family: 'Outfit', system-ui, sans-serif;
+            font-family: var(--font-body), system-ui, sans-serif;
             font-size: 1.05rem;
             opacity: .95;
             margin-bottom: 12px;

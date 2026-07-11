@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\AppController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\MaxController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\BillingController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ModuleBillingController;
@@ -98,6 +99,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/activity', [ActivityLogController::class, 'index'])->name('activity.index');
 
         Route::post('/tenants/{tenant}/max/query', [MaxController::class, 'query'])->name('max.query');
+
+        Route::get('/tenants/{tenant}/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/tenants/{tenant}/profile', [ProfileController::class, 'update'])->name('profile.update');
     });
 });
 

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Tenant;
+use App\Support\BrandFonts;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -71,6 +72,27 @@ class TenantBrandManager
         $settings = $tenant->settings ?? [];
         $settings['brand'] = array_merge($settings['brand'] ?? [], [
             'color' => $color,
+            'updated_at' => now()->toIso8601String(),
+        ]);
+        $tenant->update(['settings' => $settings]);
+    }
+
+    public function font(Tenant $tenant): string
+    {
+        $font = $tenant->settings['brand']['font'] ?? null;
+
+        return is_string($font) && isset(BrandFonts::PRESETS[$font]) ? $font : BrandFonts::default();
+    }
+
+    public function storeFont(Tenant $tenant, string $font): void
+    {
+        if (! isset(BrandFonts::PRESETS[$font])) {
+            return;
+        }
+
+        $settings = $tenant->settings ?? [];
+        $settings['brand'] = array_merge($settings['brand'] ?? [], [
+            'font' => $font,
             'updated_at' => now()->toIso8601String(),
         ]);
         $tenant->update(['settings' => $settings]);
