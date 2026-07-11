@@ -36,7 +36,15 @@ class RegistrationController extends Controller
             'expires_at' => now()->addHours(48),
         ]);
 
-        Notification::route('mail', $pending->email)->notify(new ConfirmRegistrationNotification($pending));
+        try {
+            Notification::route('mail', $pending->email)->notify(new ConfirmRegistrationNotification($pending));
+        } catch (\Throwable $e) {
+            $pending->delete();
+
+            return back()->withInput()->withErrors([
+                'email' => 'Non sono riuscito a inviare l\'email di conferma a questo indirizzo. Controlla che sia scritto correttamente e riprova.',
+            ]);
+        }
 
         return redirect()
             ->route('welcome')
@@ -74,7 +82,12 @@ class RegistrationController extends Controller
         $tenant->users()->attach($user->id, ['role' => 'admin']);
 
         $passwordToken = Password::broker()->createToken($user);
-        $user->notify(new TenantWelcomeNotification($tenant, $passwordToken));
+
+        try {
+            $user->notify(new TenantWelcomeNotification($tenant, $passwordToken));
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         $pending->delete();
 

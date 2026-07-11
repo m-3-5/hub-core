@@ -49,7 +49,7 @@ class HubPaymentsServiceProvider extends ServiceProvider
 
     private function registerRoutes(): void
     {
-        Route::middleware(['web', 'auth', 'tenant.access'])
+        Route::middleware(['web', 'auth', 'tenant.access', 'tenant.module:services'])
             ->prefix('admin/tenants/{tenant}')
             ->name('admin.')
             ->group(function () {

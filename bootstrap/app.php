@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'tenant.access' => \App\Http\Middleware\EnsureTenantAccess::class,
+            'tenant.module' => \App\Http\Middleware\EnsureTenantModuleAccess::class,
         ]);
 
         $middleware->redirectGuestsTo(fn (Request $request) => route('admin.login'));
