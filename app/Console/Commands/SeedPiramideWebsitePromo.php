@@ -7,6 +7,7 @@ use App\Services\GeminiSvgFlyerGenerator;
 use App\Services\TenantBrandManager;
 use App\Support\TenantPromoQuota;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class SeedPiramideWebsitePromo extends Command
@@ -32,8 +33,31 @@ class SeedPiramideWebsitePromo extends Command
 
         if ($existing) {
             $metadata = array_merge($existing->ai_metadata ?? [], ['landing_style' => 'agency']);
-            $existing->update(['ai_metadata' => $metadata]);
-            $this->warn('Questa promo esisteva già per Piramide 35 — non ne creo un\'altra, ma le ho applicato la landing page dedicata.');
+
+            $newFlyer = $svgFlyerGenerator->generate(
+                $tenant,
+                $existing->title,
+                'Progettazione siti web professionali — Senise e Roma',
+                null,
+                'promos/'.$tenant->slug.'/'.Str::uuid(),
+            );
+
+            if ($newFlyer) {
+                if ($existing->image_path && Storage::disk('public')->exists($existing->image_path)) {
+                    Storage::disk('public')->delete($existing->image_path);
+                }
+
+                $existing->update([
+                    'ai_metadata' => $metadata,
+                    'image_path' => $newFlyer['path'],
+                ]);
+                $this->info('Volantino rigenerato con il nuovo stile grafico.');
+            } else {
+                $existing->update(['ai_metadata' => $metadata]);
+                $this->warn('Non sono riuscito a rigenerare il volantino (Gemini non ha risposto) — ho comunque applicato la landing page dedicata.');
+            }
+
+            $this->warn('Questa promo esisteva già per Piramide 35 — non ne creo un\'altra, ma l\'ho aggiornata.');
             $this->info('Vedila qui: '.route('admin.promos.show', [$tenant, $existing]));
 
             return self::SUCCESS;
