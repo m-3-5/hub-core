@@ -112,7 +112,7 @@ PROMPT;
         return $svg;
     }
 
-    /** @return array{path: string, mime: string} */
+    /** @return array{path: string, mime: string, svg_path: string} */
     private function save(string $svg, ?string $logoAbsolutePath, string $directory): array
     {
         if ($logoAbsolutePath && is_file($logoAbsolutePath)) {
@@ -128,9 +128,11 @@ PROMPT;
 
         $pngPath = $this->tryRasterize($svg, $directory);
 
-        return $pngPath
-            ? ['path' => $pngPath, 'mime' => 'image/png']
-            : ['path' => $svgPath, 'mime' => 'image/svg+xml'];
+        return [
+            'path' => $pngPath ?? $svgPath,
+            'mime' => $pngPath ? 'image/png' : 'image/svg+xml',
+            'svg_path' => $svgPath,
+        ];
     }
 
     private function tryRasterize(string $svg, string $directory): ?string

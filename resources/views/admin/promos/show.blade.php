@@ -79,6 +79,23 @@
                 </form>
             </details>
         @endif
+
+        @if ($promo->flyerSvgPath())
+            <div style="background:#f6f7fb;border-radius:12px;padding:16px;margin-bottom:16px">
+                <h3 style="font-size:.95rem;margin:0 0 8px">🎬 Video per Instagram/WhatsApp</h3>
+                @error('video')<p style="color:#c62828;font-size:13px;margin:0 0 10px">{{ $message }}</p>@enderror
+                @if ($promo->variantUrl('video'))
+                    <img src="{{ $promo->variantUrl('video') }}" alt="Video promo" style="max-width:280px;border-radius:8px;display:block;margin-bottom:10px">
+                    <a href="{{ $promo->variantUrl('video') }}" download class="btn btn-secondary" style="margin-right:8px">Scarica</a>
+                @else
+                    <p style="color:#666;font-size:13px;margin:0 0 10px">Crea una breve versione animata (zoom lento) del volantino, pronta da condividere come storia.</p>
+                @endif
+                <form method="POST" action="{{ route('admin.promos.generate-video', [$tenant, $promo]) }}" style="display:inline">
+                    @csrf
+                    <button type="submit" class="btn btn-secondary">{{ $promo->variantUrl('video') ? 'Rigenera video' : 'Genera video' }}</button>
+                </form>
+            </div>
+        @endif
         <p style="color:#444;line-height:1.6">{{ $promo->description }}</p>
 
         @if ($promo->offers)

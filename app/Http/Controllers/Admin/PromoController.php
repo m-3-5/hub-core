@@ -9,6 +9,7 @@ use App\Models\Promo;
 use App\Models\Tenant;
 use App\Models\TenantModuleCharge;
 use App\Notifications\ConfirmGuestPublishNotification;
+use App\Services\FlyerVideoGenerator;
 use App\Services\GeminiImageGenerator;
 use App\Services\GeminiPromoGenerator;
 use App\Services\GeminiSvgFlyerGenerator;
@@ -99,6 +100,7 @@ class PromoController extends Controller
         }
 
         $flashWarning = null;
+        $flyerSvgPath = null;
 
         if ($request->input('promo_source') === 'svg') {
             $headline = trim((string) $request->input('manual_title')) ?: (string) $request->input('promo_hint');
@@ -121,6 +123,7 @@ class PromoController extends Controller
             $path = $flyer['path'];
             $mime = $flyer['mime'];
             $absolutePath = Storage::disk('public')->path($path);
+            $flyerSvgPath = $flyer['svg_path'] ?? null;
         } else {
             try {
                 [$path, $absolutePath, $mime] = $this->resolvePromoImage(
@@ -185,6 +188,7 @@ class PromoController extends Controller
                 'brand_mode' => $request->input('brand_mode'),
                 'visual_tier' => $request->input('visual_tier', 'base'),
                 'hashtags' => $hashtags,
+                'flyer_svg_path' => $flyerSvgPath,
             ]),
         ]);
 
@@ -426,6 +430,43 @@ class PromoController extends Controller
             ->with('success', 'Promo pubblicata! Popup, card WordPress e landing sono ora attivi.');
     }
 
+    public function generateVideo(Tenant $tenant, Promo $promo, FlyerVideoGenerator $videoGenerator): RedirectResponse
+    {
+        abort_unless($promo->tenant_id === $tenant->id, 404);
+
+        $svgPath = $promo->flyerSvgPath();
+
+        if (! $svgPath) {
+            return back()->withErrors([
+                'video' => 'Questa promo non ha un volantino generato automaticamente da cui creare il video (serve un volantino SVG).',
+            ]);
+        }
+
+        $result = $videoGenerator->generateFromSvg(
+            Storage::disk('public')->path($svgPath),
+            'promos/'.$tenant->slug.'/'.Str::uuid(),
+        );
+
+        if (! $result) {
+            return back()->withErrors([
+                'video' => 'Non sono riuscito a creare il video. Il server potrebbe non supportare la creazione di GIF animate (serve l\'estensione Imagick).',
+            ]);
+        }
+
+        $variants = $promo->image_variants ?? [];
+        $oldVideo = $variants['video'] ?? null;
+        $variants['video'] = $result['path'];
+        $promo->update(['image_variants' => $variants]);
+
+        if ($oldVideo && $oldVideo !== $result['path'] && Storage::disk('public')->exists($oldVideo)) {
+            Storage::disk('public')->delete($oldVideo);
+        }
+
+        return redirect()
+            ->route('admin.promos.show', [$tenant, $promo])
+            ->with('success', 'Video creato! Scaricalo qui sotto e condividilo su Instagram/WhatsApp.');
+    }
+
     public function destroy(Tenant $tenant, Promo $promo, WordPressWebhookDispatcher $webhook): RedirectResponse
     {
         abort_unless($promo->tenant_id === $tenant->id, 404);
@@ -449,6 +490,12 @@ class PromoController extends Controller
     {
         if ($promo->image_path) {
             Storage::disk('public')->delete($promo->image_path);
+        }
+
+        $flyerSvgPath = $promo->ai_metadata['flyer_svg_path'] ?? null;
+
+        if (is_string($flyerSvgPath) && $flyerSvgPath !== $promo->image_path) {
+            Storage::disk('public')->delete($flyerSvgPath);
         }
 
         foreach ($promo->image_variants ?? [] as $key => $variant) {

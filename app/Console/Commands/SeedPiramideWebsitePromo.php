@@ -43,9 +43,17 @@ class SeedPiramideWebsitePromo extends Command
             );
 
             if ($newFlyer) {
+                $oldSvgPath = $existing->ai_metadata['flyer_svg_path'] ?? null;
+
                 if ($existing->image_path && Storage::disk('public')->exists($existing->image_path)) {
                     Storage::disk('public')->delete($existing->image_path);
                 }
+
+                if (is_string($oldSvgPath) && $oldSvgPath !== $existing->image_path && Storage::disk('public')->exists($oldSvgPath)) {
+                    Storage::disk('public')->delete($oldSvgPath);
+                }
+
+                $metadata['flyer_svg_path'] = $newFlyer['svg_path'];
 
                 $existing->update([
                     'ai_metadata' => $metadata,
@@ -108,6 +116,7 @@ class SeedPiramideWebsitePromo extends Command
                 'promo_source' => 'svg',
                 'seeded_via' => 'hub:seed-piramide-website-promo',
                 'landing_style' => 'agency',
+                'flyer_svg_path' => $flyer['svg_path'],
             ],
         ]);
 

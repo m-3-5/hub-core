@@ -198,6 +198,21 @@ class Promo extends Model
         return $this->status === 'draft';
     }
 
+    public function flyerSvgPath(): ?string
+    {
+        $metaPath = $this->ai_metadata['flyer_svg_path'] ?? null;
+
+        if (is_string($metaPath) && Storage::disk('public')->exists($metaPath)) {
+            return $metaPath;
+        }
+
+        if (is_string($this->image_path) && str_ends_with($this->image_path, '.svg') && Storage::disk('public')->exists($this->image_path)) {
+            return $this->image_path;
+        }
+
+        return null;
+    }
+
     public function templateView(): string
     {
         return ($this->ai_metadata['landing_style'] ?? null) === 'agency'
