@@ -7,6 +7,9 @@
     $previewUrl = route('admin.promos.preview', [$tenant, $promo]);
     $statusLabel = $promo->isPublished() ? 'Pubblicata' : 'Bozza';
     $statusColor = $promo->isPublished() ? '#2e7d32' : '#e65100';
+    $ownSiteTicket = $promo->isPublished() && ! $tenant->hasAutoSiteSync()
+        ? $tenant->tickets()->where('context_type', 'site-integration')->where('context_id', $promo->id)->latest()->first()
+        : null;
 @endphp
 
 <div class="card" style="margin-bottom:20px">
@@ -39,7 +42,7 @@
                     @csrf
                     <button type="submit" class="btn">Pubblica su {{ $tenant->name }}</button>
                 </form>
-            @else
+            @elseif ($tenant->hasAutoSiteSync())
                 <form method="POST" action="{{ route('admin.promos.publish', [$tenant, $promo]) }}">
                     @csrf
                     <button type="submit" class="btn btn-secondary">Risincronizza WordPress</button>
@@ -55,6 +58,30 @@
         </div>
     </div>
 </div>
+
+@if ($promo->isPublished() && ! $tenant->hasAutoSiteSync())
+    <div class="card" style="margin-bottom:20px">
+        <h3 style="margin:0 0 8px;font-size:1rem">🌐 Vuoi questa promo anche sul tuo sito web?</h3>
+        @if ($ownSiteTicket && ! $ownSiteTicket->isAnswered())
+            <p style="color:#666;font-size:14px;margin:0">Richiesta già inviata il {{ $ownSiteTicket->created_at->format('d/m/Y') }} — ti rispondiamo entro 24 ore.</p>
+        @elseif ($ownSiteTicket && $ownSiteTicket->isAnswered())
+            <p style="color:#2e7d32;font-size:14px;margin:0 0 10px">Risposta ricevuta: {{ $ownSiteTicket->response }}</p>
+        @else
+            <p style="color:#666;font-size:14px;margin:0 0 14px">Qui su {{ $tenant->name }} è già pubblicata. Se vuoi mostrarla anche sul tuo sito personale, dicci come procedere.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:10px">
+                <form method="POST" action="{{ route('admin.tickets.store', $tenant) }}">
+                    @csrf
+                    <input type="hidden" name="context_type" value="site-integration">
+                    <input type="hidden" name="context_id" value="{{ $promo->id }}">
+                    <input type="hidden" name="context_label" value="Promo: {{ $promo->title }}">
+                    <input type="hidden" name="message" value="Ho già un sito web e vorrei integrare la promo «{{ $promo->title }}». Contattatemi per procedere.">
+                    <button type="submit" class="btn btn-secondary">Ho già un sito — chiedi a Max di integrarla</button>
+                </form>
+                <a class="btn btn-secondary" href="{{ route('admin.sitebuilder.show', $tenant) }}">Non ho un sito — crealo con Max</a>
+            </div>
+        @endif
+    </div>
+@endif
 
 <div class="admin-grid">
     <div class="card">
@@ -86,13 +113,35 @@
                 @error('video')<p style="color:#c62828;font-size:13px;margin:0 0 10px">{{ $message }}</p>@enderror
                 @if ($promo->variantUrl('video'))
                     <img src="{{ $promo->variantUrl('video') }}" alt="Video promo" style="max-width:280px;border-radius:8px;display:block;margin-bottom:10px">
+                    <p style="color:#666;font-size:13px;margin:0 0 10px">Questo video è già quello mostrato al posto del volantino statico sulla pagina pubblica.</p>
                     <a href="{{ $promo->variantUrl('video') }}" download class="btn btn-secondary" style="margin-right:8px">Scarica</a>
                 @else
-                    <p style="color:#666;font-size:13px;margin:0 0 10px">Crea una breve versione animata (zoom lento) del volantino, pronta da condividere come storia.</p>
+                    <p style="color:#666;font-size:13px;margin:0 0 10px">Nessun video creato (il server potrebbe non supportarlo, oppure non è ancora stato generato) — la promo mostra il volantino statico.</p>
                 @endif
                 <form method="POST" action="{{ route('admin.promos.generate-video', [$tenant, $promo]) }}" style="display:inline">
                     @csrf
                     <button type="submit" class="btn btn-secondary">{{ $promo->variantUrl('video') ? 'Rigenera video' : 'Genera video' }}</button>
+                </form>
+            </div>
+
+            <div style="background:#f6f7fb;border-radius:12px;padding:16px;margin-bottom:16px">
+                <h3 style="font-size:.95rem;margin:0 0 8px">🖼️ Pack immagini per i social</h3>
+                @error('image_pack')<p style="color:#c62828;font-size:13px;margin:0 0 10px">{{ $message }}</p>@enderror
+                @if ($promo->image_variants['pack'] ?? null)
+                    <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px">
+                        @foreach ($promo->image_variants['pack'] as $item)
+                            <div style="text-align:center">
+                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($item['path']) }}" alt="{{ $item['label'] }}" style="max-width:120px;border-radius:8px;display:block;margin-bottom:4px">
+                                <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($item['path']) }}" download style="font-size:12px">{{ $item['label'] }}</a>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p style="color:#666;font-size:13px;margin:0 0 10px">Se preferisci delle immagini statiche invece del video (quadrata per il feed, verticale per le storie), crea qui il pack pronto da postare.</p>
+                @endif
+                <form method="POST" action="{{ route('admin.promos.generate-image-pack', [$tenant, $promo]) }}" style="display:inline">
+                    @csrf
+                    <button type="submit" class="btn btn-secondary">{{ ($promo->image_variants['pack'] ?? null) ? 'Rigenera pack immagini' : 'Crea pack immagini' }}</button>
                 </form>
             </div>
         @endif

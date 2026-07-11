@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Tenant extends Model
 {
@@ -109,6 +110,11 @@ class Tenant extends Model
         return $this->hasMany(\M35\HubPayments\Models\PayableService::class);
     }
 
+    public function generatedSite(): HasOne
+    {
+        return $this->hasOne(\M35\HubSitebuilder\Models\GeneratedSite::class);
+    }
+
     public function moduleCharges(): HasMany
     {
         return $this->hasMany(TenantModuleCharge::class);
@@ -129,6 +135,11 @@ class Tenant extends Model
     public function isDedicated(): bool
     {
         return $this->plan === 'dedicated';
+    }
+
+    public function hasAutoSiteSync(): bool
+    {
+        return (bool) ($this->settings['auto_site_sync'] ?? false);
     }
 
     public function workspaceConnectionName(): ?string

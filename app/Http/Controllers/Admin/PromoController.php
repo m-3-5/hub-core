@@ -9,6 +9,7 @@ use App\Models\Promo;
 use App\Models\Tenant;
 use App\Models\TenantModuleCharge;
 use App\Notifications\ConfirmGuestPublishNotification;
+use App\Services\FlyerImagePackGenerator;
 use App\Services\FlyerVideoGenerator;
 use App\Services\GeminiImageGenerator;
 use App\Services\GeminiPromoGenerator;
@@ -57,6 +58,7 @@ class PromoController extends Controller
         GeminiPromoGenerator $generator,
         GeminiImageGenerator $imageGenerator,
         GeminiSvgFlyerGenerator $svgFlyerGenerator,
+        FlyerVideoGenerator $videoGenerator,
         PromoVisualBuilder $visuals,
         TenantBrandManager $brand,
     ): RedirectResponse {
@@ -192,9 +194,20 @@ class PromoController extends Controller
             ]),
         ]);
 
-        $promo->update([
-            'image_variants' => $visuals->build($tenant, $promo, $path, $absolutePath, aiImages: false),
-        ]);
+        $variants = $visuals->build($tenant, $promo, $path, $absolutePath, aiImages: false);
+
+        if ($flyerSvgPath) {
+            $video = $videoGenerator->generateFromSvg(
+                Storage::disk('public')->path($flyerSvgPath),
+                'promos/'.$tenant->slug.'/'.Str::uuid(),
+            );
+
+            if ($video) {
+                $variants['video'] = $video['path'];
+            }
+        }
+
+        $promo->update(['image_variants' => $variants]);
 
         if ($overQuota) {
             $flashWarning = ($flashWarning ? $flashWarning.' ' : '')
@@ -467,6 +480,47 @@ class PromoController extends Controller
             ->with('success', 'Video creato! Scaricalo qui sotto e condividilo su Instagram/WhatsApp.');
     }
 
+    public function generateImagePack(Tenant $tenant, Promo $promo, FlyerImagePackGenerator $packGenerator): RedirectResponse
+    {
+        abort_unless($promo->tenant_id === $tenant->id, 404);
+
+        $svgPath = $promo->flyerSvgPath();
+
+        if (! $svgPath) {
+            return back()->withErrors([
+                'image_pack' => 'Questa promo non ha un volantino generato automaticamente da cui derivare le immagini (serve un volantino SVG).',
+            ]);
+        }
+
+        $pack = $packGenerator->generateFromSvg(
+            Storage::disk('public')->path($svgPath),
+            'promos/'.$tenant->slug.'/'.Str::uuid(),
+        );
+
+        if (! $pack) {
+            return back()->withErrors([
+                'image_pack' => 'Non sono riuscito a creare il pack immagini. Il server potrebbe non supportare l\'estensione Imagick.',
+            ]);
+        }
+
+        $variants = $promo->image_variants ?? [];
+        $oldPack = $variants['pack'] ?? [];
+        $variants['pack'] = $pack;
+        $promo->update(['image_variants' => $variants]);
+
+        foreach ($oldPack as $oldMeta) {
+            $oldPath = is_array($oldMeta) ? ($oldMeta['path'] ?? null) : null;
+
+            if ($oldPath && Storage::disk('public')->exists($oldPath)) {
+                Storage::disk('public')->delete($oldPath);
+            }
+        }
+
+        return redirect()
+            ->route('admin.promos.show', [$tenant, $promo])
+            ->with('success', 'Pack immagini creato: quadrata per il feed, verticale per le storie, e l\'originale.');
+    }
+
     public function destroy(Tenant $tenant, Promo $promo, WordPressWebhookDispatcher $webhook): RedirectResponse
     {
         abort_unless($promo->tenant_id === $tenant->id, 404);
@@ -499,7 +553,7 @@ class PromoController extends Controller
         }
 
         foreach ($promo->image_variants ?? [] as $key => $variant) {
-            if ($key === 'decor' && is_array($variant)) {
+            if (in_array($key, ['decor', 'pack'], true) && is_array($variant)) {
                 foreach ($variant as $meta) {
                     $path = is_array($meta) ? ($meta['path'] ?? null) : $meta;
 

@@ -22,7 +22,7 @@
         $brandFontKey = $tenant->settings['brand']['font'] ?? \App\Support\BrandFonts::default();
         $brandFont = \App\Support\BrandFonts::get($brandFontKey);
         $tagline = $tenant->settings['tagline'] ?? null;
-        $flyer = $promo->variantUrl('flyer') ?? $promo->imageUrl();
+        $flyer = $promo->variantUrl('video') ?? $promo->variantUrl('flyer') ?? $promo->imageUrl();
     @endphp
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

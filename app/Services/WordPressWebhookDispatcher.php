@@ -52,6 +52,10 @@ class WordPressWebhookDispatcher
     /** @param  array<string, mixed>  $extra */
     private function dispatch(string $event, Tenant $tenant, array $extra = [], ?string $urlOverride = null): void
     {
+        if (! $tenant->hasAutoSiteSync()) {
+            return;
+        }
+
         $url = $urlOverride ?? config('services.hub.webhook_url');
         $secret = config('services.hub.webhook_secret');
 

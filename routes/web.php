@@ -82,6 +82,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/tenants/{tenant}/promos/{promo}', [PromoController::class, 'update'])->name('promos.update');
         Route::post('/tenants/{tenant}/promos/{promo}/publish', [PromoController::class, 'publish'])->name('promos.publish');
         Route::post('/tenants/{tenant}/promos/{promo}/video', [PromoController::class, 'generateVideo'])->name('promos.generate-video');
+        Route::post('/tenants/{tenant}/promos/{promo}/image-pack', [PromoController::class, 'generateImagePack'])->name('promos.generate-image-pack');
         Route::delete('/tenants/{tenant}/promos/{promo}', [PromoController::class, 'destroy'])->name('promos.destroy');
 
         Route::get('/tenants/{tenant}/billing', [BillingController::class, 'show'])->name('billing.show');

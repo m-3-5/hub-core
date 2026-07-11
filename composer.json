@@ -9,7 +9,8 @@
         "php": "^8.3",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
-        "m35/hub-payments": "@dev"
+        "m35/hub-payments": "@dev",
+        "m35/hub-sitebuilder": "@dev"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -25,13 +26,21 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
-            "M35\\HubPayments\\": "packages/hub-payments/src/"
+            "M35\\HubPayments\\": "packages/hub-payments/src/",
+            "M35\\HubSitebuilder\\": "packages/hub-sitebuilder/src/"
         }
     },
     "repositories": [
         {
             "type": "path",
             "url": "packages/hub-payments",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "packages/hub-sitebuilder",
             "options": {
                 "symlink": true
             }

@@ -20,7 +20,7 @@
     <meta name="theme-color" content="{{ $tenant->primary_color }}">
     @php
         $heroVisual = $promo->variantUrl('hero');
-        $flyerUrl = $promo->variantUrl('flyer');
+        $flyerUrl = $promo->variantUrl('video') ?? $promo->variantUrl('flyer');
         $decorImages = $decorImages ?? $promo->decorImages();
         $shareLinks = $shareLinks ?? \App\Support\PromoShareLinks::for($promo);
         $isExpiredPromo = $isExpiredPromo ?? $promo->isExpired();

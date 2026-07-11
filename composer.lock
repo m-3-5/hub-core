@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "382feb533902f1c58bd1ad45a3ba7679",
+    "content-hash": "d320273a99612b05f5a25c5318bae506",
     "packages": [
         {
             "name": "brick/math",
@@ -2055,6 +2055,40 @@
                 "proprietary"
             ],
             "description": "Modulo Hub: servizi/prodotti a pagamento via Stripe Payment Links",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "m35/hub-sitebuilder",
+            "version": "dev-master",
+            "dist": {
+                "type": "path",
+                "url": "packages/hub-sitebuilder",
+                "reference": "ae636f503279f8666b9fe5cbe575614953df3ec2"
+            },
+            "require": {
+                "illuminate/support": "^13.0",
+                "php": "^8.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "M35\\HubSitebuilder\\HubSitebuilderServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "M35\\HubSitebuilder\\": "src/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Modulo Hub: generatore guidato di un sito web semplice per tenant senza sito proprio",
             "transport-options": {
                 "symlink": true,
                 "relative": true
@@ -8298,7 +8332,8 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "m35/hub-payments": 20
+        "m35/hub-payments": 20,
+        "m35/hub-sitebuilder": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
