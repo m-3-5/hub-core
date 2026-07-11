@@ -197,4 +197,11 @@ class Promo extends Model
     {
         return $this->status === 'draft';
     }
+
+    public function templateView(): string
+    {
+        return ($this->ai_metadata['landing_style'] ?? null) === 'agency'
+            ? 'promo.show-agency'
+            : 'promo.show';
+    }
 }

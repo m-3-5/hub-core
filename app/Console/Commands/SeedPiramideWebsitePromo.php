@@ -25,9 +25,13 @@ class SeedPiramideWebsitePromo extends Command
         }
 
         $slug = 'crea-il-tuo-nuovo-sito-web';
+        $existing = $tenant->promos()->where('slug', $slug)->first();
 
-        if ($tenant->promos()->where('slug', $slug)->exists()) {
-            $this->warn('Questa promo esiste già per Piramide 35 — non ne creo un\'altra.');
+        if ($existing) {
+            $metadata = array_merge($existing->ai_metadata ?? [], ['landing_style' => 'agency']);
+            $existing->update(['ai_metadata' => $metadata]);
+            $this->warn('Questa promo esisteva già per Piramide 35 — non ne creo un\'altra, ma le ho applicato la landing page dedicata.');
+            $this->info('Vedila qui: '.route('admin.promos.show', [$tenant, $existing]));
 
             return self::SUCCESS;
         }
@@ -76,6 +80,7 @@ class SeedPiramideWebsitePromo extends Command
             'ai_metadata' => [
                 'promo_source' => 'svg',
                 'seeded_via' => 'hub:seed-piramide-website-promo',
+                'landing_style' => 'agency',
             ],
         ]);
 

@@ -13,7 +13,7 @@ class PromoPublicController extends Controller
         abort_unless($promo->tenant_id === $tenant->id, 404);
         abort_unless($promo->status === 'published', 404);
 
-        return view('promo.show', [
+        return view($promo->templateView(), [
             'tenant' => $tenant,
             'promo' => $promo,
             'decorImages' => $promo->decorImages(),
