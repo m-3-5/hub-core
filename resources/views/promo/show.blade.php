@@ -37,9 +37,9 @@
             --primary-dark: color-mix(in srgb, var(--primary) 75%, #000);
             --text: #1f1a24;
             --muted: #5c5563;
-            --font-display: {{ $brandFont['display'] }};
-            --font-body: {{ $brandFont['body'] }};
-            --font-accent: {{ $brandFont['accent'] }};
+            --font-display: {!! $brandFont['display'] !!};
+            --font-body: {!! $brandFont['body'] !!};
+            --font-accent: {!! $brandFont['accent'] !!};
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: var(--font-body), system-ui, sans-serif; color: var(--text); background: #fdf8fb; line-height: 1.65; }

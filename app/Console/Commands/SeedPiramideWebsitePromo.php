@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Tenant;
 use App\Services\GeminiSvgFlyerGenerator;
+use App\Services\TenantBrandManager;
 use App\Support\TenantPromoQuota;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -12,9 +13,9 @@ class SeedPiramideWebsitePromo extends Command
 {
     protected $signature = 'hub:seed-piramide-website-promo';
 
-    protected $description = 'Crea la promo "Crea il tuo nuovo sito web" per il tenant Piramide 35 (bozza, da rivedere e pubblicare a mano)';
+    protected $description = 'Crea la promo "Crea il tuo nuovo sito web" per il tenant Piramide 35 (bozza, da rivedere e pubblicare a mano) e allinea il brand (colore/font) al sito reale piramide35.com';
 
-    public function handle(GeminiSvgFlyerGenerator $svgFlyerGenerator): int
+    public function handle(GeminiSvgFlyerGenerator $svgFlyerGenerator, TenantBrandManager $brandManager): int
     {
         $tenant = Tenant::where('slug', 'piramide35')->first();
 
@@ -23,6 +24,8 @@ class SeedPiramideWebsitePromo extends Command
 
             return self::FAILURE;
         }
+
+        $this->alignBrand($tenant, $brandManager);
 
         $slug = 'crea-il-tuo-nuovo-sito-web';
         $existing = $tenant->promos()->where('slug', $slug)->first();
@@ -92,5 +95,21 @@ class SeedPiramideWebsitePromo extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    private function alignBrand(Tenant $tenant, TenantBrandManager $brandManager): void
+    {
+        $realColor = '#00d185';
+
+        if ($brandManager->color($tenant) !== $realColor) {
+            $brandManager->storeColor($tenant, $realColor);
+            $tenant->update(['primary_color' => $realColor]);
+            $this->info("Colore brand aggiornato al verde reale di piramide35.com ({$realColor}).");
+        }
+
+        if ($brandManager->font($tenant) !== 'digitale') {
+            $brandManager->storeFont($tenant, 'digitale');
+            $this->info('Font brand aggiornato al preset "Digitale" (Inter + Roboto Mono).');
+        }
     }
 }

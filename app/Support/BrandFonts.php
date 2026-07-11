@@ -46,6 +46,14 @@ class BrandFonts
             'accent' => "'Playfair Display', serif",
             'google_fonts' => 'family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;500;600',
         ],
+        'digitale' => [
+            'label' => 'Digitale',
+            'description' => 'Scuro e da terminale — software house, startup, infrastrutture',
+            'display' => "'Inter', sans-serif",
+            'body' => "'Inter', sans-serif",
+            'accent' => "'Roboto Mono', monospace",
+            'google_fonts' => 'family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@500;600;700',
+        ],
     ];
 
     public static function default(): string

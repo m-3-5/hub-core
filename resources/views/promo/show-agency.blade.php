@@ -46,29 +46,37 @@
     <style>
         :root {
             --primary: {{ $tenant->primary_color }};
-            --ink: #0f1115;
-            --paper: #fafaf8;
-            --muted: #5b6169;
-            --line: #e7e9e4;
-            --font-display: {{ $brandFont['display'] }};
-            --font-body: {{ $brandFont['body'] }};
+            --bg: #081014;
+            --bg-elevated: #0f172a;
+            --text: #eef4f2;
+            --muted: #8fa0a8;
+            --line: rgba(255,255,255,.09);
+            --font-display: {!! $brandFont['display'] !!};
+            --font-body: {!! $brandFont['body'] !!};
+            --font-accent: {!! $brandFont['accent'] !!};
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
-        body { font-family: var(--font-body), system-ui, sans-serif; color: var(--ink); background: var(--paper); line-height: 1.6; }
+        body { font-family: var(--font-body), system-ui, sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; }
         img { max-width: 100%; display: block; }
         .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
         h1, h2, h3 { font-family: var(--font-display), sans-serif; letter-spacing: -.01em; text-wrap: balance; }
         a { color: inherit; }
 
         /* triangle motif */
-        .tri { position: absolute; width: 0; height: 0; pointer-events: none; }
+        .tri { position: absolute; width: 0; height: 0; pointer-events: none; z-index: 1; }
         .tri--fill { border-style: solid; }
+
+        /* network / constellation motif */
+        .network { position: absolute; top: 0; right: 0; width: 62%; max-width: 640px; height: auto; opacity: .55; pointer-events: none; z-index: 1; }
 
         /* HERO */
         .hero {
             position: relative; overflow: hidden;
-            background: var(--ink); color: #fff;
+            background:
+                radial-gradient(ellipse 60% 50% at 85% 0%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 70%),
+                var(--bg);
+            color: var(--text);
             padding: 100px 0 90px;
         }
         .hero .tri1 { top: -60px; right: 8%; border-width: 0 90px 150px 90px; border-color: transparent transparent color-mix(in srgb, var(--primary) 55%, transparent) transparent; transform: rotate(12deg); }
@@ -77,79 +85,80 @@
         .hero-inner { position: relative; z-index: 2; max-width: 720px; }
         .eyebrow {
             display: inline-flex; align-items: center; gap: 8px;
-            font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em;
+            font-family: var(--font-accent), monospace;
+            font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .12em;
             color: var(--primary); margin-bottom: 20px;
         }
         .eyebrow::before { content: ''; width: 0; height: 0; border-style: solid; border-width: 0 5px 8px 5px; border-color: transparent transparent var(--primary) transparent; }
         .hero h1 { font-size: clamp(2.2rem, 5.2vw, 3.6rem); line-height: 1.08; margin-bottom: 20px; }
         .hero h1 em { color: var(--primary); font-style: normal; }
-        .hero p { font-size: 1.1rem; color: #c6cad1; max-width: 54ch; margin-bottom: 32px; }
+        .hero p { font-size: 1.1rem; color: var(--muted); max-width: 54ch; margin-bottom: 32px; }
         .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
         .btn {
             display: inline-flex; align-items: center; gap: 8px;
             padding: 14px 24px; border-radius: 10px; font-weight: 700; font-size: .95rem;
             text-decoration: none; cursor: pointer; border: 0;
         }
-        .btn-primary { background: var(--primary); color: #08110b; }
-        .btn-ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.28); }
+        .btn-primary { background: var(--primary); color: #04140d; }
+        .btn-ghost { background: transparent; color: var(--text); border: 1px solid rgba(255,255,255,.22); }
 
         /* SECTIONS */
         .section { padding: 84px 0; }
         .section-head { max-width: 620px; margin: 0 auto 48px; text-align: center; }
-        .section-head .eyebrow { justify-content: center; color: color-mix(in srgb, var(--primary) 70%, #000); }
+        .section-head .eyebrow { justify-content: center; }
         .section-head h2 { font-size: clamp(1.7rem, 3.4vw, 2.3rem); margin-bottom: 12px; }
         .section-head p { color: var(--muted); font-size: 1.02rem; }
 
         .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
         .service-card {
-            background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 28px 24px;
-            transition: transform .18s ease, box-shadow .18s ease;
+            background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 18px; padding: 28px 24px;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
         }
-        .service-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgba(15,17,21,.08); }
+        .service-card:hover { transform: translateY(-4px); box-shadow: 0 16px 36px color-mix(in srgb, var(--primary) 16%, transparent); border-color: color-mix(in srgb, var(--primary) 40%, var(--line)); }
         .service-card .tri-icon { width: 0; height: 0; border-style: solid; border-width: 0 14px 24px 14px; border-color: transparent transparent var(--primary) transparent; margin-bottom: 18px; }
         .service-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
         .service-card p { color: var(--muted); font-size: .9rem; }
 
-        .process { background: var(--ink); color: #fff; }
-        .process .section-head p { color: #aeb3ba; }
+        .process { background: var(--bg-elevated); }
         .process-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 28px; counter-reset: step; }
         .process-step { position: relative; padding-left: 4px; }
         .process-step .num {
             display: inline-flex; align-items: center; justify-content: center;
             width: 40px; height: 40px; margin-bottom: 16px;
-            background: color-mix(in srgb, var(--primary) 18%, transparent);
+            background: color-mix(in srgb, var(--primary) 16%, transparent);
             border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
-            border-radius: 10px; color: var(--primary); font-weight: 800; font-family: var(--font-display), sans-serif;
+            border-radius: 10px; color: var(--primary); font-weight: 700; font-family: var(--font-accent), monospace;
         }
         .process-step h3 { font-size: 1.02rem; margin-bottom: 6px; }
-        .process-step p { color: #aeb3ba; font-size: .88rem; }
+        .process-step p { color: var(--muted); font-size: .88rem; }
 
         .locations { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
-        .location-card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 26px; }
-        .location-card .tag { display: inline-block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--primary); margin-bottom: 10px; }
+        .location-card { background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 18px; padding: 26px; }
+        .location-card .tag { display: inline-block; font-family: var(--font-accent), monospace; font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--primary); margin-bottom: 10px; }
         .location-card h3 { font-size: 1.1rem; margin-bottom: 6px; }
         .location-card p { color: var(--muted); font-size: .9rem; }
 
         .flyer-preview { max-width: 720px; margin: 0 auto; }
-        .flyer-preview img { border-radius: 20px; box-shadow: 0 24px 60px rgba(15,17,21,.14); }
+        .flyer-preview img { border-radius: 20px; border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0,0,0,.45); }
 
         .closing {
-            background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 92%, #000), color-mix(in srgb, var(--primary) 60%, #000));
-            color: #fff; text-align: center; border-radius: 28px;
+            background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 55%, #04140d));
+            color: #04140d; text-align: center; border-radius: 28px;
             padding: 56px 32px; position: relative; overflow: hidden;
         }
         .closing h2 { font-size: clamp(1.7rem, 3.6vw, 2.4rem); margin-bottom: 14px; }
-        .closing p { color: rgba(255,255,255,.9); margin-bottom: 26px; }
-        .closing .btn-primary { background: #fff; color: color-mix(in srgb, var(--primary) 85%, #000); }
-        .contact-line { margin-top: 22px; font-size: .92rem; color: rgba(255,255,255,.85); }
+        .closing p { color: color-mix(in srgb, #04140d 78%, transparent); margin-bottom: 26px; }
+        .closing .btn-primary { background: #04140d; color: var(--primary); }
+        .contact-line { margin-top: 22px; font-size: .92rem; color: color-mix(in srgb, #04140d 70%, transparent); }
         .contact-line a { text-decoration: underline; }
 
-        footer { text-align: center; padding: 32px 20px; color: var(--muted); font-size: .85rem; }
+        footer { text-align: center; padding: 32px 20px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); }
 
         .expired-banner { background: #fff3e0; color: #9a3412; text-align: center; padding: 12px 16px; font-size: .9rem; font-weight: 600; }
         @media (max-width: 640px) {
             .hero { padding: 70px 0 60px; }
             .section { padding: 60px 0; }
+            .network { width: 85%; opacity: .35; }
         }
     </style>
 </head>
@@ -163,6 +172,28 @@
 @endif
 
 <section class="hero">
+    <svg class="network" viewBox="0 0 600 400" aria-hidden="true" focusable="false">
+        <g stroke="var(--primary)" stroke-width="1" opacity=".4">
+            <line x1="40" y1="60" x2="180" y2="120"></line>
+            <line x1="180" y1="120" x2="320" y2="40"></line>
+            <line x1="180" y1="120" x2="260" y2="220"></line>
+            <line x1="260" y1="220" x2="420" y2="180"></line>
+            <line x1="420" y1="180" x2="520" y2="80"></line>
+            <line x1="320" y1="40" x2="420" y2="180"></line>
+            <line x1="260" y1="220" x2="140" y2="300"></line>
+            <line x1="420" y1="180" x2="540" y2="300"></line>
+        </g>
+        <g fill="var(--primary)">
+            <circle cx="40" cy="60" r="3"></circle>
+            <circle cx="180" cy="120" r="4"></circle>
+            <circle cx="320" cy="40" r="3"></circle>
+            <circle cx="260" cy="220" r="4"></circle>
+            <circle cx="420" cy="180" r="3.5"></circle>
+            <circle cx="520" cy="80" r="3"></circle>
+            <circle cx="140" cy="300" r="3"></circle>
+            <circle cx="540" cy="300" r="3"></circle>
+        </g>
+    </svg>
     <span class="tri tri--fill tri1"></span>
     <span class="tri tri--fill tri2"></span>
     <span class="tri tri--fill tri3"></span>
