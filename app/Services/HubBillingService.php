@@ -16,13 +16,7 @@ class HubBillingService
      */
     public function createCheckoutSession(Tenant $tenant, string $interval): array
     {
-        $priceId = $interval === 'year'
-            ? config('services.hub_billing.price_annual')
-            : config('services.hub_billing.price_monthly');
-
-        if (! $priceId) {
-            throw new RuntimeException('Prezzo Stripe non configurato per l\'intervallo "'.$interval.'".');
-        }
+        $priceId = $this->resolvePriceId($interval);
 
         $customerId = $tenant->stripe_customer_id ?? $this->createCustomer($tenant)['id'];
 
@@ -42,6 +36,62 @@ class HubBillingService
             'metadata[interval]' => $interval,
             'subscription_data[metadata][tenant_id]' => (string) $tenant->id,
         ]);
+    }
+
+    /**
+     * Trova (o crea al volo) il prezzo Stripe corrispondente all'importo attualmente
+     * configurato (HUB_MONTHLY_PRICE_EUR / HUB_ANNUAL_PRICE_EUR) per l'intervallo dato —
+     * nessun prodotto/prezzo da creare a mano su Stripe: basta cambiare l'importo in .env.
+     */
+    private function resolvePriceId(string $interval): string
+    {
+        $amountEur = $interval === 'year'
+            ? (int) config('services.hub_billing.annual_price_eur')
+            : (int) config('services.hub_billing.monthly_price_eur');
+
+        if ($amountEur <= 0) {
+            throw new RuntimeException('Prezzo hub non configurato per l\'intervallo "'.$interval.'".');
+        }
+
+        $productId = $this->findOrCreateProduct();
+
+        return $this->findOrCreatePrice($productId, $interval, $amountEur * 100);
+    }
+
+    private function findOrCreateProduct(): string
+    {
+        $products = $this->get('/v1/products?active=true&limit=100');
+
+        foreach ($products['data'] ?? [] as $product) {
+            if (($product['metadata']['app'] ?? null) === 'hub-core-subscription') {
+                return $product['id'];
+            }
+        }
+
+        return $this->post('/v1/products', [
+            'name' => 'Abbonamento Hub M3.5',
+            'metadata[app]' => 'hub-core-subscription',
+        ])['id'];
+    }
+
+    private function findOrCreatePrice(string $productId, string $interval, int $amountCents): string
+    {
+        $prices = $this->get('/v1/prices?product='.$productId.'&active=true&limit=100');
+
+        foreach ($prices['data'] ?? [] as $price) {
+            if (($price['unit_amount'] ?? null) === $amountCents
+                && ($price['recurring']['interval'] ?? null) === $interval
+                && ($price['currency'] ?? null) === 'eur') {
+                return $price['id'];
+            }
+        }
+
+        return $this->post('/v1/prices', [
+            'product' => $productId,
+            'currency' => 'eur',
+            'unit_amount' => $amountCents,
+            'recurring[interval]' => $interval,
+        ])['id'];
     }
 
     public function cancelSubscription(string $subscriptionId): void
