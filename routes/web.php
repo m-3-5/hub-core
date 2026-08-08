@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Auth\WordPressBridgeController;
 use App\Http\Controllers\ClientSiteController;
 use App\Http\Controllers\EmbedController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\HubPromoArchiveController;
 use App\Http\Controllers\PromoArchiveController;
@@ -40,6 +41,13 @@ Route::get('/ospite/conferma/{token}', [GuestController::class, 'confirmPublish'
     ->name('guest.confirm-publish');
 
 Route::get('/auth/wp-bridge', WordPressBridgeController::class)->name('auth.wp-bridge');
+
+Route::middleware('signed')->group(function () {
+    Route::get('/feedback/{tenant}', [FeedbackController::class, 'show'])->name('feedback.show');
+    Route::post('/feedback/{tenant}', [FeedbackController::class, 'store'])
+        ->middleware('throttle:10,10')
+        ->name('feedback.store');
+});
 
 Route::get('/promo', HubPromoArchiveController::class)->name('promo.hub-archive');
 
@@ -104,6 +112,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/tickets/{ticket}/respond', [TicketController::class, 'respond'])->name('tickets.respond');
 
         Route::get('/activity', [ActivityLogController::class, 'index'])->name('activity.index');
+
+        Route::get('/feedback', [\App\Http\Controllers\Admin\FeedbackAdminController::class, 'index'])->name('feedback.index');
 
         Route::post('/tenants/{tenant}/max/query', [MaxController::class, 'query'])->name('max.query');
 

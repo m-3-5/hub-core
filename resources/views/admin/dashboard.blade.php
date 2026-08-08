@@ -14,6 +14,7 @@
                 @endif
             </a>
             <a class="btn btn-secondary" href="{{ route('admin.activity.index') }}">📊 Attività</a>
+            <a class="btn btn-secondary" href="{{ route('admin.feedback.index') }}">💬 Feedback</a>
         </div>
     </div>
     <p style="color:#666">Crea promo in bozza, controlla anteprima, poi pubblica sul sito del cliente.</p>

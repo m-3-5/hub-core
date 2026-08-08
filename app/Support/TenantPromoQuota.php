@@ -17,11 +17,13 @@ class TenantPromoQuota
 
     public static function includedLimit(Tenant $tenant): int
     {
+        $bonus = (int) ($tenant->settings['bonus_promo_credits'] ?? 0);
+
         if (self::isMonthly($tenant)) {
-            return (int) config('module_pricing.promo.included_per_month', 1);
+            return (int) config('module_pricing.promo.included_per_month', 1) + $bonus;
         }
 
-        return (int) ($tenant->settings['promo_included_quota'] ?? config('hub.promo_included_quota', 5));
+        return (int) ($tenant->settings['promo_included_quota'] ?? config('hub.promo_included_quota', 5)) + $bonus;
     }
 
     public static function usedCount(Tenant $tenant): int
@@ -44,5 +46,13 @@ class TenantPromoQuota
     public static function hasIncludedSlot(Tenant $tenant): bool
     {
         return self::remaining($tenant) > 0;
+    }
+
+    /** Aggiunge slot bonus permanenti alla quota inclusa (es. omaggio da campagna email). */
+    public static function grantBonusCredits(Tenant $tenant, int $amount): void
+    {
+        $settings = $tenant->settings ?? [];
+        $settings['bonus_promo_credits'] = (int) ($settings['bonus_promo_credits'] ?? 0) + $amount;
+        $tenant->update(['settings' => $settings]);
     }
 }
