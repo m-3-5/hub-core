@@ -342,9 +342,9 @@
 
         <h2>Come prenotare</h2>
         <p class="intro">
-            Siamo a {{ $tenant->address ?? 'Senise' }}. Contattaci per fissare il tuo appuntamento
-            o passa in salone negli orari di apertura. Il team di {{ $tenant->name }} è a disposizione
-            per consigliarti il trattamento più adatto a te.
+            Siamo a {{ $tenant->address ?? 'Senise' }}. Contattaci per fissare un appuntamento
+            o passa a trovarci negli orari di apertura. Il team di {{ $tenant->name }} è a disposizione
+            per aiutarti a scegliere la soluzione più adatta a te.
         </p>
         @php
             $offerNames = collect($promo->offers ?? [])->pluck('name')->filter()->implode(', ');
@@ -359,8 +359,8 @@
                 <span>Chiama {{ $tenant->phone ?? 'il centro' }} o compila il form contatti sul sito ufficiale.</span>
             </div>
             <div class="step">
-                <strong>3. Vieni in salone</strong>
-                <span>Ti accogliamo in {{ $tenant->address ?? 'salone' }} e iniziamo il tuo percorso di bellezza.</span>
+                <strong>3. Vieni a trovarci</strong>
+                <span>Ti accogliamo in {{ $tenant->address ?? 'sede' }} e ci occupiamo di te.</span>
             </div>
         </div>
     </section>
@@ -372,7 +372,7 @@
         @endphp
         <div class="contact-card">
             <h2>{{ $tenant->name }}</h2>
-            <p class="contact-tagline">Il tuo corpo, la nostra immagine.</p>
+            @if ($tenant->settings['tagline'] ?? null)<p class="contact-tagline">{{ $tenant->settings['tagline'] }}</p>@endif
             @if ($tenant->address)<p>{{ $tenant->address }}</p>@endif
             @if ($tenant->phone)<p>Tel. {{ $tenant->phone }}</p>@endif
             <div class="contact-actions">

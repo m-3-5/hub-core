@@ -118,6 +118,11 @@
                     <input type="text" name="name" id="name" value="{{ old('name', $tenant->name) }}" required>
                 </div>
                 <div class="pfield">
+                    <label for="tagline">Frase/slogan (facoltativo)</label>
+                    <input type="text" name="tagline" id="tagline" maxlength="160" value="{{ old('tagline', $tagline) }}" placeholder="Es. La qualità che cerchi, a due passi da te.">
+                    <p style="margin:4px 0 0;font-size:.78rem;color:#999">Compare nelle tue pagine promo pubbliche, sotto il nome dell'attività.</p>
+                </div>
+                <div class="pfield">
                     <label for="address">Indirizzo</label>
                     <input type="text" name="address" id="address" value="{{ old('address', $tenant->address) }}">
                 </div>

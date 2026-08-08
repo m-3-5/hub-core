@@ -484,9 +484,9 @@
                 <input type="hidden" name="type" id="gmax-type">
             </div>
             <div class="gmax-step" data-gstep="name" hidden>
-                <h3>Come si chiama la tua attività?</h3>
+                <h3 id="gmax-name-title">Come si chiama la tua attività?</h3>
                 <p>La useremo per personalizzare quello che crei.</p>
-                <input type="text" name="company_name" maxlength="120" required placeholder="Es. Salone Anna">
+                <input type="text" name="company_name" id="gmax-name-input" maxlength="120" required placeholder="Es. Salone Anna">
                 <button type="submit" class="gmax-submit">Inizia →</button>
             </div>
         </form>
@@ -500,6 +500,8 @@
     const steps = Array.from(overlay.querySelectorAll('.gmax-step'));
     const typeInput = document.getElementById('gmax-type');
     const registerLink = document.getElementById('gmax-goto-register');
+    const nameTitle = document.getElementById('gmax-name-title');
+    const nameInput = document.getElementById('gmax-name-input');
 
     function showStep(name) {
         steps.forEach(s => { s.hidden = s.dataset.gstep !== name; });
@@ -512,6 +514,13 @@
     overlay.querySelectorAll('[data-gmax-type]').forEach(btn => {
         btn.addEventListener('click', () => {
             typeInput.value = btn.dataset.gmaxType;
+            if (btn.dataset.gmaxType === 'privato') {
+                nameTitle.textContent = 'Come ti chiami?';
+                nameInput.placeholder = 'Es. Mario Rossi';
+            } else {
+                nameTitle.textContent = 'Come si chiama la tua attività?';
+                nameInput.placeholder = 'Es. Salone Anna';
+            }
             showStep('name');
         });
     });

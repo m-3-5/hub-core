@@ -21,6 +21,7 @@ class ProfileController extends Controller
             'brandLogoUrl' => $brand->logoUrl($tenant),
             'brandFont' => $brand->font($tenant),
             'fontPresets' => BrandFonts::PRESETS,
+            'tagline' => $tenant->settings['tagline'] ?? null,
         ]);
     }
 
@@ -29,12 +30,16 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:60'],
             'website' => ['nullable', 'url', 'max:255'],
             'brand_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'brand_font' => ['required', Rule::in(array_keys(BrandFonts::PRESETS))],
             'logo' => ['nullable', 'image', 'max:5120'],
+            'tagline' => ['nullable', 'string', 'max:160'],
         ]);
+
+        $settings = $tenant->settings ?? [];
+        $settings['tagline'] = trim((string) ($validated['tagline'] ?? '')) ?: null;
 
         $tenant->update([
             'name' => $validated['name'],
@@ -42,6 +47,7 @@ class ProfileController extends Controller
             'phone' => $validated['phone'] ?? null,
             'website' => $validated['website'] ?? null,
             'primary_color' => $validated['brand_color'] ?? $tenant->primary_color,
+            'settings' => $settings,
         ]);
 
         if (! empty($validated['brand_color'])) {
