@@ -169,6 +169,15 @@
         }
         .contact-card p { opacity: .92; margin-bottom: 8px; color: #fff; }
         .contact-card a { color: #fff; font-weight: 600; }
+        .pcf-title { font-family: var(--font-display), sans-serif; margin-bottom: 6px; color: var(--text); }
+        .pcf-subtitle { color: var(--muted); font-size: .92rem; margin-bottom: 16px; }
+        .pcf-success { background: #e8f5e9; color: #2e7d32; padding: 12px 14px; border-radius: 8px; font-size: .92rem; }
+        .pcf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .pcf-input { width: 100%; padding: 11px 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; font-size: .95rem; color: var(--text); background: #fff; }
+        .pcf-textarea { resize: vertical; }
+        .pcf-error { color: #c62828; font-size: .82rem; margin: -6px 0 10px; }
+        .pcf-submit { background: var(--primary); color: #fff; border: 0; padding: 12px 22px; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .pcf-honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; }
         .cta-bar {
             position: sticky; bottom: 0; background: rgba(255,255,255,.96);
             backdrop-filter: blur(12px); border-top: 1px solid rgba(0,0,0,.06);
@@ -390,6 +399,12 @@
                     @endif
                 @endforeach
             </div>
+        </div>
+    </section>
+
+    <section class="section" style="padding-top:0">
+        <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:24px;padding:32px;box-shadow:0 4px 24px rgba(0,0,0,.06)">
+            @include('promo.partials.contact-form')
         </div>
     </section>
 

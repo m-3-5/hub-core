@@ -49,6 +49,11 @@ Route::get('/p/{tenant}/{promo}', [PromoPublicController::class, 'show'])
     ->name('promo.show')
     ->scopeBindings();
 
+Route::post('/p/{tenant}/{promo}/contatto', [PromoPublicController::class, 'contact'])
+    ->name('promo.contact')
+    ->middleware('throttle:5,10')
+    ->scopeBindings();
+
 Route::get('/embed/{tenantSlug}', [EmbedController::class, 'script'])->name('embed.script');
 Route::get('/embed/{tenantSlug}.js', [EmbedController::class, 'script']);
 

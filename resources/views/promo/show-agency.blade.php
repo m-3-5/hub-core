@@ -152,6 +152,17 @@
         .contact-line { margin-top: 22px; font-size: .92rem; color: color-mix(in srgb, #04140d 70%, transparent); }
         .contact-line a { text-decoration: underline; }
 
+        .pcf-wrap { max-width: 480px; margin: 28px auto 0; background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 20px; padding: 28px; text-align: left; }
+        .pcf-title { font-family: var(--font-display), sans-serif; margin-bottom: 6px; color: var(--text); }
+        .pcf-subtitle { color: var(--muted); font-size: .92rem; margin-bottom: 16px; }
+        .pcf-success { background: color-mix(in srgb, var(--primary) 18%, transparent); color: var(--primary); padding: 12px 14px; border-radius: 8px; font-size: .92rem; }
+        .pcf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .pcf-input { width: 100%; padding: 11px 12px; margin-bottom: 10px; border: 1px solid var(--line); border-radius: 8px; font-family: inherit; font-size: .95rem; color: var(--text); background: var(--bg); }
+        .pcf-textarea { resize: vertical; }
+        .pcf-error { color: #ff8a80; font-size: .82rem; margin: -6px 0 10px; }
+        .pcf-submit { background: var(--primary); color: #04140d; border: 0; padding: 12px 22px; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: inherit; }
+        .pcf-honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; }
+
         footer { text-align: center; padding: 32px 20px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); }
 
         .expired-banner { background: #fff3e0; color: #9a3412; text-align: center; padding: 12px 16px; font-size: .9rem; font-weight: 600; }
@@ -297,6 +308,10 @@
                 @if ($tenant->phone)<a href="tel:{{ preg_replace('/\s+/', '', $tenant->phone) }}">{{ $tenant->phone }}</a>@endif
                 @if ($tenant->website) · <a href="{{ $tenant->website }}" target="_blank" rel="noopener">{{ preg_replace('#^https?://#', '', $tenant->website) }}</a>@endif
             </div>
+        </div>
+
+        <div class="pcf-wrap">
+            @include('promo.partials.contact-form')
         </div>
     </div>
 </section>
