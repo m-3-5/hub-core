@@ -70,6 +70,8 @@ class PromoController extends Controller
             'logo' => ['nullable', 'image', 'max:5120'],
             'promo_hint' => ['required_if:promo_source,svg', 'nullable', 'string', 'max:500'],
             'always_active' => ['boolean'],
+            'starts_at' => ['nullable', 'date'],
+            'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
             'skip_ai' => ['boolean'],
             'manual_title' => ['nullable', 'string', 'max:255'],
             'manual_description' => ['nullable', 'string', 'max:2000'],
@@ -172,6 +174,8 @@ class PromoController extends Controller
 
         $overQuota = ! TenantPromoQuota::hasIncludedSlot($tenant);
 
+        $alwaysActive = $request->boolean('always_active');
+
         $promo = $tenant->promos()->create([
             'title' => $title,
             'slug' => $slug,
@@ -183,7 +187,9 @@ class PromoController extends Controller
             'seo_title' => $generated['seo_title'] ?? null,
             'seo_description' => $generated['seo_description'] ?? null,
             'status' => 'draft',
-            'always_active' => $request->boolean('always_active', true),
+            'always_active' => $alwaysActive,
+            'starts_at' => $alwaysActive ? null : $request->input('starts_at'),
+            'ends_at' => $alwaysActive ? null : $request->input('ends_at'),
             'published_at' => null,
             'ai_metadata' => array_merge($generated, [
                 'promo_source' => $request->input('promo_source'),

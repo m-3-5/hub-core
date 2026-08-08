@@ -53,9 +53,22 @@
         </div>
 
         <label style="display:flex;align-items:center;gap:8px;font-weight:normal;margin-bottom:12px">
-            <input type="checkbox" name="always_active" value="1">
+            <input type="checkbox" name="always_active" value="1" checked id="always_active">
             Promo sempre attiva (senza data di scadenza)
         </label>
+
+        <div id="date-fields" style="display:none;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div>
+                <label for="starts_at">Inizio</label>
+                <input type="datetime-local" name="starts_at" id="starts_at"
+                    style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px">
+            </div>
+            <div>
+                <label for="ends_at">Scadenza</label>
+                <input type="datetime-local" name="ends_at" id="ends_at"
+                    style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px">
+            </div>
+        </div>
 
         <label style="display:flex;align-items:center;gap:8px;font-weight:normal;margin-bottom:24px">
             <input type="checkbox" name="skip_ai" value="1">
@@ -65,6 +78,7 @@
         @error('visual_tier')<p class="error" style="color:#c62828;margin-bottom:12px">{{ $message }}</p>@enderror
         @error('promo_source')<p class="error" style="color:#c62828;margin-bottom:12px">{{ $message }}</p>@enderror
         @error('image')<p class="error" style="color:#c62828;margin-bottom:12px">{{ $message }}</p>@enderror
+        @error('ends_at')<p class="error" style="color:#c62828;margin-bottom:12px">{{ $message }}</p>@enderror
 
         <button type="submit" class="btn" id="submit-btn">Crea bozza e anteprima</button>
         <a href="{{ route('admin.promos.index', $tenant) }}" class="btn btn-secondary" style="margin-left:8px">← Tutte le promo</a>
@@ -90,6 +104,12 @@
 
     tiers.forEach(r => r.addEventListener('change', sync));
     sync();
+
+    const alwaysActive = document.getElementById('always_active');
+    const dateFields = document.getElementById('date-fields');
+    alwaysActive?.addEventListener('change', function () {
+        dateFields.style.display = this.checked ? 'none' : 'grid';
+    });
 })();
 </script>
 @endsection
