@@ -39,9 +39,13 @@ class PromoVisualFallback
                 continue;
             }
 
+            // Il nome del file deve essere univoco per promo, non solo per slot: più promo dello
+            // stesso tenant caricate come immagine (non SVG) condividono la stessa cartella
+            // "promos/{tenant}/", quindi senza l'id della promo nel nome due promo con lo stesso
+            // numero di offerte si sovrascrivevano a vicenda le immagini decorative sul disco.
             $path = $this->writeDecorSvg(
                 $tenant,
-                $dir.'/fallback-'.$slot.'.svg',
+                $dir.'/fallback-'.$promo->id.'-'.$slot.'.svg',
                 $meta['label'] ?? 'Offerta',
                 $meta['key'] ?? 'beauty',
             );
