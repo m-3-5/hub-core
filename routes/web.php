@@ -17,6 +17,7 @@ use App\Http\Controllers\EmbedController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\HubPromoArchiveController;
+use App\Http\Controllers\PricingController;
 use App\Http\Controllers\PromoArchiveController;
 use App\Http\Controllers\PromoPublicController;
 use App\Http\Controllers\RegistrationController;
@@ -25,6 +26,8 @@ use App\Models\Tenant;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', WelcomeController::class)->name('welcome');
+
+Route::get('/prezzi', [PricingController::class, 'show'])->name('pricing.show');
 
 Route::post('/registrati', [RegistrationController::class, 'store'])
     ->middleware('throttle:5,10')

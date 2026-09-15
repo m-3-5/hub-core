@@ -322,6 +322,7 @@
         <div class="cta">
             <a class="btn btn-primary" href="{{ route('admin.login') }}">Accedi</a>
             <a class="btn btn-secondary" href="#registrazione">Registrati</a>
+            <a class="btn btn-secondary" href="{{ route('pricing.show') }}">Prezzi</a>
         </div>
     </div>
 </section>
@@ -453,6 +454,8 @@
 
 <footer>
     Hub Core — piattaforma multiservizi per aziende e privati<br>
+    <a href="{{ route('pricing.show') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Vedi i prezzi</a>
+    ·
     <a href="{{ route('promo.hub-archive') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Guarda tutte le promozioni attive →</a>
 </footer>
 
