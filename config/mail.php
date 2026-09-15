@@ -115,4 +115,18 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Leads Monitor Address
+    |--------------------------------------------------------------------------
+    |
+    | Se impostata, riceve in BCC le notifiche di contatto generate dai form
+    | pubblici delle promo (tutti i tenant), per verificare che la consegna
+    | funzioni davvero durante i primi tempi. Rimuovere da .env quando non
+    | serve più monitorare.
+    |
+    */
+
+    'leads_monitor_email' => env('LEADS_MONITOR_EMAIL'),
+
 ];

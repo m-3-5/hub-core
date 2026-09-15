@@ -46,6 +46,10 @@ class PromoContactRequestNotification extends Notification
             $mail->replyTo($this->visitorEmail, $this->visitorName);
         }
 
+        if ($monitor = config('mail.leads_monitor_email')) {
+            $mail->bcc($monitor);
+        }
+
         return $mail;
     }
 }
