@@ -9,6 +9,7 @@ class PendingRegistration extends Model
     protected $fillable = [
         'token',
         'type',
+        'first_module',
         'name',
         'contact_name',
         'email',

@@ -83,12 +83,17 @@
 </div>
 
 <div class="wrap">
-    <div class="group-title">Abbonamento</div>
+    <div class="addon-card" style="margin-bottom:22px">
+        <span>🎉 Nuovi clienti Azienda/Ente: attiva con</span>
+        <b>€{{ $hubBilling['launch_offer_price_eur'] }}</b>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:.78rem;margin:-14px 0 22px">Copre anche l'attivazione del primo modulo — poi prezzo pieno dopo {{ $hubBilling['trial_days'] }} giorni. I privati restano sempre gratis.</p>
+
+    <div class="group-title">Abbonamento (a regime)</div>
     <div class="stack plans">
         <div class="plan-card">
             <div>
                 <div class="name">Mensile</div>
-                <span class="tag">{{ $hubBilling['trial_days'] }} giorni gratis</span>
             </div>
             <div class="price">€{{ $hubBilling['monthly_price_eur'] }}<small>/mese</small></div>
         </div>

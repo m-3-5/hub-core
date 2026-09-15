@@ -3,9 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tenant;
+use App\Models\TenantModuleCharge;
+use App\Notifications\TenantWelcomeNotification;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
+use Throwable;
 
 class StripeBillingWebhookController extends Controller
 {
@@ -49,6 +54,46 @@ class StripeBillingWebhookController extends Controller
             'billing_interval' => $session['metadata']['interval'] ?? $tenant->billing_interval,
             'subscription_status' => 'active',
         ])->save();
+
+        if (($session['metadata']['launch_offer'] ?? null) === '1') {
+            $this->completeLaunchOfferActivation($tenant, $session);
+        }
+    }
+
+    /** @param  array<string, mixed>  $session */
+    private function completeLaunchOfferActivation(Tenant $tenant, array $session): void
+    {
+        $module = $session['metadata']['first_module'] ?? null;
+        $ledgerModule = match ($module) {
+            'services' => 'servizi',
+            'promo' => 'promo',
+            default => null,
+        };
+
+        if ($ledgerModule && ! $tenant->moduleCharges()->where('module', $ledgerModule)->where('charge_type', 'activation')->exists()) {
+            TenantModuleCharge::create([
+                'tenant_id' => $tenant->id,
+                'module' => $ledgerModule,
+                'charge_type' => 'activation',
+                'period' => now()->format('Y-m'),
+                'description' => 'Coperta dall\'offerta di lancio (1€)',
+                'amount_cents' => 0,
+                'paid' => true,
+                'paid_at' => now(),
+            ]);
+        }
+
+        $user = $tenant->users()->first();
+
+        if ($user) {
+            $passwordToken = Password::broker()->createToken($user);
+
+            try {
+                Notification::send($user, new TenantWelcomeNotification($tenant, $passwordToken, viaLaunchOffer: true));
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
     }
 
     /** @param  array<string, mixed>  $subscription */

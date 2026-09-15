@@ -315,6 +315,11 @@
     </style>
 </head>
 <body>
+@if (request('checkout') === 'success')
+    <p style="background:#e8f5e9;color:#2e7d32;padding:14px 20px;text-align:center;font-weight:600">Pagamento ricevuto! Controlla la tua email per impostare la password e iniziare.</p>
+@elseif (request('checkout') === 'cancelled')
+    <p style="background:#fff3e0;color:#e65100;padding:14px 20px;text-align:center;font-weight:600">Pagamento non completato — puoi registrarti di nuovo quando vuoi.</p>
+@endif
 <section class="hero">
     <div>
         <h1>Tutto per la tua attività,<br>in un'unica app</h1>
@@ -398,7 +403,7 @@
 <section class="register" id="registrazione">
     <div class="register-card">
         <h2>Registrati su Hub Core</h2>
-        <p>Prova gratis con {{ config('hub-payments.services_included_quota', 3) }} servizi a pagamento inclusi — poi solo €{{ config('hub-payments.services_paid_price', 9) }}/mese per continuare. Nessuna carta richiesta ora.</p>
+        <p>Privato: sempre gratis. Azienda/Ente: attiva con <strong>€{{ config('services.hub_billing.launch_offer_price_eur', 1) }}</strong> invece della solita prova — copre anche l'attivazione del primo modulo che scegli. Poi €{{ config('services.hub_billing.monthly_price_eur', 29) }}/mese, disdici quando vuoi.</p>
 
         @if (session('success'))
             <p style="background:#e8f5e9;color:#2e7d32;padding:12px 16px;border-radius:12px;margin-bottom:20px">{{ session('success') }}</p>
@@ -420,6 +425,20 @@
                     @endforeach
                 </div>
                 @error('type')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
+            </div>
+            <div id="first-module-field">
+                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Quale modulo vuoi attivare per primo? *</label>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+                    <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;font-size:.88rem;font-weight:600;has-[:checked]:border-color:var(--accent)">
+                        <input type="radio" name="first_module" value="promo" @checked(old('first_module', 'promo') === 'promo') style="accent-color:var(--accent)">
+                        ✨ Promo
+                    </label>
+                    <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;font-size:.88rem;font-weight:600;has-[:checked]:border-color:var(--accent)">
+                        <input type="radio" name="first_module" value="services" @checked(old('first_module') === 'services') style="accent-color:var(--accent)">
+                        💆 Servizi
+                    </label>
+                </div>
+                @error('first_module')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
             </div>
             <div>
                 <label for="company_name" style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Nome / Ragione sociale *</label>
@@ -451,6 +470,23 @@
         </div>
     </div>
 </section>
+
+<script>
+(function () {
+    var typeRadios = document.querySelectorAll('input[name="type"]');
+    var moduleField = document.getElementById('first-module-field');
+    var moduleRadios = moduleField.querySelectorAll('input[name="first_module"]');
+
+    function sync() {
+        var isPrivato = document.querySelector('input[name="type"]:checked')?.value === 'privato';
+        moduleField.style.display = isPrivato ? 'none' : 'block';
+        moduleRadios.forEach(function (r) { r.disabled = isPrivato; });
+    }
+
+    typeRadios.forEach(function (r) { r.addEventListener('change', sync); });
+    sync();
+})();
+</script>
 
 <footer>
     Hub Core — piattaforma multiservizi per aziende e privati<br>

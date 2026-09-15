@@ -39,6 +39,83 @@ class HubBillingService
     }
 
     /**
+     * Checkout dell'offerta di lancio per un nuovo tenant: 1€ subito (copre anche
+     * l'attivazione del modulo scelto) + abbonamento che parte al prezzo pieno solo
+     * dopo trial_days giorni (subscription_data[trial_period_days]) — Stripe fattura
+     * l'importo one-time subito e rimanda il primo addebito ricorrente a fine trial.
+     *
+     * @return array{id: string, url: string}
+     */
+    public function createLaunchOfferCheckoutSession(Tenant $tenant, string $module): array
+    {
+        $recurringPriceId = $this->resolvePriceId('month');
+        $launchPriceId = $this->resolveLaunchOfferPriceId();
+
+        $customerId = $tenant->stripe_customer_id ?? $this->createCustomer($tenant)['id'];
+
+        if (! $tenant->stripe_customer_id) {
+            $tenant->forceFill(['stripe_customer_id' => $customerId])->save();
+        }
+
+        return $this->post('/v1/checkout/sessions', [
+            'mode' => 'subscription',
+            'customer' => $customerId,
+            'line_items[0][price]' => $launchPriceId,
+            'line_items[0][quantity]' => 1,
+            'line_items[1][price]' => $recurringPriceId,
+            'line_items[1][quantity]' => 1,
+            'subscription_data[trial_period_days]' => (string) config('services.hub_billing.trial_days', 30),
+            'subscription_data[metadata][tenant_id]' => (string) $tenant->id,
+            'success_url' => route('welcome').'?checkout=success',
+            'cancel_url' => route('welcome').'?checkout=cancelled',
+            'client_reference_id' => (string) $tenant->id,
+            'metadata[tenant_id]' => (string) $tenant->id,
+            'metadata[interval]' => 'month',
+            'metadata[first_module]' => $module,
+            'metadata[launch_offer]' => '1',
+        ]);
+    }
+
+    private function resolveLaunchOfferPriceId(): string
+    {
+        $amountEur = (int) config('services.hub_billing.launch_offer_price_eur', 1);
+
+        $productId = $this->findOrCreateLaunchOfferProduct();
+
+        $prices = $this->get('/v1/prices?product='.$productId.'&active=true&limit=100');
+
+        foreach ($prices['data'] ?? [] as $price) {
+            if (($price['unit_amount'] ?? null) === $amountEur * 100
+                && empty($price['recurring'])
+                && ($price['currency'] ?? null) === 'eur') {
+                return $price['id'];
+            }
+        }
+
+        return $this->post('/v1/prices', [
+            'product' => $productId,
+            'currency' => 'eur',
+            'unit_amount' => $amountEur * 100,
+        ])['id'];
+    }
+
+    private function findOrCreateLaunchOfferProduct(): string
+    {
+        $products = $this->get('/v1/products?active=true&limit=100');
+
+        foreach ($products['data'] ?? [] as $product) {
+            if (($product['metadata']['app'] ?? null) === 'hub-core-launch-offer') {
+                return $product['id'];
+            }
+        }
+
+        return $this->post('/v1/products', [
+            'name' => 'Offerta di lancio Hub M3.5 — attivazione',
+            'metadata[app]' => 'hub-core-launch-offer',
+        ])['id'];
+    }
+
+    /**
      * Trova (o crea al volo) il prezzo Stripe corrispondente all'importo attualmente
      * configurato (HUB_MONTHLY_PRICE_EUR / HUB_ANNUAL_PRICE_EUR) per l'intervallo dato —
      * nessun prodotto/prezzo da creare a mano su Stripe: basta cambiare l'importo in .env.

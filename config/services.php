@@ -63,6 +63,10 @@ return [
         'trial_days' => (int) env('HUB_TRIAL_DAYS', 30),
         'monthly_price_eur' => (int) env('HUB_MONTHLY_PRICE_EUR', 29),
         'annual_price_eur' => (int) env('HUB_ANNUAL_PRICE_EUR', 290),
+        // Offerta di lancio per i nuovi clienti azienda/ente: 1€ invece della prova gratuita,
+        // copre anche l'attivazione del primo modulo scelto (Promo o Servizi). I privati
+        // restano sempre gratis (subscription_status=free), non toccati da questa offerta.
+        'launch_offer_price_eur' => (int) env('HUB_LAUNCH_OFFER_PRICE_EUR', 1),
     ],
 
 ];
