@@ -69,7 +69,17 @@
             .promo-hero__grid { grid-template-columns: 1fr; }
             .flyer-card img { max-height: 420px; }
         }
-        .promo-hero__text { color: #fff; }
+        .promo-hero__text { color: #fff; position: relative; }
+        .promo-hero__text::before {
+            content: '';
+            position: absolute;
+            top: -22px; left: -28px; right: -18px; bottom: -22px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            opacity: .93;
+            z-index: -1;
+            border-radius: 60px 18px 55px 22px / 18px 60px 20px 58px;
+            transform: rotate(-.6deg);
+        }
         .promo-badge {
             display: inline-block; background: rgba(255,255,255,.18);
             border: 1px solid rgba(255,255,255,.35); padding: 8px 16px;
