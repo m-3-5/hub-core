@@ -110,6 +110,14 @@
     alwaysActive?.addEventListener('change', function () {
         dateFields.style.display = this.checked ? 'none' : 'grid';
     });
+
+    const form = document.getElementById('promo-form');
+    form?.addEventListener('submit', function () {
+        if (submitBtn.disabled) return;
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.6';
+        submitBtn.textContent = 'Creazione in corso… (può richiedere qualche secondo)';
+    });
 })();
 </script>
 @endsection

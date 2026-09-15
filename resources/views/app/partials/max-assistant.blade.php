@@ -283,5 +283,14 @@
             }
         });
     });
+
+    const promoForm = document.getElementById('max-promo-form');
+    promoForm?.addEventListener('submit', function () {
+        const btn = promoForm.querySelector('.max-submit');
+        if (!btn || btn.disabled) return;
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.textContent = 'Creazione in corso…';
+    });
 })();
 </script>
