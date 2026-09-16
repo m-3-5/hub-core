@@ -41,6 +41,8 @@ class PromoContactRequestNotification extends Notification
         $mail->line('**Messaggio:**')
             ->line($this->message)
             ->line('Rispondi direttamente a questa email o contatta la persona ai recapiti sopra.')
+            ->line('Puoi rivedere questo e tutti gli altri messaggi ricevuti, e segnarli come gestiti una volta risposto, nella sezione "Messaggi clienti" del tuo pannello.')
+            ->action('Vai ai messaggi clienti', route('admin.customer-tickets.index', $this->promo->tenant))
             ->salutation('Hub Core');
 
         if ($this->visitorEmail) {
