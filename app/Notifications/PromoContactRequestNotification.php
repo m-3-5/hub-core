@@ -25,6 +25,7 @@ class PromoContactRequestNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $mail = (new MailMessage)
+            ->from(config('mail.from.address'), 'Hub Core - '.$this->promo->tenant->name)
             ->subject('Nuovo contatto da «'.$this->promo->title.'»')
             ->greeting('Hai un nuovo messaggio!')
             ->line('**Da:** '.$this->visitorName);
