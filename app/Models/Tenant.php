@@ -100,6 +100,11 @@ class Tenant extends Model
         return $this->hasMany(Ticket::class);
     }
 
+    public function customerTickets(): HasMany
+    {
+        return $this->hasMany(CustomerTicket::class);
+    }
+
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);

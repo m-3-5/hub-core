@@ -42,29 +42,33 @@ class PromoPublicController extends Controller
             'message' => ['required', 'string', 'max:2000'],
         ]);
 
+        $tenant->customerTickets()->create([
+            'promo_id' => $promo->id,
+            'name' => $validated['name'],
+            'email' => $validated['email'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'message' => $validated['message'],
+            'status' => 'new',
+        ]);
+
         $recipients = $tenant->users;
 
-        if ($recipients->isEmpty()) {
-            return back()->withInput()->withErrors([
-                'message' => 'Non riesco a inoltrare il messaggio in questo momento. Riprova più tardi.',
-            ]);
-        }
-
-        try {
-            \Illuminate\Support\Facades\Notification::send(
-                $recipients,
-                new PromoContactRequestNotification(
-                    $promo,
-                    $validated['name'],
-                    $validated['email'] ?? null,
-                    $validated['phone'] ?? null,
-                    $validated['message'],
-                ),
-            );
-        } catch (Throwable $e) {
-            return back()->withInput()->withErrors([
-                'message' => 'Non sono riuscito a inviare il messaggio. Riprova più tardi o usa un altro contatto.',
-            ]);
+        if ($recipients->isNotEmpty()) {
+            try {
+                \Illuminate\Support\Facades\Notification::send(
+                    $recipients,
+                    new PromoContactRequestNotification(
+                        $promo,
+                        $validated['name'],
+                        $validated['email'] ?? null,
+                        $validated['phone'] ?? null,
+                        $validated['message'],
+                    ),
+                );
+            } catch (Throwable $e) {
+                // Il messaggio è comunque salvato tra i "Messaggi clienti" del tenant — non far
+                // fallire la richiesta solo perché l'email di notifica non è partita.
+            }
         }
 
         return back()->with('contact_success', true);

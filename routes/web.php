@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ModuleBillingController;
 use App\Http\Controllers\Admin\PromoController;
 use App\Http\Controllers\Admin\PromoPreviewController;
+use App\Http\Controllers\Admin\CustomerTicketController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Auth\WordPressBridgeController;
 use App\Http\Controllers\ClientSiteController;
@@ -113,6 +114,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/tenants/{tenant}/tickets', [TicketController::class, 'store'])->name('tickets.store');
         Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
         Route::post('/tickets/{ticket}/respond', [TicketController::class, 'respond'])->name('tickets.respond');
+
+        Route::get('/tenants/{tenant}/customer-tickets', [CustomerTicketController::class, 'index'])->name('customer-tickets.index');
+        Route::post('/tenants/{tenant}/customer-tickets/{customerTicket}/toggle-status', [CustomerTicketController::class, 'toggleStatus'])->name('customer-tickets.toggle-status');
 
         Route::get('/activity', [ActivityLogController::class, 'index'])->name('activity.index');
 

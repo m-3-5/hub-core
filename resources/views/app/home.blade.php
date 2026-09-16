@@ -16,6 +16,12 @@
         <p>{{ $typeLabels[$tenantType] ?? 'Azienda' }} · Cosa vuoi fare oggi?</p>
     </div>
     <div class="app-actions">
+        <a class="btn btn-ghost" href="{{ route('admin.customer-tickets.index', $tenant) }}">
+            📨 Messaggi clienti
+            @if ($newCustomerTicketsCount)
+                <span style="background:#e65100;color:#fff;font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;margin-left:4px">{{ $newCustomerTicketsCount }}</span>
+            @endif
+        </a>
         <a class="btn btn-ghost" href="{{ route('admin.profile.edit', $tenant) }}">🪪 Profilo</a>
         @if (auth()->user()->isSuperAdmin())
             <a class="btn btn-ghost" href="{{ route('app.index') }}">Attività</a>

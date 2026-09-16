@@ -37,10 +37,11 @@ class AppController extends Controller
             : collect();
         $brandHasColor = $brand->hasColor($tenant);
         $brandHasLogo = $brand->hasLogo($tenant);
+        $newCustomerTicketsCount = $tenant->customerTickets()->where('status', 'new')->count();
 
         return view('app.home', compact(
             'tenant', 'user', 'hubModules', 'recentPromos', 'archivedPromos', 'expiredCount', 'recentServices',
-            'brandHasColor', 'brandHasLogo',
+            'brandHasColor', 'brandHasLogo', 'newCustomerTicketsCount',
         ));
     }
 }
