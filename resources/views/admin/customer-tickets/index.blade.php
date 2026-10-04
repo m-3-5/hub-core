@@ -32,6 +32,8 @@
             </p>
             @if ($customerTicket->promo)
                 <p style="font-size:12px;color:#888;margin:0 0 10px">📎 {{ $customerTicket->promo->title }}</p>
+            @elseif ($customerTicket->classifiedAd)
+                <p style="font-size:12px;color:#888;margin:0 0 10px">📋 Annuncio: {{ $customerTicket->classifiedAd->title }}</p>
             @endif
             <p style="font-size:12px;color:#888;margin:0 0 12px">{{ $customerTicket->created_at->format('d/m/Y H:i') }}</p>
 

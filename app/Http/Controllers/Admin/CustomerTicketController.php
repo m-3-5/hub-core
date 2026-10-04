@@ -12,7 +12,7 @@ class CustomerTicketController extends Controller
 {
     public function index(Tenant $tenant): View
     {
-        $customerTickets = $tenant->customerTickets()->with('promo')->latest()->get();
+        $customerTickets = $tenant->customerTickets()->with(['promo', 'classifiedAd'])->latest()->get();
 
         return view('admin.customer-tickets.index', compact('tenant', 'customerTickets'));
     }

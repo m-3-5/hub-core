@@ -10,7 +10,9 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ModuleBillingController;
 use App\Http\Controllers\Admin\PromoController;
 use App\Http\Controllers\Admin\PromoPreviewController;
+use App\Http\Controllers\Admin\ClassifiedAdController;
 use App\Http\Controllers\Admin\CustomerTicketController;
+use App\Http\Controllers\ClassifiedPublicController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Auth\WordPressBridgeController;
 use App\Http\Controllers\ClientSiteController;
@@ -66,6 +68,16 @@ Route::post('/p/{tenant}/{promo}/contatto', [PromoPublicController::class, 'cont
     ->middleware('throttle:5,10')
     ->scopeBindings();
 
+Route::get('/annunci', [ClassifiedPublicController::class, 'board'])->name('classifieds.board');
+Route::get('/a/{tenant}', [ClassifiedPublicController::class, 'board'])->name('classifieds.tenant-board');
+Route::get('/a/{tenant}/{classifiedAd}', [ClassifiedPublicController::class, 'show'])
+    ->name('classifieds.show')
+    ->scopeBindings();
+Route::post('/a/{tenant}/{classifiedAd}/contatto', [ClassifiedPublicController::class, 'contact'])
+    ->name('classifieds.contact')
+    ->middleware('throttle:5,10')
+    ->scopeBindings();
+
 Route::get('/embed/{tenantSlug}', [EmbedController::class, 'script'])->name('embed.script');
 Route::get('/embed/{tenantSlug}.js', [EmbedController::class, 'script']);
 
@@ -114,6 +126,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/tenants/{tenant}/tickets', [TicketController::class, 'store'])->name('tickets.store');
         Route::get('/tickets', [TicketController::class, 'index'])->name('tickets.index');
         Route::post('/tickets/{ticket}/respond', [TicketController::class, 'respond'])->name('tickets.respond');
+
+        Route::get('/tenants/{tenant}/classifieds', [ClassifiedAdController::class, 'index'])->name('classifieds.index');
+        Route::get('/tenants/{tenant}/classifieds/create', [ClassifiedAdController::class, 'create'])->name('classifieds.create');
+        Route::post('/tenants/{tenant}/classifieds', [ClassifiedAdController::class, 'store'])->name('classifieds.store');
+        Route::get('/tenants/{tenant}/classifieds/{classifiedAd}/edit', [ClassifiedAdController::class, 'edit'])->name('classifieds.edit');
+        Route::put('/tenants/{tenant}/classifieds/{classifiedAd}', [ClassifiedAdController::class, 'update'])->name('classifieds.update');
+        Route::post('/tenants/{tenant}/classifieds/{classifiedAd}/publish', [ClassifiedAdController::class, 'publish'])->name('classifieds.publish');
+        Route::post('/tenants/{tenant}/classifieds/{classifiedAd}/unpublish', [ClassifiedAdController::class, 'unpublish'])->name('classifieds.unpublish');
+        Route::delete('/tenants/{tenant}/classifieds/{classifiedAd}', [ClassifiedAdController::class, 'destroy'])->name('classifieds.destroy');
 
         Route::get('/tenants/{tenant}/customer-tickets', [CustomerTicketController::class, 'index'])->name('customer-tickets.index');
         Route::post('/tenants/{tenant}/customer-tickets/{customerTicket}/toggle-status', [CustomerTicketController::class, 'toggleStatus'])->name('customer-tickets.toggle-status');

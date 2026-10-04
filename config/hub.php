@@ -92,9 +92,9 @@ return [
         'classifieds' => [
             'key' => 'classifieds',
             'label' => 'Annunci',
-            'description' => 'Bakeca e marketplace',
+            'description' => 'Affitti e vendita immobili',
             'emoji' => '📋',
-            'active' => false,
+            'active' => true,
             'for_types' => ['azienda', 'privato', 'ente'],
         ],
         'giftcard' => [

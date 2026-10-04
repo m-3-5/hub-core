@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CustomerTicket extends Model
 {
-    protected $fillable = ['tenant_id', 'promo_id', 'name', 'email', 'phone', 'message', 'status'];
+    protected $fillable = ['tenant_id', 'promo_id', 'classified_ad_id', 'name', 'email', 'phone', 'message', 'status'];
 
     public function tenant(): BelongsTo
     {
@@ -17,6 +17,11 @@ class CustomerTicket extends Model
     public function promo(): BelongsTo
     {
         return $this->belongsTo(Promo::class);
+    }
+
+    public function classifiedAd(): BelongsTo
+    {
+        return $this->belongsTo(ClassifiedAd::class);
     }
 
     public function isNew(): bool
