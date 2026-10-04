@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\PromoPreviewController;
 use App\Http\Controllers\Admin\ClassifiedAdController;
 use App\Http\Controllers\Admin\CustomerTicketController;
 use App\Http\Controllers\ClassifiedPublicController;
+use App\Http\Controllers\MagicLoginController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Auth\WordPressBridgeController;
 use App\Http\Controllers\ClientSiteController;
@@ -68,7 +69,11 @@ Route::post('/p/{tenant}/{promo}/contatto', [PromoPublicController::class, 'cont
     ->middleware('throttle:5,10')
     ->scopeBindings();
 
-Route::get('/annunci', [ClassifiedPublicController::class, 'board'])->name('classifieds.board');
+Route::get('/accesso/{user}/{tenant}', [MagicLoginController::class, 'login'])
+    ->middleware(['signed', 'throttle:20,1'])
+    ->name('magic.login');
+
+Route::get('/annunci',[ClassifiedPublicController::class, 'board'])->name('classifieds.board');
 Route::get('/a/{tenant}', [ClassifiedPublicController::class, 'board'])->name('classifieds.tenant-board');
 Route::get('/a/{tenant}/{classifiedAd}', [ClassifiedPublicController::class, 'show'])
     ->name('classifieds.show')
