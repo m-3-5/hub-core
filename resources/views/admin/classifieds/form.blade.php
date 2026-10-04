@@ -105,6 +105,21 @@
             <input type="file" name="images[]" accept="image/*" multiple>
         </div>
 
+        <div style="margin-bottom:20px">
+            <label>Video (fino a 3, MP4/MOV/WebM, max 40 MB l'uno)</label>
+            @if ($isEdit && $ad->videos)
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin:8px 0">
+                    @foreach ($ad->videos as $i => $path)
+                        <label style="font-size:12px;font-weight:normal;cursor:pointer">
+                            <video src="{{ $ad->videoUrls()[$i] }}" preload="metadata" muted style="width:130px;height:90px;object-fit:cover;border-radius:8px;display:block;background:#000"></video>
+                            <input type="checkbox" name="remove_videos[]" value="{{ $path }}"> Rimuovi
+                        </label>
+                    @endforeach
+                </div>
+            @endif
+            <input type="file" name="videos[]" accept="video/mp4,video/quicktime,video/webm" multiple>
+        </div>
+
         <button type="submit" class="btn">{{ $isEdit ? 'Salva modifiche' : 'Salva come bozza' }}</button>
         <a href="{{ route('admin.classifieds.index', $tenant) }}" class="btn btn-secondary" style="margin-left:8px">← Annunci</a>
     </form>

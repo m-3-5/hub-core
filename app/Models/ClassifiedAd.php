@@ -33,7 +33,7 @@ class ClassifiedAd extends Model
 
     protected $fillable = [
         'tenant_id', 'slug', 'category', 'title', 'zone', 'price', 'price_unit', 'description',
-        'features', 'images', 'contact_name', 'contact_phone', 'contact_email', 'status', 'published_at',
+        'features', 'images', 'videos', 'contact_name', 'contact_phone', 'contact_email', 'status', 'published_at',
     ];
 
     protected function casts(): array
@@ -41,6 +41,7 @@ class ClassifiedAd extends Model
         return [
             'features' => 'array',
             'images' => 'array',
+            'videos' => 'array',
             'published_at' => 'datetime',
             'price' => 'decimal:2',
         ];
@@ -75,6 +76,14 @@ class ClassifiedAd extends Model
     public function imageUrls(): array
     {
         return collect($this->images ?? [])
+            ->map(fn (string $path) => Storage::disk('public')->url($path))
+            ->all();
+    }
+
+    /** @return array<int, string> */
+    public function videoUrls(): array
+    {
+        return collect($this->videos ?? [])
             ->map(fn (string $path) => Storage::disk('public')->url($path))
             ->all();
     }

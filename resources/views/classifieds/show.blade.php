@@ -29,6 +29,8 @@
         .thumbs { display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; }
         .thumbs button { border: 2px solid transparent; border-radius: 8px; padding: 0; width: 84px; height: 62px; flex: none; cursor: pointer; background: center/cover no-repeat; }
         .thumbs button.on { border-color: var(--primary); }
+        .videos { display: flex; flex-wrap: wrap; gap: 10px; }
+        .videos video { flex: 1 1 220px; max-width: 100%; max-height: 420px; border-radius: 10px; background: #000; }
         .badge { display: inline-block; background: color-mix(in srgb, var(--primary) 14%, #fff); color: var(--primary-dark); font-size: .75rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; text-transform: uppercase; letter-spacing: .03em; }
         h1 { font-size: 1.5rem; margin: 10px 0 4px; }
         .zone { color: var(--muted); }
@@ -62,6 +64,14 @@
                 </div>
             @endif
         </div>
+
+        @if ($ad->videoUrls())
+            <div class="panel videos" style="margin-top:16px">
+                @foreach ($ad->videoUrls() as $videoUrl)
+                    <video src="{{ $videoUrl }}" controls playsinline preload="metadata"></video>
+                @endforeach
+            </div>
+        @endif
 
         <div class="panel" style="margin-top:16px">
             <span class="badge">{{ $ad->categoryLabel() }}</span>

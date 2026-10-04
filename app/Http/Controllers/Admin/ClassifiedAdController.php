@@ -15,6 +15,8 @@ class ClassifiedAdController extends Controller
 {
     private const MAX_IMAGES = 8;
 
+    private const MAX_VIDEOS = 3;
+
     public function index(Tenant $tenant): View
     {
         $ads = $tenant->classifiedAds()->latest()->get();
@@ -35,6 +37,7 @@ class ClassifiedAdController extends Controller
             ...$data,
             'slug' => $this->uniqueSlug($data['title']),
             'images' => $this->storeImages($request, $tenant, []),
+            'videos' => $this->storeVideos($request, $tenant, []),
             'status' => 'draft',
         ]);
 
@@ -63,9 +66,19 @@ class ClassifiedAdController extends Controller
 
         $kept = $images->reject(fn ($p) => $remove->contains($p))->values()->all();
 
+        $removeVideos = collect($request->input('remove_videos', []));
+        $videos = collect($classifiedAd->videos ?? []);
+
+        foreach ($videos->filter(fn ($p) => $removeVideos->contains($p)) as $path) {
+            Storage::disk('public')->delete($path);
+        }
+
+        $keptVideos = $videos->reject(fn ($p) => $removeVideos->contains($p))->values()->all();
+
         $classifiedAd->update([
             ...$data,
             'images' => $this->storeImages($request, $tenant, $kept),
+            'videos' => $this->storeVideos($request, $tenant, $keptVideos),
         ]);
 
         return back()->with('success', 'Annuncio aggiornato.');
@@ -93,7 +106,7 @@ class ClassifiedAdController extends Controller
     {
         $this->ensureOwned($tenant, $classifiedAd);
 
-        foreach ($classifiedAd->images ?? [] as $path) {
+        foreach (array_merge($classifiedAd->images ?? [], $classifiedAd->videos ?? []) as $path) {
             Storage::disk('public')->delete($path);
         }
 
@@ -124,6 +137,8 @@ class ClassifiedAdController extends Controller
             'contact_email' => ['nullable', 'email', 'max:190'],
             'images' => ['nullable', 'array', 'max:'.self::MAX_IMAGES],
             'images.*' => ['image', 'max:8192'],
+            'videos' => ['nullable', 'array', 'max:'.self::MAX_VIDEOS],
+            'videos.*' => ['file', 'mimetypes:video/mp4,video/quicktime,video/webm', 'max:40960'],
         ]);
 
         $validated['features'] = collect($validated['features'] ?? [])
@@ -131,7 +146,7 @@ class ClassifiedAdController extends Controller
             ->filter(fn ($v) => $v !== null && $v !== '')
             ->all();
         $validated['price_unit'] = ($validated['price_unit'] ?? '') ?: null;
-        unset($validated['images']);
+        unset($validated['images'], $validated['videos']);
 
         return $validated;
     }
@@ -145,6 +160,21 @@ class ClassifiedAdController extends Controller
         $room = max(0, self::MAX_IMAGES - count($existing));
 
         foreach (array_slice($request->file('images', []), 0, $room) as $file) {
+            $existing[] = $file->store('ads/'.$tenant->slug, 'public');
+        }
+
+        return array_values($existing);
+    }
+
+    /**
+     * @param  array<int, string>  $existing
+     * @return array<int, string>
+     */
+    private function storeVideos(Request $request, Tenant $tenant, array $existing): array
+    {
+        $room = max(0, self::MAX_VIDEOS - count($existing));
+
+        foreach (array_slice($request->file('videos', []), 0, $room) as $file) {
             $existing[] = $file->store('ads/'.$tenant->slug, 'public');
         }
 
