@@ -281,6 +281,33 @@ class CreationWizardTest extends TestCase
         $this->get('/s/beauty')->assertOk()->assertSee('In promo fino al');
     }
 
+    public function test_ai_graphic_cover_is_kept_on_the_site_but_never_sent_to_stripe_when_it_is_an_svg(): void
+    {
+        Storage::fake('public');
+        config(['services.gemini.api_key' => 'test-key']);
+        Cache::put('gemini.model_catalog', ['text_models' => ['gemini-test'], 'text_best' => 'gemini-test']);
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><rect width="800" height="600" fill="#0f766e"/><text x="400" y="300">Crema</text></svg>';
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response(['candidates' => [['content' => ['parts' => [['text' => $svg]]]]]]),
+            'api.stripe.com/v1/products' => Http::response(['id' => 'prod_g1']),
+            'api.stripe.com/v1/prices' => Http::response(['id' => 'price_g1']),
+            'api.stripe.com/v1/payment_links' => Http::response(['id' => 'plink_g1', 'url' => 'https://buy.stripe.com/test_g1']),
+        ]);
+        $tenant = $this->tenant();
+        $user = $this->owner($tenant);
+
+        $this->actingAs($user)->post(route('admin.products.store', $tenant), [
+            'wizard' => 1, 'title' => 'Crema mani', 'description' => 'Nutre.', 'amount' => '12.90', 'auto_cover' => 1, 'published_to_site' => 1,
+        ])->assertSessionHasNoErrors();
+
+        $product = PayableService::sole();
+        $this->assertNotNull($product->cover_image_path);
+        $this->assertTrue(Storage::disk('public')->exists($product->cover_image_path));
+        $this->assertStringContainsString('crema', strtolower(Storage::disk('public')->get($product->cover_image_path)));
+
+        Http::assertSent(fn ($r) => str_contains($r->url(), '/v1/products') && ! str_contains($r->body(), 'images'));
+    }
+
     public function test_wizard_product_without_label_or_duration_and_expired_label_disappears(): void
     {
         Storage::fake('public');

@@ -49,8 +49,8 @@
         .money span { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 1.3rem; color: var(--muted); }
         .money .field { padding-right: 44px; }
         .sum { border: 2px solid #eceef3; border-radius: 22px; overflow: hidden; }
-        .sum-img { aspect-ratio: 16/10; background: linear-gradient(135deg, var(--c), var(--c-dark)); display: grid; place-items: center; color: #fff; text-align: center; padding: 18px; font-weight: 800; font-size: 1.5rem; }
-        .sum-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .sum-img { position: relative; overflow: hidden; aspect-ratio: 16/10; background: linear-gradient(135deg, var(--c), var(--c-dark)); display: grid; place-items: center; color: #fff; text-align: center; padding: 18px; font-weight: 800; font-size: 1.5rem; }
+        .sum-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
         .sum-body { padding: 18px 20px; }
         .sum-body h2 { margin: 0 0 6px; font-size: 1.35rem; }
         .sum-body p { margin: 0; color: #444; line-height: 1.5; white-space: pre-line; }

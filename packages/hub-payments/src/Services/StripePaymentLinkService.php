@@ -10,6 +10,11 @@ class StripePaymentLinkService
 {
     public function __construct(private readonly string $secretKey) {}
 
+    private function base(): string
+    {
+        return rtrim((string) config('hub-payments.stripe_api_base', 'https://api.stripe.com'), '/');
+    }
+
     /**
      * @return array{product_id: string, price_id: string, payment_link_id: string, url: string}
      */
@@ -92,7 +97,7 @@ class StripePaymentLinkService
         try {
             Http::withToken($this->secretKey)
                 ->timeout(30)
-                ->delete('https://api.stripe.com/v1/webhook_endpoints/'.$endpointId)
+                ->delete($this->base().'/v1/webhook_endpoints/'.$endpointId)
                 ->throw();
         } catch (RequestException $e) {
             throw new RuntimeException('Stripe (webhook_endpoints): '.($e->response?->json('error.message') ?? $e->getMessage()), 0, $e);
@@ -247,7 +252,7 @@ class StripePaymentLinkService
         try {
             $response = Http::withToken($this->secretKey)
                 ->timeout(30)
-                ->get('https://api.stripe.com'.$path, $query)
+                ->get($this->base().$path, $query)
                 ->throw();
         } catch (RequestException $e) {
             $message = $e->response?->json('error.message') ?? $e->getMessage();
@@ -265,7 +270,7 @@ class StripePaymentLinkService
             $response = Http::withToken($this->secretKey)
                 ->asForm()
                 ->timeout(30)
-                ->post('https://api.stripe.com'.$path, $fields)
+                ->post($this->base().$path, $fields)
                 ->throw();
         } catch (RequestException $e) {
             $message = $e->response?->json('error.message') ?? $e->getMessage();

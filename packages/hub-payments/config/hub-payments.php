@@ -10,6 +10,9 @@ return [
 
     'currency' => env('HUB_PAYMENTS_CURRENCY', 'eur'),
 
+    // Solo per prove in locale con un finto Stripe: in produzione resta l'indirizzo ufficiale.
+    'stripe_api_base' => env('HUB_PAYMENTS_STRIPE_API_BASE', 'https://api.stripe.com'),
+
     'types' => [
         'service' => 'Servizio',
         'promo' => 'Promo a pagamento',

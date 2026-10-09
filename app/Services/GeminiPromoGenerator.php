@@ -141,7 +141,7 @@ PROMPT;
     ): Response {
         return Http::timeout(120)
             ->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
+                rtrim((string) config('services.gemini.base_url'), '/')."/v1beta/models/{$model}:generateContent?key={$apiKey}",
                 [
                     'contents' => [
                         [

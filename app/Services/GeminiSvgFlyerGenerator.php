@@ -77,7 +77,7 @@ PROMPT;
 
         foreach ($this->models->textModels() as $model) {
             $response = Http::timeout(60)->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
+                rtrim((string) config('services.gemini.base_url'), '/')."/v1beta/models/{$model}:generateContent?key={$apiKey}",
                 ['contents' => [['parts' => [['text' => $prompt]]]]]
             );
 

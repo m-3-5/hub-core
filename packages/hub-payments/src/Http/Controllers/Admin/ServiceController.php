@@ -106,7 +106,7 @@ class ServiceController extends Controller
                 $validated['description'] ?? null,
                 $amountCents,
                 config('hub-payments.currency', 'eur'),
-                $coverImagePath ? url(Storage::disk('public')->url($coverImagePath)) : null,
+                $this->stripeImage($coverImagePath),
             );
         } catch (RuntimeException $e) {
             if ($coverImagePath) {
@@ -211,7 +211,7 @@ class ServiceController extends Controller
             $coverImagePath = $this->storeCoverImage($request, $tenant);
         }
 
-        $stripeImageUrl = $coverImagePath ? url(Storage::disk('public')->url($coverImagePath)) : null;
+        $stripeImageUrl = $this->stripeImage($coverImagePath);
 
         try {
             $stripe = new StripePaymentLinkService($secretKey);
@@ -384,6 +384,16 @@ class ServiceController extends Controller
         }
 
         return $current;
+    }
+
+    /** Indirizzo pubblico della copertina per Stripe: solo immagini raster (una grafica SVG resta sul sito). */
+    private function stripeImage(?string $path): ?string
+    {
+        if (! $path || str_ends_with(strtolower($path), '.svg')) {
+            return null;
+        }
+
+        return url(Storage::disk('public')->url($path));
     }
 
     private function generateCover(Tenant $tenant, string $title, ?string $description): ?string

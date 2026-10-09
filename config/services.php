@@ -37,6 +37,8 @@ return [
 
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
+        // Solo per prove in locale con un finto Gemini: in produzione resta l'indirizzo ufficiale.
+        'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com'),
         // See https://ai.google.dev/gemini-api/docs/models and pricing (free tier)
         'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
         'fallback_models' => array_filter(array_map('trim', explode(',', env(
