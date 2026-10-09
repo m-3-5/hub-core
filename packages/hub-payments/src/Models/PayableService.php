@@ -69,11 +69,52 @@ class PayableService extends Model
         return Storage::disk('public')->url($this->cover_image_path);
     }
 
+    /** Etichetta «In promo»: attiva finché la data di fine (metadata.promo_until) non è passata. */
+    public function onPromo(): bool
+    {
+        $until = $this->promoUntil();
+
+        return $until !== null && ! $until->isPast();
+    }
+
+    public function promoUntil(): ?\Illuminate\Support\Carbon
+    {
+        $value = $this->metadata['promo_until'] ?? null;
+
+        return $value ? \Illuminate\Support\Carbon::parse($value)->endOfDay() : null;
+    }
+
+    public function durationMinutes(): ?int
+    {
+        $minutes = (int) ($this->metadata['duration_minutes'] ?? 0);
+
+        return $minutes > 0 ? $minutes : null;
+    }
+
+    public function durationLabel(): ?string
+    {
+        $minutes = $this->durationMinutes();
+
+        if (! $minutes) {
+            return null;
+        }
+
+        if ($minutes < 60) {
+            return $minutes.' min';
+        }
+
+        $hours = intdiv($minutes, 60);
+        $rest = $minutes % 60;
+
+        return $hours.' h'.($rest ? ' '.$rest.' min' : '');
+    }
+
     public function stripeImageUrl(): ?string
     {
         $url = $this->coverImageUrl();
 
-        if (! $url) {
+        // Stripe accetta solo immagini raster: una grafica SVG resta sul sito ma non va a Stripe.
+        if (! $url || str_ends_with(strtolower((string) $this->cover_image_path), '.svg')) {
             return null;
         }
 

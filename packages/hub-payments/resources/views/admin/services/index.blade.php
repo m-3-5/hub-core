@@ -48,7 +48,7 @@
             <a class="btn btn-secondary" href="{{ route('admin.quotes.index', $tenant) }}">Preventivi</a>
             @if ($stripeConfigured)
                 <a class="btn btn-secondary" href="{{ route('admin.services.payment-links', $tenant) }}">Link di pagamento</a>
-                <a class="btn" href="{{ route('admin.'.$kind['route'].'.create', $tenant) }}">+ {{ $kind['new'] }}</a>
+                <a class="btn" href="{{ route('admin.wizard.show', [$tenant, $kind['type']]) }}">+ {{ $kind['new'] }}</a>
             @endif
         </div>
     </div>

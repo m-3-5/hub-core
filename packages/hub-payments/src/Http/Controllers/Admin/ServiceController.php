@@ -10,6 +10,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use App\Services\GeminiSvgFlyerGenerator;
+use Illuminate\Support\Str;
 use M35\HubPayments\Models\PayableService;
 use M35\HubPayments\Services\StripePaymentLinkService;
 use M35\HubPayments\Support\CatalogKind;
@@ -85,11 +87,17 @@ class ServiceController extends Controller
             'amount' => ['required', 'numeric', 'min:0.50', 'max:99999'],
             'cover_image' => ['nullable', 'image', 'max:5120'],
             'published_to_site' => ['boolean'],
+            ...$this->extraRules(),
         ]);
 
         $amountCents = (int) round(((float) $validated['amount']) * 100);
         $secretKey = TenantStripeConfig::secretKey($tenant);
         $coverImagePath = $this->storeCoverImage($request, $tenant);
+
+        // Creazione guidata senza foto: la grafica la crea l'IA dal titolo e dalla descrizione.
+        if (! $coverImagePath && $request->boolean('auto_cover')) {
+            $coverImagePath = $this->generateCover($tenant, $validated['title'], $validated['description'] ?? null);
+        }
 
         try {
             $stripe = new StripePaymentLinkService($secretKey);
@@ -126,6 +134,7 @@ class ServiceController extends Controller
             'payment_url' => $result['url'],
             'status' => 'active',
             'published_to_site' => $request->boolean('published_to_site'),
+            'metadata' => $this->extraMetadata($request, $validated, []),
         ]);
 
         if ($service->published_to_site) {
@@ -182,6 +191,7 @@ class ServiceController extends Controller
             'cover_image' => ['nullable', 'image', 'max:5120'],
             'remove_cover_image' => ['boolean'],
             'published_to_site' => ['boolean'],
+            ...$this->extraRules(),
         ]);
 
         $amountCents = (int) round(((float) $validated['amount']) * 100);
@@ -243,6 +253,7 @@ class ServiceController extends Controller
                 'amount_cents' => $amountCents,
                 'stripe_price_id' => $newPriceId,
                 'published_to_site' => $request->boolean('published_to_site'),
+                'metadata' => $this->extraMetadata($request, $validated, $service->metadata ?? []),
             ]);
         } catch (RuntimeException $e) {
             return back()
@@ -342,6 +353,55 @@ class ServiceController extends Controller
             'remaining' => TenantServiceQuota::remaining($tenant),
             'paid_price' => TenantServiceQuota::paidUnlockPrice($tenant),
         ];
+    }
+
+    /** @return array<string, array<int, mixed>> durata, etichetta «in promo» e relativa data di fine */
+    private function extraRules(): array
+    {
+        return [
+            'duration_minutes' => ['nullable', 'integer', 'min:5', 'max:1440'],
+            'promo_label' => ['boolean'],
+            'promo_until' => ['nullable', 'date', 'after_or_equal:today', 'required_if:promo_label,1'],
+            'auto_cover' => ['boolean'],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @param  array<string, mixed>  $current
+     * @return array<string, mixed>
+     */
+    private function extraMetadata(Request $request, array $validated, array $current): array
+    {
+        unset($current['duration_minutes'], $current['promo_until']);
+
+        if (! empty($validated['duration_minutes'])) {
+            $current['duration_minutes'] = (int) $validated['duration_minutes'];
+        }
+
+        if ($request->boolean('promo_label') && ! empty($validated['promo_until'])) {
+            $current['promo_until'] = \Illuminate\Support\Carbon::parse($validated['promo_until'])->toDateString();
+        }
+
+        return $current;
+    }
+
+    private function generateCover(Tenant $tenant, string $title, ?string $description): ?string
+    {
+        try {
+            $flyer = app(GeminiSvgFlyerGenerator::class)->generate(
+                $tenant,
+                $title,
+                $description ? Str::limit($description, 90, '') : null,
+                null,
+                $this->kind()['route'].'/'.$tenant->slug.'/'.Str::uuid(),
+                'landscape',
+            );
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $flyer['path'] ?? null;
     }
 
     private function storeCoverImage(Request $request, Tenant $tenant): ?string

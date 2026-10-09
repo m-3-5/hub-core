@@ -49,6 +49,20 @@
             </label>
         @endif
 
+        @if ($kind['type'] === 'service')
+            <label for="duration_minutes">Durata in minuti (facoltativa)</label>
+            <input type="number" name="duration_minutes" id="duration_minutes" min="5" max="1440" value="{{ old('duration_minutes', $service->durationMinutes()) }}" style="width:100%;max-width:200px;padding:10px;margin-bottom:16px;border:1px solid #ddd;border-radius:8px">
+            @error('duration_minutes')<p class="error">{{ $message }}</p>@enderror
+        @endif
+
+        <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-weight:500">
+            <input type="checkbox" name="promo_label" value="1" @checked(old('promo_label', $service->onPromo()))>
+            Etichetta «In promo»
+        </label>
+        <label for="promo_until">In promo fino al</label>
+        <input type="date" name="promo_until" id="promo_until" value="{{ old('promo_until', $service->onPromo() ? $service->promoUntil()->toDateString() : '') }}" style="width:100%;max-width:220px;padding:10px;margin-bottom:16px;border:1px solid #ddd;border-radius:8px">
+        @error('promo_until')<p class="error">{{ $message }}</p>@enderror
+
         <label style="display:flex;align-items:center;gap:8px;margin-bottom:20px;font-weight:500">
             <input type="checkbox" name="published_to_site" value="1" @checked(old('published_to_site', $service->published_to_site))>
             Mostra sul sito (API / {{ $tenant->website ? preg_replace('#^https?://#', '', $tenant->website) : 'il tuo sito' }})

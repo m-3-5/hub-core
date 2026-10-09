@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\CustomerTicketController;
 use App\Http\Controllers\ClassifiedPublicController;
 use App\Http\Controllers\MagicLoginController;
 use App\Http\Controllers\Admin\TicketController;
+use App\Http\Controllers\Admin\WizardController;
 use App\Http\Controllers\Auth\WordPressBridgeController;
 use App\Http\Controllers\ClientSiteController;
 use App\Http\Controllers\EmbedController;
@@ -106,6 +107,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::delete('/tenants/{tenant}', [DashboardController::class, 'destroy'])->name('tenants.destroy');
+
+        // Creazione guidata a schermo intero (promo, prodotti, servizi).
+        Route::get('/tenants/{tenant}/new/{kind}', [WizardController::class, 'show'])->whereIn('kind', ['promo', 'product', 'service'])->name('wizard.show');
+        Route::post('/tenants/{tenant}/wizard/suggest', [WizardController::class, 'suggest'])->middleware('throttle:20,1')->name('wizard.suggest');
 
         Route::get('/tenants/{tenant}/promos', [PromoController::class, 'index'])->name('promos.index');
         Route::get('/tenants/{tenant}/promos/create', [PromoController::class, 'create'])->name('promos.create');

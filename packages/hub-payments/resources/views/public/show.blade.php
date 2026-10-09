@@ -87,8 +87,11 @@
             @endif
         </div>
         <div>
+            @if ($service->onPromo())
+                <p style="display:inline-block;background:#fef3c7;color:#92400e;font-size:.8rem;font-weight:700;padding:4px 12px;border-radius:999px;margin-bottom:10px">In promo fino al {{ $service->promoUntil()->format('d/m/Y') }}</p>
+            @endif
             <h1>{{ $service->title }}</h1>
-            <div class="price">{{ $service->amountEuros() }} €</div>
+            <div class="price">{{ $service->amountEuros() }} €@if ($service->durationLabel()) <span style="font-size:1rem;font-weight:500;color:var(--muted)">· {{ $service->durationLabel() }}</span>@endif</div>
             @if ($service->description)
                 <p class="description">{{ $service->description }}</p>
             @endif

@@ -10,7 +10,7 @@
             <p style="color:#666;margin-top:6px">Attive, archivio scadute e bozze.</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a class="btn" href="{{ route('admin.promos.create', $tenant) }}">+ Nuova promo</a>
+            <a class="btn" href="{{ route('admin.wizard.show', [$tenant, 'promo']) }}">+ Nuova promo</a>
             <a class="btn btn-secondary" href="{{ route('promo.archive', $tenant) }}" target="_blank">Vedi archivio pubblico ↗</a>
             <a class="btn btn-secondary" href="{{ route('app.home', $tenant) }}">← Home</a>
         </div>

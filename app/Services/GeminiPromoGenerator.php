@@ -13,7 +13,8 @@ class GeminiPromoGenerator
         private GeminiModelResolver $models,
     ) {}
 
-    public function generateFromImage(string $imagePath, string $mimeType, ?string $hint = null): array
+    /** @param  string  $kind  promo | product | service */
+    public function generateFromImage(string $imagePath, string $mimeType, ?string $hint = null, string $kind = 'promo'): array
     {
         $apiKey = config('services.gemini.api_key');
 
@@ -43,6 +44,18 @@ Analizza questa immagine promozionale (volantino/banner) e rispondi SOLO con un 
 }
 Estrai tutti i testi visibili (prezzi, servizi, indirizzo, telefono). Usa italiano per i contenuti visibili all'utente.
 PROMPT;
+
+        if ($kind !== 'promo') {
+            $what = $kind === 'service' ? 'un servizio (trattamento, prestazione)' : 'un prodotto in vendita';
+            $prompt = <<<PROMPT
+Guarda questa foto: l'attività la userà per presentare {$what}. Rispondi SOLO con un JSON valido, senza markdown, con questa struttura esatta:
+{
+  "title": "nome breve e chiaro, massimo 60 caratteri, in italiano",
+  "description": "descrizione invitante di 2-3 frasi brevi in italiano, senza inventare prezzi",
+  "price": "prezzo in euro solo se è scritto chiaramente nella foto, altrimenti stringa vuota"
+}
+PROMPT;
+        }
 
         if ($hint) {
             $prompt .= "\n\nContesto fornito dal cliente su cosa vuole promuovere: \"{$hint}\". Tienine conto nel titolo e nella descrizione.";

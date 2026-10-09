@@ -29,7 +29,7 @@
                     <div style="color:#888;font-size:14px">{{ $t->website }} · {{ $t->promos_count }} promo</div>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
-                    <a class="btn" href="{{ route('admin.promos.create', $t) }}">Nuova promo</a>
+                    <a class="btn" href="{{ route('admin.wizard.show', [$t, 'promo']) }}">Nuova promo</a>
                     <form method="POST" action="{{ route('admin.tenants.destroy', $t) }}"
                           onsubmit="return confirm('Eliminare definitivamente {{ $t->name }}? Verranno cancellati anche servizi, promo, registro pagamenti e gli utenti collegati solo a questo tenant. Azione irreversibile.')">
                         @csrf

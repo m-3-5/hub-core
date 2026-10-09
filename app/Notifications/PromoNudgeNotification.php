@@ -21,7 +21,7 @@ class PromoNudgeNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $promoUrl = url(route('admin.promos.create', $this->tenant));
+        $promoUrl = url(route('admin.wizard.show', [$this->tenant, 'promo']));
         $feedbackUrl = URL::temporarySignedRoute(
             'feedback.show',
             now()->addDays(30),

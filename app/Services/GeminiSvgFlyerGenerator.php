@@ -30,7 +30,7 @@ class GeminiSvgFlyerGenerator
      *
      * @return array{path: string, mime: string}|null
      */
-    public function generate(Tenant $tenant, string $headline, ?string $subline, ?string $logoAbsolutePath, string $directory): ?array
+    public function generate(Tenant $tenant, string $headline, ?string $subline, ?string $logoAbsolutePath, string $directory, string $orientation = 'portrait'): ?array
     {
         $apiKey = config('services.gemini.api_key');
 
@@ -46,11 +46,14 @@ class GeminiSvgFlyerGenerator
 
         $color = $tenant->primary_color ?: '#6366f1';
         $safeHeadline = Str::limit($headline, 60, '');
+        $format = $orientation === 'landscape'
+            ? 'una grafica orizzontale 800x600px (viewBox="0 0 800 600"), da usare come copertina di un prodotto o servizio'
+            : 'un volantino promozionale verticale 800x1200px';
         $fontKey = $this->brand->font($tenant);
         $styleDirective = self::STYLE_DIRECTIVES[$fontKey] ?? self::STYLE_DIRECTIVES['moderno'];
 
         $prompt = <<<PROMPT
-Genera SOLO il codice SVG (nessun markdown, nessuna spiegazione, inizia direttamente con <svg) di un volantino promozionale verticale 800x1200px per l'attività "{$tenant->name}".
+Genera SOLO il codice SVG (nessun markdown, nessuna spiegazione, inizia direttamente con <svg) di {$format} per l'attività "{$tenant->name}".
 Colore principale del brand: {$color} — usa un gradiente (linearGradient o radialGradient) con 2-3 tonalità derivate da questo colore come sfondo, non un riempimento piatto a tinta unita.
 Direzione artistica da seguire: {$styleDirective}
 Testo principale grande e leggibile: "{$safeHeadline}"

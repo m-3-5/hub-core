@@ -76,6 +76,11 @@ class PromoController extends Controller
             'manual_title' => ['nullable', 'string', 'max:255'],
             'manual_description' => ['nullable', 'string', 'max:2000'],
             'brand_color' => ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            // creazione guidata
+            'wizard' => ['boolean'],
+            'publish_now' => ['boolean'],
+            'price' => ['nullable', 'string', 'max:40'],
+            'ai_payload' => ['nullable', 'string', 'max:20000'],
         ]);
 
         if ($request->input('visual_tier') === 'ai_flyer') {
@@ -141,7 +146,13 @@ class PromoController extends Controller
             }
         }
 
-        if ($request->boolean('skip_ai') || $request->input('promo_source') === 'svg') {
+        // Creazione guidata: i testi proposti dall'IA sono già stati letti dalla foto, non si richiama Gemini.
+        $aiPayload = $this->decodeAiPayload($request->input('ai_payload'));
+
+        if ($aiPayload) {
+            $generated = $aiPayload;
+            $flashMessage = 'Promo creata in bozza. Controlla anteprima e pubblica quando pronta.';
+        } elseif ($request->boolean('skip_ai') || $request->input('promo_source') === 'svg') {
             $generated = GeminiPromoGenerator::fallbackData($tenant->name);
             $flashMessage = 'Promo creata in bozza. Controlla anteprima e pubblica quando pronta.';
         } else {
@@ -175,12 +186,24 @@ class PromoController extends Controller
         $overQuota = ! TenantPromoQuota::hasIncludedSlot($tenant);
 
         $alwaysActive = $request->boolean('always_active');
+        $offers = $generated['offers'] ?? [];
+
+        if ($request->boolean('wizard')) {
+            $offers = $this->wizardOffers($offers, $title, trim((string) $request->input('price')));
+        }
+
+        $endsAt = $request->input('ends_at');
+
+        // Data senza ora (creazione guidata): la promo vale fino a fine giornata.
+        if ($endsAt && strlen($endsAt) <= 10) {
+            $endsAt = \Illuminate\Support\Carbon::parse($endsAt)->endOfDay();
+        }
 
         $promo = $tenant->promos()->create([
             'title' => $title,
             'slug' => $slug,
             'description' => $description,
-            'offers' => $generated['offers'] ?? [],
+            'offers' => $offers,
             'cta_label' => $generated['cta_label'] ?? 'Scopri l\'offerta',
             'cta_url' => $tenant->website,
             'image_path' => $path,
@@ -189,7 +212,7 @@ class PromoController extends Controller
             'status' => 'draft',
             'always_active' => $alwaysActive,
             'starts_at' => $alwaysActive ? null : $request->input('starts_at'),
-            'ends_at' => $alwaysActive ? null : $request->input('ends_at'),
+            'ends_at' => $alwaysActive ? null : $endsAt,
             'published_at' => null,
             'ai_metadata' => array_merge($generated, [
                 'promo_source' => $request->input('promo_source'),
@@ -239,10 +262,26 @@ class PromoController extends Controller
         ], output: [
             'title' => $title,
             'description' => $description,
-            'offers' => $generated['offers'] ?? [],
+            'offers' => $offers,
             'hashtags' => $hashtags,
             'image_path' => $path,
         ], subject: $promo);
+
+        // Creazione guidata: «Pubblica» crea e pubblica in un colpo solo (salvo account ospite, che deve prima confermare l'email).
+        if ($request->boolean('publish_now') && ! $tenant->isGuestPending()) {
+            $promo->update(['status' => 'published', 'published_at' => now()]);
+            app(WordPressWebhookDispatcher::class)->promoPublished($tenant, $promo->fresh());
+
+            $redirect = redirect()
+                ->route('admin.promos.show', [$tenant, $promo])
+                ->with('success', 'Promo pubblicata! Popup, card WordPress e landing sono ora attivi.');
+
+            if ($flashWarning) {
+                $redirect->with('warning', $flashWarning);
+            }
+
+            return $redirect;
+        }
 
         $redirect = redirect()
             ->route('admin.promos.show', [$tenant, $promo])
@@ -253,6 +292,67 @@ class PromoController extends Controller
         }
 
         return $redirect;
+    }
+
+    /**
+     * Testi già proposti dall'IA nella creazione guidata (JSON del passo «foto»): solo campi di testo noti.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function decodeAiPayload(?string $json): ?array
+    {
+        if (! $json) {
+            return null;
+        }
+
+        $data = json_decode($json, true);
+
+        if (! is_array($data) || ! isset($data['title'])) {
+            return null;
+        }
+
+        $clean = [];
+
+        foreach (['title', 'description', 'cta_label', 'seo_title', 'seo_description', 'suggested_slug'] as $key) {
+            if (isset($data[$key]) && is_string($data[$key])) {
+                $clean[$key] = Str::limit(strip_tags($data[$key]), 500, '');
+            }
+        }
+
+        $clean['offers'] = collect($data['offers'] ?? [])
+            ->filter(fn ($o) => is_array($o) && ! empty($o['name']))
+            ->take(8)
+            ->map(fn ($o) => [
+                'name' => Str::limit(strip_tags((string) $o['name']), 255, ''),
+                'price' => Str::limit(strip_tags((string) ($o['price'] ?? '')), 100, ''),
+                'detail' => Str::limit(strip_tags((string) ($o['detail'] ?? '')), 500, ''),
+            ])
+            ->values()
+            ->all();
+
+        return $clean;
+    }
+
+    /**
+     * Prezzo scelto nella creazione guidata: vuoto = nessuna offerta con prezzo;
+     * altrimenti sostituisce il prezzo della prima offerta (o la crea), lasciando le altre.
+     *
+     * @param  array<int, array<string, mixed>>  $offers
+     * @return array<int, array<string, mixed>>
+     */
+    private function wizardOffers(array $offers, string $title, string $price): array
+    {
+        if ($price === '') {
+            return [];
+        }
+
+        if ($offers === []) {
+            return [['name' => $title, 'price' => $price, 'detail' => '']];
+        }
+
+        $offers[0]['price'] = $price;
+
+        return array_values($offers);
     }
 
     /**
