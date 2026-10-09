@@ -5,9 +5,13 @@ namespace M35\HubPayments;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Route;
 use M35\HubPayments\Http\Controllers\Admin\ServiceController;
+use M35\HubPayments\Http\Controllers\Admin\QuoteController;
 use M35\HubPayments\Http\Controllers\Admin\StripePaymentLinksController;
+use M35\HubPayments\Http\Controllers\Admin\StripeWebhookSettingsController;
 use M35\HubPayments\Http\Controllers\Api\CheckoutApiController;
+use M35\HubPayments\Http\Controllers\Api\QuoteApiController;
 use M35\HubPayments\Http\Controllers\Api\ServiceApiController;
+use M35\HubPayments\Http\Controllers\Api\TenantStripeWebhookController;
 use M35\HubPayments\Http\Middleware\VerifyHubSignature;
 use M35\HubPayments\Http\Controllers\Public\ServicePublicController;
 use M35\HubPayments\Models\PayableService;
@@ -59,6 +63,8 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
                 Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
                 Route::post('/services/stripe-settings', [ServiceController::class, 'storeStripeSettings'])->name('services.stripe-settings');
+                Route::post('/services/stripe-webhook', [StripeWebhookSettingsController::class, 'create'])->name('services.stripe-webhook.create');
+                Route::post('/services/stripe-webhook/secret', [StripeWebhookSettingsController::class, 'store'])->name('services.stripe-webhook.secret');
                 Route::get('/services/{service}', [ServiceController::class, 'show'])->name('services.show');
                 Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
                 Route::put('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
@@ -68,6 +74,11 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 Route::get('/payment-links', [StripePaymentLinksController::class, 'index'])->name('services.payment-links');
                 Route::post('/payment-links/{link}/deactivate', [StripePaymentLinksController::class, 'deactivate'])->name('services.payment-links.deactivate');
                 Route::post('/payment-links/{link}/import', [StripePaymentLinksController::class, 'import'])->name('services.payment-links.import');
+
+                // Preventivi a importo libero (type "quote"): fuori da quota servizi e addebiti modulo.
+                Route::get('/quotes', [QuoteController::class, 'index'])->name('quotes.index');
+                Route::post('/quotes', [QuoteController::class, 'store'])->name('quotes.store');
+                Route::delete('/quotes/{service}', [QuoteController::class, 'destroy'])->name('quotes.destroy');
 
                 // Prodotti: stesso flusso dei servizi, tipo "product" (il default 'kind' lo legge il controller).
                 Route::prefix('products')->name('products.')->group(function () {
@@ -99,6 +110,17 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 Route::post('{tenantSlug}/checkout', [CheckoutApiController::class, 'store'])
                     ->middleware([VerifyHubSignature::class, 'throttle:30,1'])
                     ->name('checkout.store');
+
+                Route::middleware([VerifyHubSignature::class, 'throttle:60,1'])->group(function () {
+                    Route::post('{tenantSlug}/quotes', [QuoteApiController::class, 'store'])->name('quotes.store');
+                    Route::get('{tenantSlug}/quotes', [QuoteApiController::class, 'index'])->name('quotes.index');
+                    Route::get('{tenantSlug}/quotes/{quoteId}', [QuoteApiController::class, 'show'])->whereNumber('quoteId')->name('quotes.show');
+                });
+
+                // Webhook del conto Stripe del tenant (firma Stripe-Signature con segreto per tenant).
+                Route::post('{tenantSlug}/stripe-webhook', [TenantStripeWebhookController::class, 'handle'])
+                    ->middleware('throttle:120,1')
+                    ->name('stripe.tenant-webhook');
             });
 
         Route::middleware('web')

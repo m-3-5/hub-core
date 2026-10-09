@@ -32,6 +32,73 @@ class StripePaymentLinkService
         ];
     }
 
+    /**
+     * Preventivo: prodotto + prezzo + Payment Link pagabile una volta sola (restrictions.completed_sessions.limit=1).
+     *
+     * @param  array<string, string>  $metadata
+     * @return array{product_id: string, price_id: string, payment_link_id: string, url: string}
+     */
+    public function createSingleUsePaymentLink(
+        string $title,
+        ?string $description,
+        int $amountCents,
+        string $currency = 'eur',
+        array $metadata = [],
+    ): array {
+        $product = $this->createProduct($title, $description);
+        $price = $this->createPrice($product['id'], $amountCents, $currency);
+
+        $extra = ['restrictions[completed_sessions][limit]' => 1];
+
+        foreach ($metadata as $key => $value) {
+            $extra["metadata[$key]"] = $value;
+        }
+
+        $link = $this->createPaymentLinkForPrice($price['id'], $extra);
+
+        return [
+            'product_id' => $product['id'],
+            'price_id' => $price['id'],
+            'payment_link_id' => $link['id'],
+            'url' => $link['url'],
+        ];
+    }
+
+    /**
+     * Registra un webhook sul conto Stripe del tenant. Il segreto di firma ("secret") viene restituito solo qui.
+     *
+     * @param  array<int, string>  $events
+     * @return array{id: string, secret: string}
+     */
+    public function createWebhookEndpoint(string $url, array $events, string $description): array
+    {
+        $fields = ['url' => $url, 'description' => $description];
+
+        foreach (array_values($events) as $i => $event) {
+            $fields["enabled_events[$i]"] = $event;
+        }
+
+        $endpoint = $this->post('/v1/webhook_endpoints', $fields);
+
+        if (empty($endpoint['id']) || empty($endpoint['secret'])) {
+            throw new RuntimeException('Stripe: webhook creato senza segreto di firma.');
+        }
+
+        return ['id' => $endpoint['id'], 'secret' => $endpoint['secret']];
+    }
+
+    public function deleteWebhookEndpoint(string $endpointId): void
+    {
+        try {
+            Http::withToken($this->secretKey)
+                ->timeout(30)
+                ->delete('https://api.stripe.com/v1/webhook_endpoints/'.$endpointId)
+                ->throw();
+        } catch (RequestException $e) {
+            throw new RuntimeException('Stripe (webhook_endpoints): '.($e->response?->json('error.message') ?? $e->getMessage()), 0, $e);
+        }
+    }
+
     public function updateProduct(string $productId, string $title, ?string $description, ?string $imageUrl = null): void
     {
         $fields = array_filter([
@@ -159,21 +226,18 @@ class StripePaymentLinkService
         return $this->post('/v1/products', $fields);
     }
 
-    /** @return array<string, mixed> */
-    private function createPaymentLinkForPrice(string $priceId): array
+    /**
+     * @param  array<string, mixed>  $extra  campi aggiuntivi (restrizioni, metadata)
+     * @return array<string, mixed>
+     */
+    private function createPaymentLinkForPrice(string $priceId, array $extra = []): array
     {
+        $base = ['line_items[0][price]' => $priceId, 'line_items[0][quantity]' => 1] + $extra;
+
         try {
-            return $this->post('/v1/payment_links', [
-                'line_items[0][price]' => $priceId,
-                'line_items[0][quantity]' => 1,
-                'automatic_payment_methods[enabled]' => 'true',
-            ]);
+            return $this->post('/v1/payment_links', $base + ['automatic_payment_methods[enabled]' => 'true']);
         } catch (RuntimeException) {
-            return $this->post('/v1/payment_links', [
-                'line_items[0][price]' => $priceId,
-                'line_items[0][quantity]' => 1,
-                'payment_method_types[0]' => 'card',
-            ]);
+            return $this->post('/v1/payment_links', $base + ['payment_method_types[0]' => 'card']);
         }
     }
 

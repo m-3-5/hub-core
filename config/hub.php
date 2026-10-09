@@ -65,6 +65,14 @@ return [
             'active' => true,
             'for_types' => ['azienda', 'ente'],
         ],
+        'quotes' => [
+            'key' => 'quotes',
+            'label' => 'Preventivi',
+            'description' => 'Importo libero con link di pagamento Stripe',
+            'emoji' => '🧾',
+            'active' => true,
+            'for_types' => ['azienda', 'ente'],
+        ],
         'shop' => [
             'key' => 'shop',
             'label' => 'Vendi',

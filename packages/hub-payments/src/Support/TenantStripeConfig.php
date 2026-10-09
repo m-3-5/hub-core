@@ -37,10 +37,14 @@ class TenantStripeConfig
     public static function store(Tenant $tenant, string $secretKey, ?string $publishableKey = null): void
     {
         $settings = $tenant->settings ?? [];
-        $settings['stripe'] = [
+        $previous = $settings['stripe'] ?? [];
+        $sameAccount = self::secretKey($tenant) === trim($secretKey);
+
+        // Il webhook appartiene al conto Stripe: si conserva solo se la chiave non cambia.
+        $settings['stripe'] = array_merge($sameAccount ? $previous : [], [
             'secret_key' => Crypt::encryptString(trim($secretKey)),
-            'publishable_key' => $publishableKey ? trim($publishableKey) : ($settings['stripe']['publishable_key'] ?? null),
-        ];
+            'publishable_key' => $publishableKey ? trim($publishableKey) : ($previous['publishable_key'] ?? null),
+        ]);
 
         $tenant->forceFill(['settings' => $settings])->save();
     }

@@ -54,6 +54,7 @@ class WordPressBridgeController extends Controller
             'promos' => 'admin.promos.index',
             'services' => 'admin.services.index',
             'products' => 'admin.products.index',
+            'quotes' => 'admin.quotes.index',
         ];
 
         if (isset($destinations[$dest])) {

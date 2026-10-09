@@ -94,6 +94,10 @@
             <button type="submit" class="btn btn-secondary">Salva chiavi Stripe</button>
         </form>
     </div>
+
+    @if ($stripeConfigured)
+        @include('hub-payments::admin.services._webhook-card', ['tenant' => $tenant, 'stripeConfigured' => $stripeConfigured])
+    @endif
     @endif
 
     @if ($services->isEmpty())
