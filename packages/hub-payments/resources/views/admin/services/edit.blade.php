@@ -1,10 +1,10 @@
 @extends('layouts.admin')
 
-@section('title', 'Modifica servizio — '.$tenant->name)
+@section('title', 'Modifica '.$kind['singular'].' — '.$tenant->name)
 
 @section('content')
 <div class="card" style="max-width:640px">
-    <h1 style="margin:0 0 8px">Modifica servizio</h1>
+    <h1 style="margin:0 0 8px">Modifica {{ $kind['singular'] }}</h1>
     <p style="margin:0 0 20px;color:#666">Aggiorna titolo, descrizione, prezzo e foto. Le modifiche vengono sincronizzate su Stripe.</p>
 
     @error('stripe')
@@ -24,11 +24,11 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('admin.services.update', [$tenant, $service]) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('admin.'.$kind['route'].'.update', [$tenant, $service]) }}" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
-        <label for="title">Titolo servizio *</label>
+        <label for="title">Titolo {{ $kind['singular'] }} *</label>
         <input type="text" name="title" id="title" value="{{ old('title', $service->title) }}" required maxlength="120"
                style="width:100%;padding:10px;margin-bottom:16px;border:1px solid #ddd;border-radius:8px">
 
@@ -40,7 +40,7 @@
         <input type="number" name="amount" id="amount" value="{{ old('amount', number_format($service->amount_cents / 100, 2, '.', '')) }}" required min="0.5" step="0.01"
                style="width:100%;padding:10px;margin-bottom:16px;border:1px solid #ddd;border-radius:8px">
 
-        <label for="cover_image">Foto servizio</label>
+        <label for="cover_image">Foto {{ $kind['singular'] }}</label>
         <input type="file" name="cover_image" id="cover_image" accept="image/*" style="margin-bottom:12px">
         @if ($service->cover_image_path)
             <label style="display:flex;align-items:center;gap:8px;margin-bottom:16px;font-weight:500">
@@ -55,7 +55,7 @@
         </label>
 
         <button type="submit" class="btn">Salva modifiche</button>
-        <a href="{{ route('admin.services.show', [$tenant, $service]) }}" class="btn btn-secondary" style="margin-left:8px">Annulla</a>
+        <a href="{{ route('admin.'.$kind['route'].'.show', [$tenant, $service]) }}" class="btn btn-secondary" style="margin-left:8px">Annulla</a>
     </form>
 </div>
 @endsection

@@ -1,15 +1,17 @@
 @extends('layouts.admin')
 
-@section('title', 'Nuovo servizio — '.$tenant->name)
+@section('title', $kind['new'].' — '.$tenant->name)
 
 @section('content')
 <div class="card" style="max-width:640px">
-    <h1 style="margin:0 0 8px">Nuovo servizio a pagamento</h1>
+    <h1 style="margin:0 0 8px">{{ $kind['new'] }} a pagamento</h1>
     <p style="margin:0 0 20px;color:#666">Genera un link Stripe con carta e gli altri metodi attivi sul conto del salone (Klarna, Scalapay, ecc.).</p>
 
+    @if ($kind['quota'])
     <div class="alert" style="background:#eef2ff;color:#312e81;margin-bottom:20px">
         Servizi demo rimasti: <strong>{{ $quota['remaining'] }}</strong> su {{ $quota['included'] }}.
     </div>
+    @endif
 
     @error('quota')
         <p class="alert alert-warning">{{ $message }}</p>
@@ -18,9 +20,9 @@
         <p class="error">{{ $message }}</p>
     @enderror
 
-    <form method="POST" action="{{ route('admin.services.store', $tenant) }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('admin.'.$kind['route'].'.store', $tenant) }}" enctype="multipart/form-data">
         @csrf
-        <label for="title">Titolo servizio *</label>
+        <label for="title">Titolo {{ $kind['singular'] }} *</label>
         <input type="text" name="title" id="title" value="{{ old('title') }}" required maxlength="120"
                placeholder="es. Piega + trattamento ricostruzione" style="width:100%;padding:10px;margin-bottom:16px;border:1px solid #ddd;border-radius:8px">
 
@@ -32,7 +34,7 @@
         <input type="number" name="amount" id="amount" value="{{ old('amount') }}" required min="0.5" step="0.01"
                placeholder="45.00" style="width:100%;padding:10px;margin-bottom:16px;border:1px solid #ddd;border-radius:8px">
 
-        <label for="cover_image">Foto servizio (opzionale)</label>
+        <label for="cover_image">Foto {{ $kind['singular'] }} (opzionale)</label>
         <input type="file" name="cover_image" id="cover_image" accept="image/*" style="margin-bottom:16px">
 
         <label style="display:flex;align-items:center;gap:8px;margin-bottom:20px;font-weight:500">
@@ -41,7 +43,7 @@
         </label>
 
         <button type="submit" class="btn">Crea link di pagamento</button>
-        <a href="{{ route('admin.services.index', $tenant) }}" class="btn btn-secondary" style="margin-left:8px">Annulla</a>
+        <a href="{{ route('admin.'.$kind['route'].'.index', $tenant) }}" class="btn btn-secondary" style="margin-left:8px">Annulla</a>
     </form>
 </div>
 @endsection

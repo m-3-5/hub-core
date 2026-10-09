@@ -57,6 +57,14 @@ return [
             'active' => true,
             'for_types' => ['azienda', 'ente'],
         ],
+        'products' => [
+            'key' => 'products',
+            'label' => 'Prodotti',
+            'description' => 'Prodotti con link Stripe e carrello',
+            'emoji' => '📦',
+            'active' => true,
+            'for_types' => ['azienda', 'ente'],
+        ],
         'shop' => [
             'key' => 'shop',
             'label' => 'Vendi',

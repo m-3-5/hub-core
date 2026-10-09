@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use M35\HubPayments\Models\PayableService;
 use M35\HubPayments\Services\StripePaymentLinkService;
+use M35\HubPayments\Support\CatalogKind;
 use M35\HubPayments\Support\ImageOptimizer;
 use M35\HubPayments\Support\TenantServiceQuota;
 use M35\HubPayments\Support\TenantStripeConfig;
@@ -23,12 +24,13 @@ class ServiceController extends Controller
     {
         $services = PayableService::query()
             ->where('tenant_id', $tenant->id)
-            ->where('type', 'service')
+            ->where('type', $this->kind()['type'])
             ->where('status', '!=', 'archived')
             ->latest()
             ->get();
 
         return view('hub-payments::admin.services.index', [
+            'kind' => $this->kind(),
             'tenant' => $tenant,
             'services' => $services,
             'stripeConfigured' => TenantStripeConfig::isConfigured($tenant),
@@ -62,6 +64,7 @@ class ServiceController extends Controller
         }
 
         return view('hub-payments::admin.services.create', [
+            'kind' => $this->kind(),
             'tenant' => $tenant,
             'quota' => $this->quotaFor($tenant),
         ]);
@@ -73,7 +76,8 @@ class ServiceController extends Controller
             return back()->withErrors(['stripe' => 'Configura le chiavi Stripe prima di creare un link.']);
         }
 
-        $overQuota = ! TenantServiceQuota::hasIncludedSlot($tenant);
+        $kind = $this->kind();
+        $overQuota = $kind['quota'] && ! TenantServiceQuota::hasIncludedSlot($tenant);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:120'],
@@ -109,7 +113,7 @@ class ServiceController extends Controller
         $service = PayableService::create([
             'tenant_id' => $tenant->id,
             'created_by' => auth()->id(),
-            'type' => 'service',
+            'type' => $kind['type'],
             'title' => $validated['title'],
             'slug' => PayableService::uniqueSlugForTenant($tenant->id, $validated['title']),
             'description' => $validated['description'] ?? null,
@@ -125,7 +129,7 @@ class ServiceController extends Controller
         ]);
 
         if ($service->published_to_site) {
-            app(WordPressWebhookDispatcher::class)->servicePublished($tenant, $service);
+            app(WordPressWebhookDispatcher::class)->servicesSync($tenant);
         }
 
         $status = 'Link di pagamento creato su Stripe (carta + metodi extra attivi sul conto: Klarna, Scalapay, ecc.).';
@@ -145,30 +149,30 @@ class ServiceController extends Controller
         }
 
         return redirect()
-            ->route('admin.services.show', [$tenant, $service])
+            ->route('admin.'.$kind['route'].'.show', [$tenant, $service])
             ->with('status', $status);
     }
 
     public function show(Tenant $tenant, PayableService $service): View
     {
-        abort_unless($service->tenant_id === $tenant->id && $service->type === 'service', 404);
+        abort_unless($service->tenant_id === $tenant->id && $service->type === $this->kind()['type'], 404);
 
-        return view('hub-payments::admin.services.show', compact('tenant', 'service'));
+        return view('hub-payments::admin.services.show', ['kind' => $this->kind()] + compact('tenant', 'service'));
     }
 
     public function edit(Tenant $tenant, PayableService $service): View
     {
-        abort_unless($service->tenant_id === $tenant->id && $service->type === 'service', 404);
+        abort_unless($service->tenant_id === $tenant->id && $service->type === $this->kind()['type'], 404);
 
-        return view('hub-payments::admin.services.edit', compact('tenant', 'service'));
+        return view('hub-payments::admin.services.edit', ['kind' => $this->kind()] + compact('tenant', 'service'));
     }
 
     public function update(Request $request, Tenant $tenant, PayableService $service): RedirectResponse
     {
-        abort_unless($service->tenant_id === $tenant->id && $service->type === 'service', 404);
+        abort_unless($service->tenant_id === $tenant->id && $service->type === $this->kind()['type'], 404);
 
         if (! TenantStripeConfig::isConfigured($tenant)) {
-            return back()->withErrors(['stripe' => 'Configura le chiavi Stripe prima di modificare il servizio.']);
+            return back()->withErrors(['stripe' => 'Configura le chiavi Stripe prima di modificare il '.$this->kind()['singular'].'.']);
         }
 
         $validated = $request->validate([
@@ -251,13 +255,13 @@ class ServiceController extends Controller
         }
 
         return redirect()
-            ->route('admin.services.show', [$tenant, $service])
-            ->with('status', 'Servizio aggiornato su Hub e Stripe.');
+            ->route('admin.'.$this->kind()['route'].'.show', [$tenant, $service])
+            ->with('status', ucfirst($this->kind()['singular']).' aggiornato su Hub e Stripe.');
     }
 
     public function destroy(Tenant $tenant, PayableService $service): RedirectResponse
     {
-        abort_unless($service->tenant_id === $tenant->id && $service->type === 'service', 404);
+        abort_unless($service->tenant_id === $tenant->id && $service->type === $this->kind()['type'], 404);
 
         $wasPublished = $service->published_to_site;
 
@@ -281,16 +285,16 @@ class ServiceController extends Controller
         }
 
         return redirect()
-            ->route('admin.services.index', $tenant)
-            ->with('status', 'Servizio archiviato e link Stripe disattivato.');
+            ->route('admin.'.$this->kind()['route'].'.index', $tenant)
+            ->with('status', ucfirst($this->kind()['singular']).' archiviato e link Stripe disattivato.');
     }
 
     public function refreshPaymentMethods(Tenant $tenant, PayableService $service): RedirectResponse
     {
-        abort_unless($service->tenant_id === $tenant->id && $service->type === 'service', 404);
+        abort_unless($service->tenant_id === $tenant->id && $service->type === $this->kind()['type'], 404);
 
         if (! TenantStripeConfig::isConfigured($tenant) || ! $service->stripe_price_id || ! $service->stripe_payment_link_id) {
-            return back()->withErrors(['stripe' => 'Servizio non collegato correttamente a Stripe.']);
+            return back()->withErrors(['stripe' => ucfirst($this->kind()['singular']).' non collegato correttamente a Stripe.']);
         }
 
         try {
@@ -310,7 +314,7 @@ class ServiceController extends Controller
 
     public function togglePublish(Tenant $tenant, PayableService $service): RedirectResponse
     {
-        abort_unless($service->tenant_id === $tenant->id, 404);
+        abort_unless($service->tenant_id === $tenant->id && $service->type === $this->kind()['type'], 404);
 
         $service->update(['published_to_site' => ! $service->published_to_site]);
 
@@ -319,8 +323,14 @@ class ServiceController extends Controller
         $tenantSite = $tenant->website ? preg_replace('#^https?://#', '', $tenant->website) : $tenant->name;
 
         return back()->with('status', $service->published_to_site
-            ? 'Servizio visibile su inm35.it e '.$tenantSite.'.'
-            : 'Servizio nascosto dal sito.');
+            ? ucfirst($this->kind()['singular']).' visibile su inm35.it e '.$tenantSite.'.'
+            : ucfirst($this->kind()['singular']).' nascosto dal sito.');
+    }
+
+    /** @return array{type: string, route: string, singular: string, plural: string, new: string, quota: bool} */
+    private function kind(): array
+    {
+        return CatalogKind::for((string) request()->route('kind', 'service'));
     }
 
     /** @return array{included: int, used: int, remaining: int, paid_price: int} */
@@ -341,7 +351,7 @@ class ServiceController extends Controller
         }
 
         $file = $request->file('cover_image');
-        $directory = 'services/'.$tenant->slug;
+        $directory = $this->kind()['route'].'/'.$tenant->slug;
 
         try {
             return ImageOptimizer::toWebp($file->getRealPath(), $file->getMimeType(), $directory);

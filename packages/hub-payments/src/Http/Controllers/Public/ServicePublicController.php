@@ -60,7 +60,7 @@ HTML;
     private function abortUnlessVisible(Tenant $tenant, PayableService $service): void
     {
         abort_unless($service->tenant_id === $tenant->id, 404);
-        abort_unless($service->type === 'service', 404);
+        abort_unless(in_array($service->type, ['service', 'product'], true), 404);
         abort_unless($service->status === 'active' && $service->published_to_site, 404);
     }
 }

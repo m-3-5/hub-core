@@ -46,6 +46,7 @@ class WordPressWebhookDispatcher
     {
         $this->dispatch('services.sync', $tenant, [
             'services_index_url' => route('api.services.index', ['tenantSlug' => $tenant->slug]),
+            'products_index_url' => route('api.products.index', ['tenantSlug' => $tenant->slug]),
         ], config('services.hub.services_webhook_url'));
     }
 

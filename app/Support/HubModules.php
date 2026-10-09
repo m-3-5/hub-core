@@ -34,6 +34,7 @@ class HubModules
         return match ($key) {
             'promo' => route('admin.promos.index', $tenant),
             'services' => route('admin.services.index', $tenant),
+            'products' => route('admin.products.index', $tenant),
             'classifieds' => route('admin.classifieds.index', $tenant),
             'billing' => route('admin.billing.show', $tenant),
             default => null,

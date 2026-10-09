@@ -50,8 +50,14 @@ class WordPressBridgeController extends Controller
 
         $dest = $request->string('dest')->toString();
 
-        if ($dest === 'promos') {
-            return redirect()->route('admin.promos.index', $tenant);
+        $destinations = [
+            'promos' => 'admin.promos.index',
+            'services' => 'admin.services.index',
+            'products' => 'admin.products.index',
+        ];
+
+        if (isset($destinations[$dest])) {
+            return redirect()->route($destinations[$dest], $tenant);
         }
 
         return redirect()->route('app.home', $tenant);

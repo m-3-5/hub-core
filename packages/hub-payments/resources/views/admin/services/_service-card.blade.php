@@ -1,5 +1,5 @@
 <article class="svc-card">
-    <a href="{{ route('admin.services.show', [$tenant, $service]) }}" class="svc-card__media">
+    <a href="{{ route('admin.'.$kind['route'].'.show', [$tenant, $service]) }}" class="svc-card__media">
         @if ($service->coverImageUrl())
             <img src="{{ $service->coverImageUrl() }}" alt="{{ $service->title }}">
         @else
@@ -16,13 +16,13 @@
         <span class="svc-badge {{ $service->published_to_site ? 'svc-badge--live' : 'svc-badge--off' }}">
             {{ $service->published_to_site ? '● Pubblicato (inm35.it + '.($tenant->website ? preg_replace('#^https?://#', '', $tenant->website) : 'sito').')' : 'Non pubblicato' }}
         </span>
-        <h3><a href="{{ route('admin.services.show', [$tenant, $service]) }}">{{ $service->title }}</a></h3>
+        <h3><a href="{{ route('admin.'.$kind['route'].'.show', [$tenant, $service]) }}">{{ $service->title }}</a></h3>
         <p class="svc-card__price">{{ $service->amountEuros() }} €</p>
 
         <div class="svc-card__actions">
-            <a href="{{ route('admin.services.edit', [$tenant, $service]) }}" class="svc-btn" title="Modifica">✎ Modifica</a>
+            <a href="{{ route('admin.'.$kind['route'].'.edit', [$tenant, $service]) }}" class="svc-btn" title="Modifica">✎ Modifica</a>
 
-            <form method="POST" action="{{ route('admin.services.publish', [$tenant, $service]) }}" class="svc-inline">
+            <form method="POST" action="{{ route('admin.'.$kind['route'].'.publish', [$tenant, $service]) }}" class="svc-inline">
                 @csrf
                 <button type="submit" class="svc-btn" title="{{ $service->published_to_site ? 'Nascondi dal sito' : 'Pubblica sul sito' }}">
                     {{ $service->published_to_site ? '◎ Nascondi' : '◉ Pubblica' }}
@@ -34,8 +34,8 @@
                 🔗 Link cliente
             </button>
 
-            <form method="POST" action="{{ route('admin.services.destroy', [$tenant, $service]) }}"
-                  onsubmit="return confirm('Archiviare questo servizio e disattivare il link Stripe?')" class="svc-inline">
+            <form method="POST" action="{{ route('admin.'.$kind['route'].'.destroy', [$tenant, $service]) }}"
+                  onsubmit="return confirm('Archiviare questo {{ $kind['singular'] }} e disattivare il link Stripe?')" class="svc-inline">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="svc-btn svc-btn--danger" title="Elimina">🗑 Elimina</button>

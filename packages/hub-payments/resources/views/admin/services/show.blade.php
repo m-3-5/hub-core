@@ -17,8 +17,8 @@
             <p style="margin:0;color:#666">{{ $service->amountEuros() }} € · Stripe Payment Link</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a href="{{ route('admin.services.edit', [$tenant, $service]) }}" class="btn btn-secondary">Modifica</a>
-            <form method="POST" action="{{ route('admin.services.refresh-payment-methods', [$tenant, $service]) }}" style="display:inline">
+            <a href="{{ route('admin.'.$kind['route'].'.edit', [$tenant, $service]) }}" class="btn btn-secondary">Modifica</a>
+            <form method="POST" action="{{ route('admin.'.$kind['route'].'.refresh-payment-methods', [$tenant, $service]) }}" style="display:inline">
                 @csrf
                 <button type="submit" class="btn btn-secondary">Rigenera link</button>
             </form>
@@ -67,20 +67,20 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('admin.services.publish', [$tenant, $service]) }}" style="margin-bottom:20px;display:inline">
+    <form method="POST" action="{{ route('admin.'.$kind['route'].'.publish', [$tenant, $service]) }}" style="margin-bottom:20px;display:inline">
         @csrf
         <button type="submit" class="btn btn-secondary">
             {{ $service->published_to_site ? 'Nascondi dal sito' : 'Pubblica sul sito' }}
         </button>
     </form>
 
-    <form method="POST" action="{{ route('admin.services.destroy', [$tenant, $service]) }}"
-          onsubmit="return confirm('Archiviare questo servizio e disattivare il link Stripe?')" style="display:inline;margin-left:8px">
+    <form method="POST" action="{{ route('admin.'.$kind['route'].'.destroy', [$tenant, $service]) }}"
+          onsubmit="return confirm('Archiviare questo {{ $kind['singular'] }} e disattivare il link Stripe?')" style="display:inline;margin-left:8px">
         @csrf
         @method('DELETE')
         <button type="submit" class="btn btn-danger">Elimina</button>
     </form>
 
-    <p style="margin-top:24px"><a href="{{ route('admin.services.index', $tenant) }}">← Tutti i servizi</a></p>
+    <p style="margin-top:24px"><a href="{{ route('admin.'.$kind['route'].'.index', $tenant) }}">← Torna a {{ strtolower($kind['plural']) }}</a></p>
 </div>
 @endsection

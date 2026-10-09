@@ -11,11 +11,21 @@ class ServiceApiController extends Controller
 {
     public function index(string $tenantSlug): JsonResponse
     {
+        return $this->catalog($tenantSlug, 'service', 'services');
+    }
+
+    public function products(string $tenantSlug): JsonResponse
+    {
+        return $this->catalog($tenantSlug, 'product', 'products');
+    }
+
+    private function catalog(string $tenantSlug, string $type, string $key): JsonResponse
+    {
         $tenant = Tenant::where('slug', $tenantSlug)->firstOrFail();
 
-        $services = PayableService::query()
+        $items = PayableService::query()
             ->where('tenant_id', $tenant->id)
-            ->where('type', 'service')
+            ->where('type', $type)
             ->where('status', 'active')
             ->where('published_to_site', true)
             ->latest()
@@ -27,7 +37,7 @@ class ServiceApiController extends Controller
                 'name' => $tenant->name,
                 'primary_color' => $tenant->primary_color,
             ],
-            'services' => $services->map(fn (PayableService $s) => [
+            $key => $items->map(fn (PayableService $s) => [
                 'id' => $s->id,
                 'title' => $s->title,
                 'slug' => $s->slug,
@@ -41,7 +51,7 @@ class ServiceApiController extends Controller
                 'status' => $s->status,
             ])->values(),
             'meta' => [
-                'count' => $services->count(),
+                'count' => $items->count(),
                 'synced_at' => now()->toIso8601String(),
             ],
         ]);

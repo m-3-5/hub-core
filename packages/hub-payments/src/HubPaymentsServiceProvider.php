@@ -66,12 +66,32 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 Route::get('/payment-links', [StripePaymentLinksController::class, 'index'])->name('services.payment-links');
                 Route::post('/payment-links/{link}/deactivate', [StripePaymentLinksController::class, 'deactivate'])->name('services.payment-links.deactivate');
                 Route::post('/payment-links/{link}/import', [StripePaymentLinksController::class, 'import'])->name('services.payment-links.import');
+
+                // Prodotti: stesso flusso dei servizi, tipo "product" (il default 'kind' lo legge il controller).
+                Route::prefix('products')->name('products.')->group(function () {
+                    $routes = [
+                        Route::get('/', [ServiceController::class, 'index'])->name('index'),
+                        Route::get('/create', [ServiceController::class, 'create'])->name('create'),
+                        Route::post('/', [ServiceController::class, 'store'])->name('store'),
+                        Route::get('/{service}', [ServiceController::class, 'show'])->name('show'),
+                        Route::get('/{service}/edit', [ServiceController::class, 'edit'])->name('edit'),
+                        Route::put('/{service}', [ServiceController::class, 'update'])->name('update'),
+                        Route::delete('/{service}', [ServiceController::class, 'destroy'])->name('destroy'),
+                        Route::post('/{service}/publish', [ServiceController::class, 'togglePublish'])->name('publish'),
+                        Route::post('/{service}/refresh-payment-methods', [ServiceController::class, 'refreshPaymentMethods'])->name('refresh-payment-methods'),
+                    ];
+
+                    foreach ($routes as $route) {
+                        $route->defaults('kind', 'product');
+                    }
+                });
             });
 
         Route::prefix('api/v1')
             ->name('api.')
             ->group(function () {
                 Route::get('{tenantSlug}/services', [ServiceApiController::class, 'index'])->name('services.index');
+                Route::get('{tenantSlug}/products', [ServiceApiController::class, 'products'])->name('products.index');
             });
 
         Route::middleware('web')

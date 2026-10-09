@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Servizi a pagamento — '.$tenant->name)
+@section('title', $kind['plural'].' — '.$tenant->name)
 
 @section('content')
 <style>
@@ -33,14 +33,20 @@
 <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
         <div>
-            <h1 style="margin:0 0 6px">Servizi a pagamento</h1>
-            <p style="margin:0;color:#666">Crea link Stripe (carta + metodi extra attivi sul conto) per trattamenti e servizi del salone.</p>
+            <h1 style="margin:0 0 6px">{{ $kind['plural'] }}</h1>
+            <p style="margin:0;color:#666">
+                @if ($kind['route'] === 'products')
+                    Prodotti in vendita: ogni voce ha un link Stripe e può comparire sul tuo sito e nel carrello.
+                @else
+                    Crea link Stripe (carta + metodi extra attivi sul conto) per trattamenti e servizi del salone.
+                @endif
+            </p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
             <a class="btn btn-secondary" href="{{ route('admin.module-billing.show', $tenant) }}">Costi e pagamenti</a>
             @if ($stripeConfigured)
                 <a class="btn btn-secondary" href="{{ route('admin.services.payment-links', $tenant) }}">Link di pagamento</a>
-                <a class="btn" href="{{ route('admin.services.create', $tenant) }}">+ Nuovo servizio</a>
+                <a class="btn" href="{{ route('admin.'.$kind['route'].'.create', $tenant) }}">+ {{ $kind['new'] }}</a>
             @endif
         </div>
     </div>
@@ -52,6 +58,7 @@
         <p class="error">{{ $message }}</p>
     @enderror
 
+    @if ($kind['quota'])
     <div class="alert" style="background:#eef2ff;color:#312e81;margin-bottom:20px">
         <strong>Demo inclusa:</strong>
         {{ $quota['remaining'] }} / {{ $quota['included'] }} servizi gratuiti rimasti.
@@ -59,7 +66,13 @@
             Per crearne altri: pacchetto da €{{ $quota['paid_price'] }} (pagamento hub in arrivo).
         @endif
     </div>
+    @endif
 
+    @if ($kind['route'] === 'products' && ! $stripeConfigured)
+        <p class="error">Prima di creare prodotti collega Stripe: <a href="{{ route('admin.services.index', $tenant) }}">imposta le chiavi nella sezione Servizi</a>.</p>
+    @endif
+
+    @if ($kind['route'] === 'services')
     <div class="card" style="background:#fafafa;margin-bottom:24px;padding:20px">
         <h2 style="margin:0 0 12px;font-size:1.1rem">Stripe del salone</h2>
         @if ($stripeConfigured)
@@ -81,13 +94,14 @@
             <button type="submit" class="btn btn-secondary">Salva chiavi Stripe</button>
         </form>
     </div>
+    @endif
 
     @if ($services->isEmpty())
-        <p style="color:#666">Nessun servizio ancora. Crea il primo link di pagamento per un trattamento.</p>
+        <p style="color:#666">Nessun {{ $kind['singular'] }} ancora. Crea il primo link di pagamento.</p>
     @else
         <div class="svc-grid">
             @foreach ($services as $service)
-                @include('hub-payments::admin.services._service-card', ['tenant' => $tenant, 'service' => $service])
+                @include('hub-payments::admin.services._service-card', ['tenant' => $tenant, 'service' => $service, 'kind' => $kind])
             @endforeach
         </div>
     @endif
