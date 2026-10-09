@@ -66,6 +66,23 @@ class StripePaymentLinkService
         ]);
     }
 
+    /**
+     * Crea una Checkout Session (carrello): $fields già nel formato form di Stripe.
+     *
+     * @param  array<string, mixed>  $fields
+     * @return array{id: string, url: string}
+     */
+    public function createCheckoutSession(array $fields): array
+    {
+        $session = $this->post('/v1/checkout/sessions', $fields);
+
+        if (empty($session['id']) || empty($session['url'])) {
+            throw new RuntimeException('Stripe: sessione di pagamento creata senza indirizzo.');
+        }
+
+        return ['id' => $session['id'], 'url' => $session['url']];
+    }
+
     public function deactivatePaymentLink(string $paymentLinkId): void
     {
         $this->post('/v1/payment_links/'.$paymentLinkId, [

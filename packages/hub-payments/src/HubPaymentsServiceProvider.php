@@ -6,7 +6,9 @@ use App\Models\Tenant;
 use Illuminate\Support\Facades\Route;
 use M35\HubPayments\Http\Controllers\Admin\ServiceController;
 use M35\HubPayments\Http\Controllers\Admin\StripePaymentLinksController;
+use M35\HubPayments\Http\Controllers\Api\CheckoutApiController;
 use M35\HubPayments\Http\Controllers\Api\ServiceApiController;
+use M35\HubPayments\Http\Middleware\VerifyHubSignature;
 use M35\HubPayments\Http\Controllers\Public\ServicePublicController;
 use M35\HubPayments\Models\PayableService;
 use Illuminate\Support\ServiceProvider;
@@ -92,6 +94,11 @@ class HubPaymentsServiceProvider extends ServiceProvider
             ->group(function () {
                 Route::get('{tenantSlug}/services', [ServiceApiController::class, 'index'])->name('services.index');
                 Route::get('{tenantSlug}/products', [ServiceApiController::class, 'products'])->name('products.index');
+
+                // Chiamate riservate firmate dal sito del cliente (HMAC con HUB_BRIDGE_SECRET).
+                Route::post('{tenantSlug}/checkout', [CheckoutApiController::class, 'store'])
+                    ->middleware([VerifyHubSignature::class, 'throttle:30,1'])
+                    ->name('checkout.store');
             });
 
         Route::middleware('web')
