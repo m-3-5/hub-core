@@ -12,7 +12,7 @@ class ChargeCommissions extends Command
 {
     protected $signature = 'hub:charge-commissions {--period= : Mese YYYY-MM (default: il mese scorso)} {--dry-run : Mostra senza scrivere}';
 
-    protected $description = 'Porta nel registro addebiti le commissioni maturate sulle vendite del canale hub nel mese; l\'addebito su carta lo fa hub:charge-pending-module-charges';
+    protected $description = 'Porta nel registro costi le commissioni maturate sulle vendite del canale hub nel mese (restano da incassare: mai addebitate in automatico sulla carta)';
 
     public function handle(): int
     {

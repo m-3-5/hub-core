@@ -53,6 +53,7 @@ class ModuleBillingController extends Controller
     public function togglePaid(Tenant $tenant, TenantModuleCharge $charge): RedirectResponse
     {
         abort_unless($charge->tenant_id === $tenant->id, 404);
+        $this->guardCommission($charge);
 
         $nowPaid = ! $charge->paid;
 
@@ -66,9 +67,16 @@ class ModuleBillingController extends Controller
             ->with('status', $nowPaid ? 'Segnato come pagato.' : 'Segnato come non pagato.');
     }
 
+    /** Le commissioni le gestisce solo un super admin: l'azienda le vede ma non le segna pagate né le elimina. */
+    private function guardCommission(TenantModuleCharge $charge): void
+    {
+        abort_if($charge->charge_type === 'commission' && ! auth()->user()?->isSuperAdmin(), 403, 'Le commissioni le gestisce M 3.5.');
+    }
+
     public function destroy(Tenant $tenant, TenantModuleCharge $charge): RedirectResponse
     {
         abort_unless($charge->tenant_id === $tenant->id, 404);
+        $this->guardCommission($charge);
 
         $charge->delete();
 

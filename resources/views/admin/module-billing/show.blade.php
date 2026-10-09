@@ -99,6 +99,7 @@
                             </span>
                         </td>
                         <td style="padding:8px;text-align:right;white-space:nowrap">
+                            @if ($charge->charge_type !== 'commission' || auth()->user()?->isSuperAdmin())
                             <form method="POST" action="{{ route('admin.module-billing.toggle-paid', [$tenant, $charge]) }}" style="display:inline">
                                 @csrf
                                 <button type="submit" class="btn btn-secondary">{{ $charge->paid ? 'Segna non pagato' : 'Segna pagato' }}</button>
@@ -109,6 +110,9 @@
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger">Elimina</button>
                             </form>
+                            @else
+                                <span style="color:#888;font-size:.85rem">da incassare da M 3.5</span>
+                            @endif
                         </td>
                     </tr>
                 @endforeach

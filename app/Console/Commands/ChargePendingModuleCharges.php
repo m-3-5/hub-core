@@ -11,7 +11,7 @@ class ChargePendingModuleCharges extends Command
 {
     protected $signature = 'hub:charge-pending-module-charges';
 
-    protected $description = 'Addebita automaticamente sulla carta salvata le voci non pagate del registro costi (extra oltre quota), per i tenant con abbonamento hub attivo';
+    protected $description = 'Addebita automaticamente sulla carta salvata le voci non pagate del registro costi (extra oltre quota), per i tenant con abbonamento hub attivo; le commissioni sono escluse';
 
     public function handle(): int
     {
@@ -27,6 +27,9 @@ class ChargePendingModuleCharges extends Command
 
         $charges = TenantModuleCharge::query()
             ->where('paid', false)
+            // Le commissioni sul canale hub non si addebitano in automatico: restano "da incassare"
+            // finché non vengono segnate pagate (o fatturate) da un super admin.
+            ->where('charge_type', '!=', 'commission')
             ->whereHas('tenant', fn ($q) => $q->whereNotNull('stripe_customer_id'))
             ->with('tenant')
             ->get();

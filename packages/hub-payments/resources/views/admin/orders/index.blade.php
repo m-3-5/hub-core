@@ -25,7 +25,8 @@
                 @if ($channel === 'hub' && $commissionActive)
                     <div style="margin-top:8px;font-size:.88rem;color:#8a6100">
                         Commissione maturata: <strong>{{ $eur($summary['hub']['commission_cents']) }}</strong>
-                        · da addebitare: {{ $eur($summary['hub']['uncharged_cents']) }}
+                        · ancora da pagare: {{ $eur($summary['hub']['unpaid_cents']) }}
+                        <div style="color:#888;font-size:.82rem">A carico dell'azienda: il prezzo per il cliente non cambia. Si somma a fine mese nel registro «Costi e pagamenti».</div>
                     </div>
                 @endif
             </div>

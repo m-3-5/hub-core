@@ -10,7 +10,7 @@
             <h1 style="margin:0 0 6px">Commissioni sulle vendite inm35.it</h1>
             <p style="margin:0;color:#666">
                 Riguarda solo gli acquisti fatti dalle pagine pubbliche di inm35.it (canale «hub»). Non cambia i prezzi pagati dal cliente:
-                la commissione si registra sull'ordine e si porta nel registro addebiti a fine mese (<code>hub:charge-commissions</code>).
+                la commissione è a carico dell'azienda: si registra sull'ordine, si porta nel registro «Costi e pagamenti» a fine mese (<code>hub:charge-commissions</code>) e resta «da incassare» finché non la segni pagata. Non viene mai addebitata in automatico sulla carta.
                 Con 0% e 0 € non si applica nulla.
             </p>
         </div>
@@ -37,7 +37,7 @@
                         <th style="padding:8px;text-align:right">Vendite inm35.it</th>
                         <th style="padding:8px">Commissione</th>
                         <th style="padding:8px;text-align:right">Maturata</th>
-                        <th style="padding:8px;text-align:right">Da addebitare</th>
+                        <th style="padding:8px;text-align:right">Da incassare</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,7 +48,7 @@
                         <td style="padding:8px;text-align:right">{{ $eur($row['summary']['hub']['total_cents']) }} <span style="color:#888">({{ $row['summary']['hub']['count'] }})</span></td>
                         <td style="padding:8px">{{ rtrim(rtrim(number_format($row['percent'], 2, ',', ''), '0'), ',') }}% + {{ $eur($row['fixed_cents']) }}</td>
                         <td style="padding:8px;text-align:right">{{ $eur($row['summary']['hub']['commission_cents']) }}</td>
-                        <td style="padding:8px;text-align:right">{{ $eur($row['summary']['hub']['uncharged_cents']) }}</td>
+                        <td style="padding:8px;text-align:right">{{ $eur($row['summary']['hub']['unpaid_cents']) }}</td>
                     </tr>
                 @endforeach
                 </tbody>
