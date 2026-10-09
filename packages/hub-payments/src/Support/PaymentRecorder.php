@@ -36,7 +36,7 @@ class PaymentRecorder
         if ($orderId !== null && ctype_digit((string) $orderId)) {
             [$order, $isNew] = self::markCartOrder($tenant, (int) $orderId, $session);
         } elseif (! empty($session['payment_link'])) {
-            [$order, $isNew] = self::markQuote($tenant, (string) $session['payment_link'], $session);
+            [$order, $isNew] = self::markPaymentLink($tenant, (string) $session['payment_link'], $session);
         }
 
         if ($order && $isNew) {
@@ -79,6 +79,7 @@ class PaymentRecorder
                 $order->amount_cents = $session['amount_total'];
             }
 
+            $order->commission_cents = TenantCommission::compute($tenant, $order->channel, $order->amount_cents);
             $order->save();
 
             return [$order, true];
@@ -86,22 +87,30 @@ class PaymentRecorder
     }
 
     /**
+     * Pagamento tramite Payment Link: preventivo (pagabile una volta) oppure servizio/prodotto.
+     * Le pagine pubbliche di inm35.it aggiungono client_reference_id=hub al link: così l'ordine è del canale "hub".
+     *
      * @param  array<string, mixed>  $session
      * @return array{0: ?PayableOrder, 1: bool}
      */
-    private static function markQuote(Tenant $tenant, string $paymentLinkId, array $session): array
+    private static function markPaymentLink(Tenant $tenant, string $paymentLinkId, array $session): array
     {
         return DB::transaction(function () use ($tenant, $paymentLinkId, $session) {
             $quote = PayableService::query()
                 ->where('tenant_id', $tenant->id)
-                ->where('type', 'quote')
+                ->whereIn('type', ['quote', 'service', 'product'])
                 ->where('stripe_payment_link_id', $paymentLinkId)
                 ->lockForUpdate()
                 ->first();
 
             if (! $quote) {
-                return [null, false]; // pagamento di un link che non è un preventivo: lo gestirà la fase "canale hub"
+                return [null, false]; // link che non appartiene a una voce dell'hub
             }
+
+            $isQuote = $quote->type === 'quote';
+            $channel = ! $isQuote && ($session['client_reference_id'] ?? null) === TenantCommission::CHANNEL
+                ? TenantCommission::CHANNEL
+                : 'site';
 
             $existing = isset($session['id'])
                 ? PayableOrder::query()->where('stripe_session_id', $session['id'])->first()
@@ -111,22 +120,28 @@ class PaymentRecorder
                 return [$existing, false];
             }
 
-            $quote->update(['status' => 'paid', 'paid_at' => now()]);
+            // Il preventivo si esaurisce con il pagamento; servizi e prodotti restano in vendita.
+            if ($isQuote) {
+                $quote->update(['status' => 'paid', 'paid_at' => now()]);
+            }
+
+            $amount = is_int($session['amount_total'] ?? null) ? $session['amount_total'] : $quote->amount_cents;
 
             $order = PayableOrder::create(self::customerFields($session) + [
                 'tenant_id' => $tenant->id,
-                'channel' => 'site',
+                'channel' => $channel,
                 'status' => 'paid',
                 'stripe_session_id' => $session['id'] ?? null,
                 'items' => [[
                     'id' => $quote->id,
-                    'type' => 'quote',
+                    'type' => $quote->type,
                     'title' => $quote->title,
                     'quantity' => 1,
                     'unit_amount_cents' => $quote->amount_cents,
                 ]],
                 'currency' => $quote->currency,
-                'amount_cents' => is_int($session['amount_total'] ?? null) ? $session['amount_total'] : $quote->amount_cents,
+                'amount_cents' => $amount,
+                'commission_cents' => TenantCommission::compute($tenant, $channel, $amount),
                 'paid_at' => now(),
             ]);
 

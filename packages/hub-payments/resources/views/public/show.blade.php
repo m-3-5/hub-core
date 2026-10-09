@@ -1,3 +1,4 @@
+@php $isProduct = $service->type === 'product'; @endphp
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -74,7 +75,7 @@
 <body>
 <div class="wrap">
     @unless (!empty($embedMode))
-        <p class="breadcrumb"><a href="{{ route('services.public.archive', $tenant) }}">{{ $tenant->name }}</a> · Servizi</p>
+        <p class="breadcrumb"><a href="{{ route('services.public.archive', $tenant) }}">{{ $tenant->name }}</a> · {{ $isProduct ? 'Prodotti' : 'Servizi' }}</p>
     @endunless
 
     <div class="layout">
@@ -92,7 +93,7 @@
                 <p class="description">{{ $service->description }}</p>
             @endif
             <div class="cta-group">
-                <a class="btn-primary" href="{{ $service->payment_url }}" target="_top">Prenota e paga ora</a>
+                <a class="btn-primary" href="{{ !empty($embedMode) ? $service->payment_url : $service->hubPaymentUrl() }}" target="_top">{{ $isProduct ? 'Acquista ora' : 'Prenota e paga ora' }}</a>
                 @if ($tenant->settings['whatsapp'] ?? null)
                     <a class="btn-whatsapp" target="_blank" rel="noopener"
                        href="https://wa.me/{{ $tenant->settings['whatsapp'] }}?text={{ rawurlencode('Ciao! Vorrei info su «'.$service->title.'» ('.$service->amountEuros().' €)') }}">WhatsApp</a>
@@ -103,7 +104,7 @@
     </div>
 
     @unless (!empty($embedMode))
-        <a class="back-link" href="{{ route('services.public.archive', $tenant) }}">← Tutti i servizi di {{ $tenant->name }}</a>
+        <a class="back-link" href="{{ route('services.public.archive', $tenant) }}#{{ $isProduct ? 'prodotti' : 'servizi' }}">← {{ $isProduct ? 'Tutti i prodotti' : 'Tutti i servizi' }} di {{ $tenant->name }}</a>
     @endunless
 </div>
 </body>

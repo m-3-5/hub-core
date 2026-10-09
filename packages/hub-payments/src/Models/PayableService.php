@@ -84,6 +84,19 @@ class PayableService extends Model
         return url($url);
     }
 
+    /**
+     * Indirizzo di pagamento per le pagine pubbliche di inm35.it: lo stesso Payment Link,
+     * con il riferimento "hub" che Stripe ritorna nel pagamento (canale di vendita hub).
+     */
+    public function hubPaymentUrl(): ?string
+    {
+        if (! $this->payment_url) {
+            return null;
+        }
+
+        return $this->payment_url.(str_contains($this->payment_url, '?') ? '&' : '?').'client_reference_id=hub';
+    }
+
     public function isActive(): bool
     {
         return $this->status === 'active';

@@ -44,6 +44,8 @@
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
             <a class="btn btn-secondary" href="{{ route('admin.module-billing.show', $tenant) }}">Costi e pagamenti</a>
+            <a class="btn btn-secondary" href="{{ route('admin.orders.index', $tenant) }}">Ordini</a>
+            <a class="btn btn-secondary" href="{{ route('admin.quotes.index', $tenant) }}">Preventivi</a>
             @if ($stripeConfigured)
                 <a class="btn btn-secondary" href="{{ route('admin.services.payment-links', $tenant) }}">Link di pagamento</a>
                 <a class="btn" href="{{ route('admin.'.$kind['route'].'.create', $tenant) }}">+ {{ $kind['new'] }}</a>

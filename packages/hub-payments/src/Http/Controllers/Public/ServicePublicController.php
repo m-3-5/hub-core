@@ -12,15 +12,19 @@ class ServicePublicController extends Controller
 {
     public function archive(Tenant $tenant): View
     {
-        $services = PayableService::query()
+        $catalog = PayableService::query()
             ->where('tenant_id', $tenant->id)
-            ->where('type', 'service')
+            ->whereIn('type', ['service', 'product'])
             ->where('status', 'active')
             ->where('published_to_site', true)
             ->latest()
             ->get();
 
-        return view('hub-payments::public.archive', compact('tenant', 'services'));
+        return view('hub-payments::public.archive', [
+            'tenant' => $tenant,
+            'services' => $catalog->where('type', 'service')->values(),
+            'products' => $catalog->where('type', 'product')->values(),
+        ]);
     }
 
     public function show(Tenant $tenant, PayableService $service): View

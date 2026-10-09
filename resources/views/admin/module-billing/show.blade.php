@@ -90,7 +90,7 @@
                     <tr style="border-bottom:1px solid #f0f0f0">
                         <td style="padding:8px">{{ $charge->period ?? '—' }}</td>
                         <td style="padding:8px">{{ ucfirst($charge->module) }}</td>
-                        <td style="padding:8px">{{ match($charge->charge_type) { 'activation' => 'Attivazione', 'monthly' => 'Mensile', 'extra_item' => 'Extra', default => $charge->charge_type } }}</td>
+                        <td style="padding:8px">{{ match($charge->charge_type) { 'activation' => 'Attivazione', 'monthly' => 'Mensile', 'extra_item' => 'Extra', 'commission' => 'Commissione', default => $charge->charge_type } }}</td>
                         <td style="padding:8px;color:#666">{{ $charge->description ?? '—' }}</td>
                         <td style="padding:8px;font-weight:600">€{{ $charge->amountEuros() }}</td>
                         <td style="padding:8px">

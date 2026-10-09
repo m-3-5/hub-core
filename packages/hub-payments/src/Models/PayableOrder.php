@@ -10,6 +10,7 @@ class PayableOrder extends Model
 {
     protected $fillable = [
         'tenant_id', 'channel', 'status', 'stripe_session_id', 'items', 'currency', 'amount_cents',
+        'commission_cents', 'commission_charge_id',
         'customer_email', 'customer_name', 'customer_phone', 'paid_at',
     ];
 

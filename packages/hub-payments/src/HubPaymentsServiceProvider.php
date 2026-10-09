@@ -5,6 +5,8 @@ namespace M35\HubPayments;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Route;
 use M35\HubPayments\Http\Controllers\Admin\ServiceController;
+use M35\HubPayments\Http\Controllers\Admin\CommissionAdminController;
+use M35\HubPayments\Http\Controllers\Admin\OrderController;
 use M35\HubPayments\Http\Controllers\Admin\QuoteController;
 use M35\HubPayments\Http\Controllers\Admin\StripePaymentLinksController;
 use M35\HubPayments\Http\Controllers\Admin\StripeWebhookSettingsController;
@@ -75,6 +77,8 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 Route::post('/payment-links/{link}/deactivate', [StripePaymentLinksController::class, 'deactivate'])->name('services.payment-links.deactivate');
                 Route::post('/payment-links/{link}/import', [StripePaymentLinksController::class, 'import'])->name('services.payment-links.import');
 
+                Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+
                 // Preventivi a importo libero (type "quote"): fuori da quota servizi e addebiti modulo.
                 Route::get('/quotes', [QuoteController::class, 'index'])->name('quotes.index');
                 Route::post('/quotes', [QuoteController::class, 'store'])->name('quotes.store');
@@ -99,6 +103,12 @@ class HubPaymentsServiceProvider extends ServiceProvider
                     }
                 });
             });
+
+        // Commissioni sul canale hub: solo super admin (controllo nel controller).
+        Route::middleware(['web', 'auth'])->prefix('admin')->name('admin.')->group(function () {
+            Route::get('/commissions', [CommissionAdminController::class, 'index'])->name('commissions.index');
+            Route::put('/commissions/{tenant}', [CommissionAdminController::class, 'update'])->name('commissions.update');
+        });
 
         Route::prefix('api/v1')
             ->name('api.')

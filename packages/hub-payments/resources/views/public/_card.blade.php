@@ -11,6 +11,6 @@
             <a href="{{ route('services.public.show', [$tenant, $service]) }}" style="color:inherit;text-decoration:none">{{ $service->title }}</a>
         </h3>
         <p style="color:var(--muted);font-size:.95rem;margin-bottom:12px">{{ $service->amountEuros() }} €</p>
-        <a href="{{ route('services.public.show', [$tenant, $service]) }}" style="display:inline-block;background:var(--primary);color:#fff;text-decoration:none;padding:8px 14px;border-radius:999px;font-size:.82rem;font-weight:600">Vedi e prenota</a>
+        <a href="{{ route('services.public.show', [$tenant, $service]) }}" style="display:inline-block;background:var(--primary);color:#fff;text-decoration:none;padding:8px 14px;border-radius:999px;font-size:.82rem;font-weight:600">{{ $service->type === 'product' ? 'Vedi e acquista' : 'Vedi e prenota' }}</a>
     </div>
 </article>

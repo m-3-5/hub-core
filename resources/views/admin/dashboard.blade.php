@@ -15,6 +15,7 @@
             </a>
             <a class="btn btn-secondary" href="{{ route('admin.activity.index') }}">📊 Attività</a>
             <a class="btn btn-secondary" href="{{ route('admin.feedback.index') }}">💬 Feedback</a>
+            <a class="btn btn-secondary" href="{{ route('admin.commissions.index') }}">💶 Commissioni</a>
             <a class="btn btn-secondary" href="{{ route('pricing.show') }}" target="_blank">💶 Listino prezzi</a>
         </div>
     </div>
