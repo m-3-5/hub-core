@@ -90,6 +90,8 @@
         .top .wrap { display: flex; align-items: center; justify-content: space-between; height: 58px; gap: 12px; }
         .logo { font-weight: 800; font-size: 1.15rem; text-decoration: none; letter-spacing: -.02em; }
         .logo b { color: var(--brand); }
+        .logo { display: inline-flex; align-items: center; gap: 8px; }
+        .logo img { height: 36px; width: auto; display: block; }
         .top-cta { display: flex; gap: 8px; }
 
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: inherit; font-weight: 700; font-size: 1rem; text-decoration: none; border: 0; border-radius: 14px; padding: 14px 22px; cursor: pointer; transition: transform .1s, box-shadow .2s; min-height: 48px; }
@@ -220,7 +222,7 @@
 
 <header class="top">
     <div class="wrap">
-        <a class="logo" href="{{ route('welcome') }}">M<b> 3.5</b></a>
+        <a class="logo" href="{{ route('welcome') }}"><img src="{{ asset('images/logo-m35.png') }}" alt="" width="40" height="35">M<b> 3.5</b></a>
         <div class="top-cta">
             @if ($phone)<a class="btn btn-ghost btn-sm" href="tel:{{ preg_replace('/[^0-9+]/', '', $phone) }}">Chiama</a>@endif
             <a class="btn btn-brand btn-sm" href="#contatti">Preventivo gratis</a>

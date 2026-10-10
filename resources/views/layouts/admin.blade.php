@@ -66,7 +66,7 @@
 <body class="@isset($tenant) has-bottom-nav @endisset">
 <header>
     <div>
-        <strong>Hub Core</strong>
+        <span style="background:#fff;border-radius:10px;padding:3px 7px;display:inline-flex;vertical-align:middle;margin-right:8px"><img src="{{ asset('images/logo-m35.png') }}" alt="M 3.5" height="28" style="height:28px;width:auto;display:block"></span><strong>Hub Core</strong>
         @auth
             <span style="opacity:.75;font-size:14px;margin-left:12px">{{ auth()->user()->name }}</span>
         @endauth

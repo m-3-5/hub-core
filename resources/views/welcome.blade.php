@@ -7,6 +7,8 @@
     <title>Hub Core — La tua attività online, semplice</title>
     <meta name="description" content="Promo, servizi, negozio, agenda, affitti e sito web in un'unica app. Per aziende, privati ed enti — provalo gratis, nessuna carta richiesta.">
     <link rel="canonical" href="{{ url('/') }}">
+    <link rel="icon" href="{{ asset('images/icon-192.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/icon-192.png') }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Hub Core">
     <meta property="og:title" content="Hub Core — Tutto per la tua attività, in un'unica app">
@@ -325,6 +327,7 @@
 @endif
 <section class="hero">
     <div>
+        <img src="{{ asset('images/logo-m35.png') }}" alt="M 3.5 S.R.L." width="120" height="104" style="display:block;margin:0 auto 14px;height:auto">
         <h1>Tutto per la tua attività,<br>in un'unica app</h1>
         <p>Promo, servizi, negozio, agenda, affitti e sito web. Per <strong>aziende</strong> e <strong>privati</strong> — semplice come le app del telefono.</p>
         <div class="cta">
