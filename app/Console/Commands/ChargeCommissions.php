@@ -29,6 +29,8 @@ class ChargeCommissions extends Command
         foreach (Tenant::query()->get() as $tenant) {
             $orders = OrderSummary::paid($tenant->id, $period)
                 ->where('channel', 'hub')
+                // Sui pagamenti protetti la commissione si trattiene direttamente al momento del rilascio dei soldi.
+                ->where('flow', 'direct')
                 ->where('commission_cents', '>', 0)
                 ->whereNull('commission_charge_id')
                 ->get();

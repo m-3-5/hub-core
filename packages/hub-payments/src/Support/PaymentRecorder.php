@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use M35\HubPayments\Models\PayableOrder;
 use M35\HubPayments\Models\PayableService;
+use M35\HubPayments\Notifications\BuyerOrderNotification;
 use M35\HubPayments\Notifications\PaymentReceivedNotification;
 use Throwable;
 
@@ -22,7 +23,7 @@ class PaymentRecorder
     /**
      * @param  array<string, mixed>  $session  oggetto Checkout Session di Stripe
      */
-    public static function record(Tenant $tenant, array $session): ?PayableOrder
+    public static function record(Tenant $tenant, array $session, bool $viaPlatform = false): ?PayableOrder
     {
         if (($session['payment_status'] ?? null) !== 'paid') {
             return null; // metodi asincroni: si attende async_payment_succeeded
@@ -34,13 +35,14 @@ class PaymentRecorder
         $orderId = $session['metadata']['hub_order_id'] ?? $session['client_reference_id'] ?? null;
 
         if ($orderId !== null && ctype_digit((string) $orderId)) {
-            [$order, $isNew] = self::markCartOrder($tenant, (int) $orderId, $session);
+            [$order, $isNew] = self::markCartOrder($tenant, (int) $orderId, $session, $viaPlatform);
         } elseif (! empty($session['payment_link'])) {
             [$order, $isNew] = self::markPaymentLink($tenant, (string) $session['payment_link'], $session);
         }
 
         if ($order && $isNew) {
             self::notify($tenant, $order);
+            self::notifyBuyer($tenant, $order);
         }
 
         return $order;
@@ -48,11 +50,12 @@ class PaymentRecorder
 
     /**
      * @param  array<string, mixed>  $session
+     * @param  bool  $viaPlatform  evento arrivato dal conto Stripe di M 3.5: solo così si accettano i pagamenti protetti (e solo quelli)
      * @return array{0: ?PayableOrder, 1: bool} ordine e se è stato appena segnato come pagato
      */
-    private static function markCartOrder(Tenant $tenant, int $orderId, array $session): array
+    private static function markCartOrder(Tenant $tenant, int $orderId, array $session, bool $viaPlatform = false): array
     {
-        return DB::transaction(function () use ($tenant, $orderId, $session) {
+        return DB::transaction(function () use ($tenant, $orderId, $session, $viaPlatform) {
             $order = PayableOrder::query()
                 ->where('tenant_id', $tenant->id)
                 ->where('id', $orderId)
@@ -61,6 +64,13 @@ class PaymentRecorder
 
             if (! $order) {
                 Log::warning('Webhook Stripe: ordine non trovato per il tenant', ['tenant' => $tenant->slug, 'order' => $orderId]);
+
+                return [null, false];
+            }
+
+            // Un pagamento protetto vale solo se l'incasso è davvero arrivato sul conto di M 3.5 (mai da un webhook del venditore), e viceversa.
+            if ($order->isProtected() !== $viaPlatform) {
+                Log::warning('Webhook Stripe: pagamento scartato (conto Stripe non coerente con il tipo di ordine)', ['tenant' => $tenant->slug, 'order' => $orderId, 'protected' => $order->isProtected()]);
 
                 return [null, false];
             }
@@ -80,6 +90,14 @@ class PaymentRecorder
             }
 
             $order->commission_cents = TenantCommission::compute($tenant, $order->channel, $order->amount_cents);
+
+            // Pagamento protetto: i soldi sono sul conto Stripe di M 3.5 e restano trattenuti fino alla conferma o alla scadenza.
+            if ($order->isProtected()) {
+                $order->payout_status = 'held';
+                $order->release_at = now()->addDays(ProtectedCheckout::holdDays());
+                $order->stripe_payment_intent_id = is_string($session['payment_intent'] ?? null) ? $session['payment_intent'] : $order->stripe_payment_intent_id;
+            }
+
             $order->save();
 
             return [$order, true];
@@ -177,6 +195,20 @@ class PaymentRecorder
         } catch (Throwable $e) {
             // L'ordine è già registrato: un problema di posta non deve far ripetere il webhook a Stripe.
             Log::warning('Email pagamento ricevuto non inviata', ['tenant' => $tenant->slug, 'message' => $e->getMessage()]);
+        }
+    }
+
+    /** Ricevuta al compratore con il link alla pagina dell'ordine (solo pagamenti protetti). */
+    private static function notifyBuyer(Tenant $tenant, PayableOrder $order): void
+    {
+        if (! $order->isProtected() || ! $order->customer_email) {
+            return;
+        }
+
+        try {
+            Notification::route('mail', $order->customer_email)->notify(new BuyerOrderNotification($tenant, $order));
+        } catch (Throwable $e) {
+            Log::warning('Email al compratore non inviata', ['tenant' => $tenant->slug, 'message' => $e->getMessage()]);
         }
     }
 }

@@ -19,6 +19,11 @@ return [
         'card_fixed_cents' => (int) env('HUB_STRIPE_FEE_FIXED_CENTS', 25),
     ],
 
+    // Pagamenti protetti: giorni di attesa prima di girare i soldi al venditore se il cliente non conferma né segnala problemi.
+    'protected' => [
+        'hold_days' => (int) env('HUB_PROTECTED_HOLD_DAYS', 7),
+    ],
+
     'types' => [
         'service' => 'Servizio',
         'promo' => 'Promo a pagamento',

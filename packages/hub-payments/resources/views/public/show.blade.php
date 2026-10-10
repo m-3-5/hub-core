@@ -95,14 +95,30 @@
             @if ($service->description)
                 <p class="description">{{ $service->description }}</p>
             @endif
+            @php $protectedBuy = ! empty($protectedAvailable) && empty($embedMode); @endphp
+            @error('buy')<p style="color:#b91c1c;font-weight:600;margin-bottom:12px">{{ $message }}</p>@enderror
             <div class="cta-group">
-                <a class="btn-primary" href="{{ !empty($embedMode) ? $service->payment_url : $service->hubPaymentUrl() }}" target="_top">{{ $isProduct ? 'Acquista ora' : 'Prenota e paga ora' }}</a>
+                @if ($protectedBuy)
+                    <form method="POST" action="{{ route('services.public.buy', [$tenant, $service]) }}" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+                        @csrf
+                        @if ($isProduct)
+                            <label style="font-size:.9rem;color:var(--muted)">Quantità <input type="number" name="quantity" value="1" min="1" max="20" style="width:64px;padding:10px;border:1px solid #ddd;border-radius:10px;font:inherit"></label>
+                        @endif
+                        <button type="submit" class="btn-primary" style="border:0;cursor:pointer;font:inherit;font-weight:700">{{ $isProduct ? 'Acquista ora' : 'Prenota e paga ora' }}</button>
+                    </form>
+                @else
+                    <a class="btn-primary" href="{{ !empty($embedMode) ? $service->payment_url : $service->hubPaymentUrl() }}" target="_top">{{ $isProduct ? 'Acquista ora' : 'Prenota e paga ora' }}</a>
+                @endif
                 @if ($tenant->settings['whatsapp'] ?? null)
                     <a class="btn-whatsapp" target="_blank" rel="noopener"
                        href="https://wa.me/{{ $tenant->settings['whatsapp'] }}?text={{ rawurlencode('Ciao! Vorrei info su «'.$service->title.'» ('.$service->amountEuros().' €)') }}">WhatsApp</a>
                 @endif
             </div>
-            <p class="trust-note">Pagamento sicuro tramite Stripe · {{ $tenant->name }}</p>
+            @if ($protectedBuy)
+                <p class="trust-note">🛡️ Pagamento protetto da Hub Core: {{ $tenant->name }} riceve i soldi solo dopo la consegna (tua conferma, o dopo {{ \M35\HubPayments\Support\ProtectedCheckout::holdDays() }} giorni se non segnali problemi). Pagamento sicuro tramite Stripe.</p>
+            @else
+                <p class="trust-note">Pagamento sicuro tramite Stripe · {{ $tenant->name }}</p>
+            @endif
         </div>
     </div>
 

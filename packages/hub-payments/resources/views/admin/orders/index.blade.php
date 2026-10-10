@@ -6,6 +6,8 @@
 @php
     $eur = fn (int $cents) => number_format($cents / 100, 2, ',', '.').' €';
     $channelLabel = ['site' => 'Sito', 'hub' => 'inm35.it'];
+    $heldCents = (int) $orders->filter->isHeld()->sum('amount_cents');
+    $payoutLabel = ['held' => '🛡️ Trattenuto', 'released' => '✓ Liberato', 'frozen' => '⏸ Segnalazione', 'refunded' => '↩ Rimborsato'];
 @endphp
 <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
@@ -32,6 +34,12 @@
             </div>
         @endforeach
     </div>
+
+    @if ($heldCents > 0)
+        <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:12px 14px;margin-bottom:20px;font-size:.92rem;color:#3730a3">
+            🛡️ <strong>{{ $eur($heldCents) }}</strong> di pagamenti protetti sono custoditi da Hub Core: ti arrivano quando il cliente conferma, o alla data indicata se non ci sono segnalazioni (meno la commissione Stripe). <a href="{{ route('terms.economic') }}" target="_blank">Come funziona</a>.
+        </div>
+    @endif
 
     @if ($orders->isEmpty())
         <p style="color:#666">Nessun ordine pagato ancora.</p>
@@ -63,7 +71,13 @@
                             @if ($order->customer_phone)<div style="color:#666;font-size:.85rem">{{ $order->customer_phone }}</div>@endif
                         </td>
                         <td style="padding:8px">{{ $channelLabel[$order->channel] ?? $order->channel }}</td>
-                        <td style="padding:8px;text-align:right;white-space:nowrap">{{ $eur($order->amount_cents) }}</td>
+                        <td style="padding:8px;text-align:right;white-space:nowrap">
+                            {{ $eur($order->amount_cents) }}
+                            @if ($order->isProtected())
+                                <div style="font-size:.8rem;color:#4338ca">{{ $payoutLabel[$order->payout_status] ?? 'Protetto' }}@if ($order->isHeld() && $order->release_at) · fino al {{ $order->release_at->timezone(config('app.timezone'))->format('d/m') }}@endif</div>
+                                <div style="font-size:.78rem;color:#6b7280">ricevi circa {{ $eur($order->amount_cents - $order->commission_cents - \M35\HubPayments\Support\StripeFees::estimateCents($order->amount_cents)) }}</div>
+                            @endif
+                        </td>
                         @if ($commissionActive)
                             <td style="padding:8px;text-align:right;white-space:nowrap">{{ $order->commission_cents ? $eur($order->commission_cents) : '—' }}</td>
                         @endif

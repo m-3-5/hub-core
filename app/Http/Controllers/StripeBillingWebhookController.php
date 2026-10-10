@@ -32,7 +32,7 @@ class StripeBillingWebhookController extends Controller
         $object = $event['data']['object'] ?? [];
 
         match ($type) {
-            'checkout.session.completed' => $this->handleCheckoutCompleted($object),
+            'checkout.session.completed', 'checkout.session.async_payment_succeeded' => $this->handleCheckoutCompleted($object),
             'customer.subscription.updated' => $this->handleSubscriptionUpdated($object),
             'customer.subscription.deleted' => $this->handleSubscriptionDeleted($object),
             default => null,
@@ -44,6 +44,21 @@ class StripeBillingWebhookController extends Controller
     /** @param  array<string, mixed>  $session */
     private function handleCheckoutCompleted(array $session): void
     {
+        // Pagamento protetto di un cliente finale: arriva sul conto di M 3.5 e resta trattenuto fino alla consegna.
+        if (($session['metadata']['hub_flow'] ?? null) === 'protected') {
+            $tenant = Tenant::where('slug', $session['metadata']['hub_tenant'] ?? '')->first();
+
+            if (! $tenant) {
+                Log::warning('Stripe billing webhook: tenant del pagamento protetto non trovato', ['session' => $session['id'] ?? null]);
+
+                return;
+            }
+
+            \M35\HubPayments\Support\PaymentRecorder::record($tenant, $session, viaPlatform: true);
+
+            return;
+        }
+
         if (! empty($session['metadata']['site_order_id'])) {
             $this->handleSiteOrderCheckout($session);
 

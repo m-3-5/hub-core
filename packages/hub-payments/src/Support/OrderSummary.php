@@ -17,8 +17,8 @@ class OrderSummary
     {
         $rows = self::paid($tenant->id, $period)
             ->select('payable_orders.channel', DB::raw('COUNT(*) as n'), DB::raw('SUM(payable_orders.amount_cents) as total'), DB::raw('SUM(payable_orders.commission_cents) as commission'),
-                DB::raw('SUM(CASE WHEN payable_orders.commission_charge_id IS NULL THEN payable_orders.commission_cents ELSE 0 END) as uncharged'),
-                DB::raw('SUM(CASE WHEN payable_orders.commission_charge_id IS NULL OR tenant_module_charges.paid = 0 THEN payable_orders.commission_cents ELSE 0 END) as unpaid'))
+                DB::raw("SUM(CASE WHEN payable_orders.flow = 'direct' AND payable_orders.commission_charge_id IS NULL THEN payable_orders.commission_cents ELSE 0 END) as uncharged"),
+                DB::raw("SUM(CASE WHEN payable_orders.flow = 'direct' AND (payable_orders.commission_charge_id IS NULL OR tenant_module_charges.paid = 0) THEN payable_orders.commission_cents ELSE 0 END) as unpaid"))
             ->leftJoin('tenant_module_charges', 'tenant_module_charges.id', '=', 'payable_orders.commission_charge_id')
             ->groupBy('payable_orders.channel')
             ->get();

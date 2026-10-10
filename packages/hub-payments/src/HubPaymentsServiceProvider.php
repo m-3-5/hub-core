@@ -17,6 +17,7 @@ use M35\HubPayments\Http\Controllers\Api\QuoteApiController;
 use M35\HubPayments\Http\Controllers\Api\ServiceApiController;
 use M35\HubPayments\Http\Controllers\Api\TenantStripeWebhookController;
 use M35\HubPayments\Http\Middleware\VerifyHubSignature;
+use M35\HubPayments\Http\Controllers\Public\ProtectedOrderController;
 use M35\HubPayments\Http\Controllers\Public\ServicePublicController;
 use M35\HubPayments\Models\PayableService;
 use Illuminate\Support\ServiceProvider;
@@ -150,6 +151,9 @@ class HubPaymentsServiceProvider extends ServiceProvider
             ->group(function () {
                 Route::get('/s/{tenant}', [ServicePublicController::class, 'archive'])->name('services.public.archive');
                 Route::get('/s/{tenant}/{service}', [ServicePublicController::class, 'show'])->name('services.public.show');
+                // Acquisto con pagamento protetto + pagina dell'ordine del compratore (codice segreto nel link).
+                Route::post('/s/{tenant}/{service}/acquista', [ProtectedOrderController::class, 'buy'])->middleware('throttle:20,1')->name('services.public.buy');
+                Route::get('/ordine/{token}', [ProtectedOrderController::class, 'show'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:60,1')->name('protected.order.show');
                 Route::get('/client/{tenant}/services/{service}/embed', [ServicePublicController::class, 'embed'])->name('client.services.embed');
                 Route::get('/client/{tenant}/services/{service}/iframe-snippet', [ServicePublicController::class, 'iframeSnippet'])->name('client.services.iframe');
             });

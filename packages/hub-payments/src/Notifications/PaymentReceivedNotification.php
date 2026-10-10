@@ -49,7 +49,11 @@ class PaymentReceivedNotification extends Notification
         $mail->line('Telefono: '.($order->customer_phone ?: 'non indicato'));
 
         $mail->line('Canale: '.($order->channel === 'hub' ? 'inm35.it' : 'sito '.($this->tenant->name)).' · Pagato il '.$order->paid_at?->timezone(config('app.timezone'))->format('d/m/Y H:i'))
-            ->line('Il pagamento è già sul tuo conto Stripe. Contatta il cliente per ritiro o prenotazione.')
+            ->line($order->isProtected()
+                ? '🛡️ **Pagamento protetto:** i soldi sono custoditi da Hub Core e ti vengono girati quando il cliente conferma di aver ricevuto, '
+                    .'oppure il '.($order->release_at?->timezone(config('app.timezone'))->locale('it')->translatedFormat('d F Y') ?? 'dopo la scadenza').' se non ci sono segnalazioni. '
+                    .'Riceverai l\'importo meno la commissione di Stripe (circa '.$this->money(\M35\HubPayments\Support\StripeFees::estimateCents($order->amount_cents), $order->currency).'). Contatta il cliente per ritiro o prenotazione e consegna con puntualità.'
+                : 'Il pagamento è già sul tuo conto Stripe. Contatta il cliente per ritiro o prenotazione.')
             ->salutation('Hub Core');
 
         if ($order->customer_email) {

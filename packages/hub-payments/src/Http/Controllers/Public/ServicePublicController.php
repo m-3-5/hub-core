@@ -7,6 +7,7 @@ use App\Models\Tenant;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 use M35\HubPayments\Models\PayableService;
+use M35\HubPayments\Support\ProtectedCheckout;
 
 class ServicePublicController extends Controller
 {
@@ -31,7 +32,11 @@ class ServicePublicController extends Controller
     {
         $this->abortUnlessVisible($tenant, $service);
 
-        return view('hub-payments::public.show', compact('tenant', 'service'));
+        return view('hub-payments::public.show', [
+            'tenant' => $tenant,
+            'service' => $service,
+            'protectedAvailable' => ProtectedCheckout::available($tenant),
+        ]);
     }
 
     public function embed(Tenant $tenant, PayableService $service): View
