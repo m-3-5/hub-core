@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SiteOrder;
 use App\Models\Tenant;
 use App\Models\TenantModuleCharge;
+use App\Notifications\SiteOrderPaidNotification;
+use App\Notifications\SiteOrderWelcomeNotification;
 use App\Notifications\TenantWelcomeNotification;
+use App\Services\SiteOrderBilling;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -40,6 +44,12 @@ class StripeBillingWebhookController extends Controller
     /** @param  array<string, mixed>  $session */
     private function handleCheckoutCompleted(array $session): void
     {
+        if (! empty($session['metadata']['site_order_id'])) {
+            $this->handleSiteOrderCheckout($session);
+
+            return;
+        }
+
         $tenant = Tenant::find($session['metadata']['tenant_id'] ?? $session['client_reference_id'] ?? null);
 
         if (! $tenant) {
@@ -99,6 +109,19 @@ class StripeBillingWebhookController extends Controller
     /** @param  array<string, mixed>  $subscription */
     private function handleSubscriptionUpdated(array $subscription): void
     {
+        if ($order = $this->siteOrderForSubscription($subscription)) {
+            $status = match ($subscription['status'] ?? null) {
+                'trialing' => 'trial',
+                'active' => 'paying',
+                'past_due', 'unpaid', 'incomplete' => 'past_due',
+                default => $order->status,
+            };
+
+            $order->update(['status' => $status]);
+
+            return;
+        }
+
         $tenant = $this->tenantForSubscription($subscription);
 
         if (! $tenant) {
@@ -117,9 +140,77 @@ class StripeBillingWebhookController extends Controller
     /** @param  array<string, mixed>  $subscription */
     private function handleSubscriptionDeleted(array $subscription): void
     {
+        if ($order = $this->siteOrderForSubscription($subscription)) {
+            // Fine naturale delle rate (cancel_at raggiunto) = pagato per intero; prima = annullato.
+            $finished = $order->completes_at && now()->gte($order->completes_at->copy()->subDay());
+            $order->update(['status' => $finished ? 'completed' : 'canceled']);
+
+            return;
+        }
+
         $tenant = $this->tenantForSubscription($subscription);
 
         $tenant?->forceFill(['subscription_status' => 'canceled'])->save();
+    }
+
+    /** Pagamento dell'euro di partenza dalla landing siti web: parte la prova e si programma la fine delle rate. */
+    private function handleSiteOrderCheckout(array $session): void
+    {
+        $order = SiteOrder::find($session['metadata']['site_order_id']);
+
+        if (! $order || $order->paid_at) {
+            return;
+        }
+
+        $trialEnds = now()->addDays($order->trial_days);
+
+        $order->update([
+            'status' => 'trial',
+            'stripe_session_id' => $session['id'] ?? $order->stripe_session_id,
+            'stripe_customer_id' => $session['customer'] ?? null,
+            'stripe_subscription_id' => $session['subscription'] ?? null,
+            'paid_at' => now(),
+            'trial_ends_at' => $trialEnds,
+            // Prima rata a fine prova, poi una al mese: l'abbonamento si ferma a metà dell'ultimo mese, senza addebiti in più.
+            'completes_at' => $trialEnds->copy()->addMonths($order->installments - 1)->addDays(15),
+        ]);
+
+        $order->lead?->update(['message' => '1 € per partire: pagato', 'status' => 'new']);
+
+        $secretKey = config('services.hub_billing.secret_key');
+
+        if ($secretKey && $order->stripe_subscription_id) {
+            try {
+                (new SiteOrderBilling($secretKey))->cancelAt($order->stripe_subscription_id, $order->completes_at);
+            } catch (Throwable $e) {
+                // Senza questo le rate non si fermerebbero da sole: segnalato in modo evidente.
+                Log::error('Promo 1 euro: impossibile programmare la fine delle rate', ['order' => $order->id, 'error' => $e->getMessage()]);
+            }
+        }
+
+        if ($to = config('landing.leads_email') ?: config('mail.leads_monitor_email')) {
+            try {
+                Notification::route('mail', $to)->notify(new SiteOrderPaidNotification($order));
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
+
+        try {
+            Notification::route('mail', $order->email)->notify(new SiteOrderWelcomeNotification($order));
+        } catch (Throwable $e) {
+            report($e);
+        }
+    }
+
+    /** @param  array<string, mixed>  $subscription */
+    private function siteOrderForSubscription(array $subscription): ?SiteOrder
+    {
+        if ($id = $subscription['metadata']['site_order_id'] ?? null) {
+            return SiteOrder::find($id);
+        }
+
+        return SiteOrder::where('stripe_subscription_id', $subscription['id'] ?? null)->first();
     }
 
     /** @param  array<string, mixed>  $subscription */

@@ -12,6 +12,38 @@
         <a class="btn btn-secondary" href="{{ route('admin.dashboard') }}">← Dashboard</a>
     </div>
 
+    @if ($orders->isNotEmpty())
+        <h2 style="margin:0 0 10px">Clienti «{{ config('landing.start.start_eur') }} € per partire»</h2>
+        <div style="overflow-x:auto;margin-bottom:28px">
+            <table style="width:100%;border-collapse:collapse;font-size:.92rem">
+                <thead>
+                    <tr style="text-align:left;border-bottom:2px solid #eee">
+                        <th style="padding:8px">Pagato il</th><th style="padding:8px">Chi</th><th style="padding:8px">Contatti</th>
+                        <th style="padding:8px">Sito</th><th style="padding:8px">Rate</th><th style="padding:8px">Stato</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach ($orders as $order)
+                    <tr style="border-bottom:1px solid #f0f0f0;vertical-align:top">
+                        <td style="padding:8px;white-space:nowrap">{{ $order->paid_at?->timezone(config('app.timezone'))->format('d/m H:i') ?? '—' }}</td>
+                        <td style="padding:8px"><strong>{{ $order->name }}</strong></td>
+                        <td style="padding:8px">
+                            <a href="tel:+{{ $order->dialNumber() }}">{{ $order->phone }}</a>
+                            · <a href="https://wa.me/{{ $order->dialNumber() }}" target="_blank" rel="noopener">WhatsApp</a>
+                            <div><a href="mailto:{{ $order->email }}">{{ $order->email }}</a></div>
+                        </td>
+                        <td style="padding:8px">{{ $order->planLabel() }}<div style="color:#666">{{ App\Models\SiteOrder::euro($order->package_cents) }} € + IVA</div></td>
+                        <td style="padding:8px">{{ $order->installments }} × {{ App\Models\SiteOrder::euro($order->installment_cents) }} €
+                            <div style="color:#666">dal {{ $order->trial_ends_at?->timezone(config('app.timezone'))->format('d/m/Y') }} al {{ $order->completes_at?->timezone(config('app.timezone'))->format('d/m/Y') }}</div></td>
+                        <td style="padding:8px"><strong>{{ $order->statusLabel() }}</strong></td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
+        <h2 style="margin:0 0 10px">Richieste di preventivo</h2>
+    @endif
+
     @if ($leads->isEmpty())
         <p style="color:#666">Nessuna richiesta ancora.</p>
     @else

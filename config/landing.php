@@ -25,6 +25,17 @@ return [
         'name' => env('LANDING_FB_GROUP_NAME', 'Il nostro gruppo Facebook'),
     ],
 
+    // Promo «1 € per partire»: il cliente paga davvero start_eur, ha trial_days giorni per provare e configurare il sito
+    // con l'IA, poi parte un abbonamento a riscatto: il prezzo del pacchetto diviso in `months` rate mensili (a fine rate si ferma da solo).
+    'start' => [
+        'enabled' => (bool) env('LANDING_START_ENABLED', true),
+        'start_eur' => (int) env('LANDING_START_EUR', 1),
+        'trial_days' => (int) env('LANDING_START_TRIAL_DAYS', 15),
+        'months' => (int) env('LANDING_START_MONTHS', 10),
+        // Frase mostrata sul checkout e sulla pagina: condizioni da confermare/adeguare.
+        'terms' => env('LANDING_START_TERMS', 'Puoi annullare durante i giorni di prova: non pagherai altro oltre al primo euro.'),
+    ],
+
     'city' => 'Corigliano-Rossano',
     'place' => 'Fabrizio',
 

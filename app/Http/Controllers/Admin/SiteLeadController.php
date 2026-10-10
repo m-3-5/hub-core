@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteLead;
+use App\Models\SiteOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -16,6 +17,7 @@ class SiteLeadController extends Controller
 
         return view('admin.leads.index', [
             'leads' => SiteLead::query()->latest()->limit(200)->get(),
+            'orders' => SiteOrder::query()->where('status', '!=', 'pending')->latest()->limit(100)->get(),
             'newCount' => SiteLead::where('status', 'new')->count(),
         ]);
     }

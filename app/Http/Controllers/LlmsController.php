@@ -37,6 +37,10 @@ class LlmsController extends Controller
             '- Zone servite: '.implode(', ', config('landing.zones')).'.',
         ];
 
+        if (config('landing.start.enabled')) {
+            $lines[] = '- Promo di lancio: si parte con '.config('landing.start.start_eur').' €, '.config('landing.start.trial_days').' giorni di prova e poi '.config('landing.start.months').' rate mensili fino al prezzo del pacchetto scelto (sito tuo a fine rate).';
+        }
+
         if ($wa) {
             $lines[] = '- Contatto WhatsApp: https://wa.me/'.$wa;
         }

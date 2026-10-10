@@ -61,6 +61,7 @@ return [
 
     'hub_billing' => [
         'secret_key' => env('HUB_STRIPE_SECRET_KEY'),
+        'api_base' => env('HUB_STRIPE_API_BASE', 'https://api.stripe.com'),
         'webhook_secret' => env('HUB_STRIPE_WEBHOOK_SECRET'),
         'trial_days' => (int) env('HUB_TRIAL_DAYS', 30),
         'monthly_price_eur' => (int) env('HUB_MONTHLY_PRICE_EUR', 29),

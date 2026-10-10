@@ -189,6 +189,17 @@
         /* barra fissa su telefono */
         .sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); backdrop-filter: blur(10px); border-top: 1px solid var(--line); display: flex; gap: 10px; transition: transform .25s; }
         .sticky .btn { flex: 1; }
+        .startbar { background: linear-gradient(135deg, #e91e8c, #7a3cff); color: #fff; border-radius: var(--radius); padding: 18px 20px; margin-top: 14px; }
+        .startbar b { font-size: 1.15rem; }
+        .startbar span { display: block; opacity: .92; font-size: .95rem; margin-top: 2px; }
+        .plan .pay { background: #f4f1ff; border-radius: 12px; padding: 10px 12px; font-size: .9rem; margin: 0 0 14px; color: #3b2a85; }
+        .plan .pay b { color: #1c1147; }
+        .startsec { background: #f7f5ff; }
+        .startsec .form-card { box-shadow: 0 16px 40px rgba(60,40,140,.16); border: 2px solid #e4defa; }
+        .okbanner { background: #e8f8ee; color: #14532d; border: 2px solid #86d9a4; border-radius: var(--radius); padding: 20px; margin: 16px 0; text-align: center; }
+        .stepsmini { display: grid; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; counter-reset: s; }
+        .stepsmini li { counter-increment: s; padding-left: 38px; position: relative; font-size: .98rem; }
+        .stepsmini li::before { content: counter(s); position: absolute; left: 0; top: -1px; width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: #fff; font-weight: 800; display: grid; place-items: center; }
         .sticky.hide { transform: translateY(110%); }
 
         @media (min-width: 760px) {
@@ -224,8 +235,13 @@
             <h1>Il tuo <em>sito web</em> o la tua <em>app</em>, qui vicino a te.</h1>
             <p>Realizziamo siti e app per negozi, professionisti e aziende di {{ $city }} e dintorni. Vieni a trovarci a {{ $place }} o scrivici: ti diciamo subito cosa serve e quanto costa.</p>
             <div class="hero-cta">
-                <a class="btn btn-brand" href="#contatti">Chiedi un preventivo gratuito</a>
-                <a class="btn btn-ghost" href="#prezzi">Guarda i prezzi</a>
+                @if ($startActive)
+                    <a class="btn btn-brand" href="#parti">Parti con {{ $start['start_eur'] }} €</a>
+                    <a class="btn btn-ghost" href="#contatti">Preventivo gratuito</a>
+                @else
+                    <a class="btn btn-brand" href="#contatti">Chiedi un preventivo gratuito</a>
+                    <a class="btn btn-ghost" href="#prezzi">Guarda i prezzi</a>
+                @endif
             </div>
             <ul class="ticks">
                 <li>Perfetto da smartphone</li>
@@ -251,6 +267,23 @@
         @endif
     </div>
 
+    <div class="wrap">
+        @if (request('avvio') === 'ok')
+            <div class="okbanner" id="avvio-ok">
+                <div style="font-size:2.4rem">🎉</div>
+                <h3 style="font-size:1.4rem;margin:6px 0">Pagamento ricevuto, si parte!</h3>
+                <p style="margin:0">Ti abbiamo scritto una conferma via email. Ti contattiamo a breve per iniziare a creare insieme il tuo sito con la nostra intelligenza artificiale.</p>
+            </div>
+        @endif
+
+        @if ($startActive)
+            <div class="startbar">
+                <b>🚀 Parti con soli {{ $start['start_eur'] }} €</b>
+                <span>Paghi davvero {{ $start['start_eur'] }} € oggi e hai {{ $start['trial_days'] }} giorni per provare. Poi il sito si paga a rate comode, e finite le rate è tuo.</span>
+            </div>
+        @endif
+    </div>
+
     <section id="prezzi">
         <div class="wrap">
             <span class="eyebrow">Tre modi per partire</span>
@@ -270,10 +303,17 @@
                                 @if ($plan['discount'] > 0)<span class="off">−{{ $plan['discount'] }}%</span>@endif
                             @endif
                         </div>
+                        @if ($startActive)
+                            <p class="pay"><b>{{ $start['start_eur'] }} € oggi</b>, {{ $start['trial_days'] }} giorni di prova, poi <b>{{ $start['months'] }} rate da {{ App\Models\SiteOrder::euro($plan['installment_cents']) }} €</b> + IVA</p>
+                        @endif
                         <ul>
                             @foreach ($plan['features'] as $feature)<li>{{ $feature }}</li>@endforeach
                         </ul>
-                        <a class="btn {{ $plan['featured'] ? 'btn-brand' : 'btn-ghost' }}" href="#contatti" data-pick="{{ $plan['key'] }}">Voglio il sito {{ $plan['name'] }}</a>
+                        @if ($startActive)
+                            <a class="btn {{ $plan['featured'] ? 'btn-brand' : 'btn-ghost' }}" href="#parti" data-pick-start="{{ $plan['key'] }}">Parti con {{ $start['start_eur'] }} €</a>
+                        @else
+                            <a class="btn {{ $plan['featured'] ? 'btn-brand' : 'btn-ghost' }}" href="#contatti" data-pick="{{ $plan['key'] }}">Voglio il sito {{ $plan['name'] }}</a>
+                        @endif
                     </article>
                 @endforeach
             </div>
@@ -331,6 +371,68 @@
                     <span style="color:var(--muted)">Entra nella community: novità, consigli per far crescere la tua attività online e opportunità per chi è di zona.</span>
                 </div>
                 <a class="btn btn-ghost btn-sm" href="{{ config('landing.facebook_group.url') }}" target="_blank" rel="noopener">Entra nel gruppo</a>
+            </div>
+        </div>
+    </section>
+    @endif
+
+    @if ($startActive)
+    <section class="startsec" id="parti">
+        <div class="wrap">
+            <span class="eyebrow">Offerta di lancio</span>
+            <h2>Parti con {{ $start['start_eur'] }} € e crea il tuo sito con l'IA</h2>
+            <ol class="stepsmini">
+                <li><b>Paghi {{ $start['start_eur'] }} € oggi</b>: è un pagamento vero, in sicurezza con carta.</li>
+                <li><b>{{ $start['trial_days'] }} giorni di prova</b>: ti aiutiamo a creare il sito con la nostra intelligenza artificiale, partendo dalle foto e dai testi della tua attività.</li>
+                <li><b>Poi le rate</b>: il pacchetto scelto si paga in {{ $start['months'] }} rate mensili. Finite le rate, il sito è tuo e l'addebito si ferma da solo.</li>
+            </ol>
+
+            <div class="form-card" id="startCard">
+                <form method="POST" action="{{ route('landing.web.start') }}" id="startForm" novalidate>
+                    @csrf
+                    <input type="hidden" name="rendered_at" value="{{ $renderedAt }}">
+                    <div class="hp" aria-hidden="true"><label>Non compilare<input type="text" name="company" tabindex="-1" autocomplete="off"></label></div>
+
+                    @if (request('avvio') === 'annullato')
+                        <div class="errbox" style="background:#fff7e6;color:#8a5a00">Pagamento annullato: non ti è stato addebitato nulla. Puoi riprovare quando vuoi.</div>
+                    @endif
+                    @if ($errors->start->any())
+                        <div class="errbox">{{ $errors->start->first() }}</div>
+                    @endif
+
+                    <div class="grid2">
+                        <div class="full">
+                            <span class="l">Quale sito vuoi? *</span>
+                            <div class="chips" id="startChips">
+                                @foreach ($plans as $plan)
+                                    <span><input type="radio" name="package" id="st-{{ $plan['key'] }}" value="{{ $plan['key'] }}" @checked(old('package') === $plan['key'])><label for="st-{{ $plan['key'] }}">{{ $plan['name'] }} · {{ $start['months'] }}×{{ App\Models\SiteOrder::euro($plan['installment_cents']) }} €</label></span>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div>
+                            <label class="l" for="st-name">Il tuo nome *</label>
+                            <input class="in" id="st-name" name="name" type="text" autocomplete="name" value="{{ old('name') }}" required maxlength="80">
+                        </div>
+                        <div>
+                            <label class="l" for="st-phone">Telefono *</label>
+                            <input class="in" id="st-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="es. 333 1234567" value="{{ old('phone') }}" required maxlength="25">
+                        </div>
+                        <div class="full">
+                            <label class="l" for="st-email">Email * <span style="font-weight:400;color:var(--muted)">(ti mandiamo conferma e ricevuta)</span></label>
+                            <input class="in" id="st-email" name="email" type="email" autocomplete="email" value="{{ old('email') }}" required maxlength="190">
+                        </div>
+                        <div class="full">
+                            <label class="check"><input type="checkbox" name="consent" value="1" @checked(old('consent')) required>
+                                <span>Ho capito che pago {{ $start['start_eur'] }} € oggi e che dopo {{ $start['trial_days'] }} giorni parte l'abbonamento a rate del pacchetto scelto. Acconsento a essere ricontattato. *</span></label>
+                            <p style="margin:8px 0 0;font-size:.88rem;color:var(--muted)">{{ $start['terms'] }} Prezzi IVA esclusa.</p>
+                            <details class="priv"><summary>Come usiamo i tuoi dati</summary>
+                                <p style="margin:8px 0 0">I dati inseriti (nome, telefono, email) sono usati da M 3.5 S.R.L. solo per gestire il tuo ordine e ricontattarti. Il pagamento avviene sul sistema sicuro di Stripe: i dati della carta non passano da noi. Puoi chiedere in qualsiasi momento di consultare o cancellare i tuoi dati scrivendoci.</p></details>
+                        </div>
+                        <div class="full">
+                            <button class="btn btn-brand" style="width:100%;font-size:1.1rem;padding:17px" type="submit" id="startBtn">Paga {{ $start['start_eur'] }} € e parti</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </section>
@@ -422,7 +524,7 @@
 <div class="sticky" id="stickyBar">
     @if ($whatsapp)<a class="btn btn-wa" href="https://wa.me/{{ $whatsapp }}?text={{ rawurlencode('Ciao! Vorrei un preventivo per un sito web.') }}" target="_blank" rel="noopener">WhatsApp</a>
     @elseif ($phone)<a class="btn btn-ghost" href="tel:{{ preg_replace('/[^0-9+]/', '', $phone) }}">Chiama</a>@endif
-    <a class="btn btn-brand" href="#contatti">Preventivo gratis</a>
+    @if ($startActive)<a class="btn btn-brand" href="#parti">Parti con {{ $start['start_eur'] }} €</a>@else<a class="btn btn-brand" href="#contatti">Preventivo gratis</a>@endif
 </div>
 
 <script>
@@ -450,11 +552,24 @@
         });
     });
 
-    // la barra fissa sparisce quando il modulo è visibile
-    var bar = document.getElementById('stickyBar'), card = document.getElementById('formCard');
-    if (bar && card && 'IntersectionObserver' in window) {
-        new IntersectionObserver(function (e) { bar.classList.toggle('hide', e[0].isIntersecting); }, { threshold: .15 }).observe(card);
+    document.querySelectorAll('[data-pick-start]').forEach(function (a) {
+        a.addEventListener('click', function () {
+            var r = document.getElementById('st-' + a.dataset.pickStart);
+            if (r) r.checked = true;
+        });
+    });
+
+    // la barra fissa sparisce quando un modulo è visibile
+    var bar = document.getElementById('stickyBar');
+    if (bar && 'IntersectionObserver' in window) {
+        ['formCard', 'startCard'].forEach(function (id) {
+            var card = document.getElementById(id);
+            if (card) new IntersectionObserver(function (e) { bar.classList.toggle('hide', e[0].isIntersecting); }, { threshold: .15 }).observe(card);
+        });
     }
+
+    var sForm = document.getElementById('startForm'), sBtn = document.getElementById('startBtn');
+    if (sForm) sForm.addEventListener('submit', function () { sBtn.disabled = true; sBtn.textContent = 'Ti porto al pagamento…'; });
 
     // evita doppi invii
     var form = document.getElementById('leadForm'), btn = document.getElementById('sendBtn');
