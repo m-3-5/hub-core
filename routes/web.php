@@ -50,6 +50,11 @@ Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/llms.txt', LlmsController::class)->name('llms');
 Route::get('/indexnow-key.txt', fn () => response(\App\Console\Commands\IndexNowSubmit::key(), 200, ['Content-Type' => 'text/plain; charset=UTF-8']))->name('indexnow.key');
 
+// Guide su come ricevere i soldi delle vendite + condizioni economiche (pagine pubbliche).
+Route::get('/guide/pagamenti', [\App\Http\Controllers\GuideController::class, 'index'])->name('guides.index');
+Route::get('/guide/pagamenti/{slug}', [\App\Http\Controllers\GuideController::class, 'show'])->name('guides.show');
+Route::get('/condizioni-economiche', [\App\Http\Controllers\GuideController::class, 'economicTerms'])->name('terms.economic');
+
 Route::post('/max/chat', [\App\Http\Controllers\MaxChatController::class, 'ask'])
     ->middleware('throttle:20,1')
     ->name('max.chat');

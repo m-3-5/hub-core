@@ -34,6 +34,13 @@ class SitemapController extends Controller
             ['loc' => route('classifieds.board'), 'lastmod' => null, 'priority' => '0.7'],
         ];
 
+        // Guide su come ricevere i soldi + condizioni economiche.
+        $urls[] = ['loc' => route('guides.index'), 'lastmod' => null, 'priority' => '0.6'];
+        foreach (array_keys(\App\Http\Controllers\GuideController::guides()) as $slug) {
+            $urls[] = ['loc' => route('guides.show', $slug), 'lastmod' => null, 'priority' => '0.5'];
+        }
+        $urls[] = ['loc' => route('terms.economic'), 'lastmod' => null, 'priority' => '0.4'];
+
         // Promo attive: archivio dell'azienda e ogni landing.
         $promos = Promo::query()->published()->active()->with('tenant:id,slug')->get();
 

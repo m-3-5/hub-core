@@ -187,7 +187,11 @@
         <div class="tap"><span class="ico">📦</span><div><b>Dopo la consegna ti arrivano</b><span>Quando il cliente conferma, o dopo <span class="big">7 giorni</span> senza problemi, i soldi vanno sul tuo conto.</span></div></div>
         <div class="tap"><span class="ico">💶</span><div><b>Trattenute di Stripe</b><span>Stripe trattiene circa <span class="big">{{ \M35\HubPayments\Support\StripeFees::rateLabel() }}</span> su ogni pagamento con carta: è un suo costo, sottratto dall'incasso.</span></div></div>
     </div>
-    <p class="iva" style="margin-top:10px">Esempio: vendita da {{ $feeEx['amount'] }} € → trattenuta circa {{ $feeEx['fee'] }} € → ricevi circa {{ $feeEx['net'] }} €. Le tariffe le decide Stripe e possono variare (carte extra-UE, bonifici): ti mostriamo sempre l'importo netto. Puoi sempre vendere anche direttamente sul tuo sito con il tuo conto Stripe.</p>
+    <p class="iva" style="margin-top:10px">Esempio: vendita da {{ $feeEx['amount'] }} € → trattenuta circa {{ $feeEx['fee'] }} € → ricevi circa {{ $feeEx['net'] }} €. Le tariffe le decide Stripe e possono variare (carte extra-UE, bonifici): ti mostriamo sempre l'importo netto. Puoi sempre vendere anche direttamente sul tuo sito con il tuo conto Stripe, con PayPal o con bonifico.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <a class="cta ghost" style="flex:1;min-width:220px" href="{{ route('guides.index') }}">📖 Guide: come ricevere i soldi</a>
+        <a class="cta ghost" style="flex:1;min-width:220px" href="{{ route('terms.economic') }}">📄 Condizioni economiche</a>
+    </div>
 
     @if ($comingSoon->isNotEmpty())
         <div class="group-title">In arrivo</div>

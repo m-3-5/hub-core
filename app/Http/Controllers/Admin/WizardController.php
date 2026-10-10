@@ -31,9 +31,10 @@ class WizardController extends Controller
         $this->guardModule($tenant, $kind);
 
         if ($kind !== 'promo' && ! TenantStripeConfig::isConfigured($tenant)) {
+            // Si inizia a vendere: prima si sceglie come ricevere i soldi (con le guide a portata di mano).
             return redirect()
-                ->route('admin.services.index', $tenant)
-                ->withErrors(['stripe' => 'Configura prima le chiavi Stripe: servono per creare il link di pagamento.']);
+                ->route('admin.payout.setup', $tenant)
+                ->with('status', 'Prima di vendere scegli come vuoi ricevere i soldi: ti accompagniamo passo passo.');
         }
 
         $meta = $kind === 'promo'

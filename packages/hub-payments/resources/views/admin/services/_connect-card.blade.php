@@ -16,7 +16,7 @@
             @php $feeEx = \M35\HubPayments\Support\StripeFees::example(); @endphp
             <div style="margin:12px 0 0;background:#fff;border:1px solid #e0e7ff;border-radius:12px;padding:12px 14px;font-size:.88rem;color:#374151">
                 <strong>💶 Trattenute di Stripe</strong> — su ogni pagamento con carta Stripe trattiene una commissione, indicativamente <strong>{{ \M35\HubPayments\Support\StripeFees::rateLabel() }}</strong> (di più per carte extra-UE). È un costo di Stripe, non nostro: viene sottratta dall'incasso e ti mostriamo sempre quanto ricevi.
-                <div style="margin-top:6px;color:#4b5563">Esempio: vendita da {{ $feeEx['amount'] }} € → trattenuta circa {{ $feeEx['fee'] }} € → ricevi circa <strong>{{ $feeEx['net'] }} €</strong>. Per i bonifici verso il tuo conto possono esserci piccoli costi di Stripe, che vedi nella tua pagina Stripe.</div>
+                <div style="margin-top:6px;color:#4b5563">Esempio: vendita da {{ $feeEx['amount'] }} € → trattenuta circa {{ $feeEx['fee'] }} € → ricevi circa <strong>{{ $feeEx['net'] }} €</strong>. Per i bonifici verso il tuo conto possono esserci piccoli costi di Stripe, che vedi nella tua pagina Stripe. Le tariffe possono essere queste o diverse: vedi le <a href="{{ route('terms.economic') }}" target="_blank">condizioni economiche</a>.</div>
             </div>
             <p style="margin:8px 0 0;color:#666;font-size:.88rem">Sul tuo sito puoi continuare a vendere anche direttamente, con le tue chiavi Stripe qui sotto. I pagamenti protetti valgono per le vendite fatte tramite inm35.it.</p>
         </div>
@@ -36,6 +36,8 @@
                         <button type="submit" class="btn btn-secondary" style="width:100%;border:0;cursor:pointer">Aggiorna stato</button>
                     </form>
                 @endif
+                <a class="btn btn-secondary" style="text-align:center" href="{{ route('admin.payout.setup', $tenant) }}">Altri modi di incasso</a>
+                <a href="{{ route('guides.index') }}" target="_blank" style="font-size:.85rem;text-align:center">📖 Guide: come ricevere i soldi</a>
                 @if ($connectState === 'ready')
                     <form method="POST" action="{{ route('admin.connect.dashboard', $tenant) }}">
                         @csrf

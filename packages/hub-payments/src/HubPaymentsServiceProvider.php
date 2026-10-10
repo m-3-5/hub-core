@@ -8,6 +8,7 @@ use M35\HubPayments\Http\Controllers\Admin\ServiceController;
 use M35\HubPayments\Http\Controllers\Admin\CommissionAdminController;
 use M35\HubPayments\Http\Controllers\Admin\ConnectController;
 use M35\HubPayments\Http\Controllers\Admin\OrderController;
+use M35\HubPayments\Http\Controllers\Admin\PayoutSetupController;
 use M35\HubPayments\Http\Controllers\Admin\QuoteController;
 use M35\HubPayments\Http\Controllers\Admin\StripePaymentLinksController;
 use M35\HubPayments\Http\Controllers\Admin\StripeWebhookSettingsController;
@@ -84,6 +85,10 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 Route::get('/connect/return', [ConnectController::class, 'return'])->name('connect.return');
                 Route::post('/connect/sync', [ConnectController::class, 'sync'])->name('connect.sync');
                 Route::post('/connect/dashboard', [ConnectController::class, 'dashboard'])->name('connect.dashboard');
+
+                // «Come vuoi ricevere i soldi?»: scelta guidata (con le guide) quando si inizia a vendere.
+                Route::get('/payout-setup', [PayoutSetupController::class, 'show'])->name('payout.setup');
+                Route::post('/payout-setup/interest', [PayoutSetupController::class, 'interest'])->name('payout.interest');
 
                 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 

@@ -77,7 +77,7 @@
     @include('hub-payments::admin.services._connect-card', ['tenant' => $tenant])
 
     @if ($kind['route'] === 'services')
-    <div class="card" style="background:#fafafa;margin-bottom:24px;padding:20px">
+    <div class="card" id="stripe-keys" style="background:#fafafa;margin-bottom:24px;padding:20px">
         <h2 style="margin:0 0 12px;font-size:1.1rem">Stripe del salone (vendite dirette sul tuo sito)</h2>
         @if ($stripeConfigured)
             <p style="margin:0 0 12px;color:#2e7d32">✓ Collegato — chiave: <code>{{ $stripeMasked }}</code></p>

@@ -89,7 +89,7 @@ class CreationWizardTest extends TestCase
         $user = $this->owner($tenant);
 
         $this->actingAs($user)->get(route('admin.wizard.show', [$tenant, 'product']))
-            ->assertRedirect(route('admin.services.index', $tenant))->assertSessionHasErrors('stripe');
+            ->assertRedirect(route('admin.payout.setup', $tenant))->assertSessionHas('status');
         $this->actingAs($user)->get(route('admin.wizard.show', [$tenant, 'promo']))->assertOk();
     }
 
