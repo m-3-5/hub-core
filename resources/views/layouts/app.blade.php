@@ -144,6 +144,19 @@
     @if (session('success'))
         <div class="alert">{{ session('success') }}</div>
     @endif
+    @isset($tenant)
+        @if ($tenant->trialExpired())
+            <div class="alert" style="background:#fff3e0;color:#e65100">
+                La settimana gratuita di {{ $tenant->name }} è finita —
+                <a href="{{ route('admin.billing.show', $tenant) }}" style="color:inherit;font-weight:700">attiva con {{ config('services.hub_billing.launch_offer_price_eur') }} € per continuare</a>.
+            </div>
+        @elseif ($tenant->onTrial() && $tenant->trialDaysRemaining() <= 7)
+            <div class="alert" style="background:#eef2ff;color:#3730a3">
+                Settimana gratuita: ancora {{ $tenant->trialDaysRemaining() }} {{ $tenant->trialDaysRemaining() === 1 ? 'giorno' : 'giorni' }} —
+                poi basta {{ config('services.hub_billing.launch_offer_price_eur') }} € per continuare. <a href="{{ route('admin.billing.show', $tenant) }}" style="color:inherit;font-weight:700">Attiva ora</a>.
+            </div>
+        @endif
+    @endisset
     @yield('content')
 </div>
 @include('layouts.partials.bottom-nav')

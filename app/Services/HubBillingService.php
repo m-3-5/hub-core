@@ -46,7 +46,7 @@ class HubBillingService
      *
      * @return array{id: string, url: string}
      */
-    public function createLaunchOfferCheckoutSession(Tenant $tenant, string $module): array
+    public function createLaunchOfferCheckoutSession(Tenant $tenant, string $module, bool $existingAccount = false): array
     {
         $recurringPriceId = $this->resolvePriceId('month');
         $launchPriceId = $this->resolveLaunchOfferPriceId();
@@ -66,13 +66,15 @@ class HubBillingService
             'line_items[1][quantity]' => 1,
             'subscription_data[trial_period_days]' => (string) config('services.hub_billing.trial_days', 30),
             'subscription_data[metadata][tenant_id]' => (string) $tenant->id,
-            'success_url' => route('welcome').'?checkout=success',
-            'cancel_url' => route('welcome').'?checkout=cancelled',
+            // Cliente già dentro (paga dopo la prima settimana): torna alla sua pagina abbonamento, non alla home.
+            'success_url' => $existingAccount ? route('admin.billing.show', $tenant).'?checkout=success' : route('welcome').'?checkout=success',
+            'cancel_url' => $existingAccount ? route('admin.billing.show', $tenant).'?checkout=cancelled' : route('welcome').'?checkout=cancelled',
             'client_reference_id' => (string) $tenant->id,
             'metadata[tenant_id]' => (string) $tenant->id,
             'metadata[interval]' => 'month',
             'metadata[first_module]' => $module,
             'metadata[launch_offer]' => '1',
+            'metadata[existing_account]' => $existingAccount ? '1' : '0',
         ]);
     }
 

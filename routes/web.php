@@ -147,6 +147,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/tenants/{tenant}/billing', [BillingController::class, 'show'])->name('billing.show');
         Route::post('/tenants/{tenant}/billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');
+        Route::post('/tenants/{tenant}/billing/launch', [BillingController::class, 'launchCheckout'])->name('billing.launch');
         Route::post('/tenants/{tenant}/billing/modules/{module}/toggle', [BillingController::class, 'toggleModule'])->name('billing.modules.toggle');
 
         Route::get('/tenants/{tenant}/module-billing', [ModuleBillingController::class, 'show'])->name('module-billing.show');

@@ -1,6 +1,7 @@
 {{-- Max: chat aperta in basso a destra per chi visita inm35.it (anche non registrato). Richiede --accent e --muted. --}}
 <style>
-    .pmax-fab { position: fixed; right: 16px; bottom: calc(18px + env(safe-area-inset-bottom)); width: 60px; border: 0; background: none; padding: 0; cursor: pointer; z-index: 80; filter: drop-shadow(0 10px 22px rgba(15, 23, 42, .3)); }
+    :root { --pmax-lift: {{ (int) ($lift ?? 0) }}px; }
+    .pmax-fab { position: fixed; right: 16px; bottom: calc(18px + var(--pmax-lift) + env(safe-area-inset-bottom)); width: 60px; border: 0; background: none; padding: 0; cursor: pointer; z-index: 80; filter: drop-shadow(0 10px 22px rgba(15, 23, 42, .3)); }
     .pmax-fab .pmax-dot { position: absolute; top: -2px; right: -2px; width: 16px; height: 16px; border-radius: 50%; background: #ef4444; border: 2px solid #fff; }
     .max-mascot-body { animation: max-bounce 2.6s ease-in-out infinite; transform-origin: center; }
     @keyframes max-bounce { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-6px) rotate(-2.5deg); } }
@@ -8,7 +9,7 @@
     @keyframes max-mascot-blink { 0%, 90%, 100% { transform: scaleY(1); } 93% { transform: scaleY(.08); } }
     @media (prefers-reduced-motion: reduce) { .max-mascot-body, .max-mascot-lid { animation: none !important; } }
 
-    .pmax-panel { position: fixed; right: 16px; bottom: calc(92px + env(safe-area-inset-bottom)); width: min(370px, calc(100vw - 24px)); height: min(560px, calc(100dvh - 120px)); background: #fff; border-radius: 22px; box-shadow: 0 24px 70px rgba(15, 23, 42, .3); z-index: 81; display: flex; flex-direction: column; overflow: hidden; animation: pmax-in .22s ease; }
+    .pmax-panel { position: fixed; right: 16px; bottom: calc(92px + var(--pmax-lift) + env(safe-area-inset-bottom)); width: min(370px, calc(100vw - 24px)); height: min(560px, calc(100dvh - 120px)); background: #fff; border-radius: 22px; box-shadow: 0 24px 70px rgba(15, 23, 42, .3); z-index: 81; display: flex; flex-direction: column; overflow: hidden; animation: pmax-in .22s ease; }
     .pmax-panel[hidden] { display: none; }
     @keyframes pmax-in { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
     .pmax-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #1e1b4b)); color: #fff; }
@@ -33,7 +34,7 @@
     .pmax-guest { display: flex; flex-direction: column; gap: 8px; align-self: stretch; }
     .pmax-guest input[type=text] { font: inherit; font-size: 1rem; padding: 11px 14px; border: 2px solid #e6e7ee; border-radius: 14px; outline: none; }
     .pmax-guest .pmax-go { border: 0; border-radius: 14px; padding: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
-    @media (max-width: 520px) { .pmax-panel { right: 8px; left: 8px; width: auto; bottom: calc(86px + env(safe-area-inset-bottom)); } }
+    @media (max-width: 520px) { .pmax-panel { right: 8px; left: 8px; width: auto; bottom: calc(86px + var(--pmax-lift) + env(safe-area-inset-bottom)); } }
 </style>
 
 <button type="button" class="pmax-fab" id="pmax-fab" aria-label="Chiedi aiuto a Max">
@@ -178,6 +179,7 @@
 
     let dismissed = false;
     try { dismissed = !!sessionStorage.getItem('pmaxDismissed'); } catch (e) {}
-    if (!dismissed) setTimeout(open, 1500); else $('pmax-dot').hidden = false;
+    const AUTO = @json($autoOpen ?? true);
+    if (!dismissed && AUTO) setTimeout(open, 1500); else $('pmax-dot').hidden = false;
 })();
 </script>

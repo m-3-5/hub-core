@@ -93,6 +93,11 @@ class StripeBillingWebhookController extends Controller
             ]);
         }
 
+        // Chi ha già un account (paga dopo la prima settimana) ha già la sua password: niente email di benvenuto.
+        if (($session['metadata']['existing_account'] ?? '0') === '1') {
+            return;
+        }
+
         $user = $tenant->users()->first();
 
         if ($user) {

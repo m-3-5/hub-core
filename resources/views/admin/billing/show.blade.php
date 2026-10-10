@@ -28,9 +28,10 @@
                 oltre la quota, ogni promo extra è a pagamento (vedi registro sotto).
             </p>
         @elseif ($tenant->onTrial())
-            <p style="margin:0;font-weight:600">Demo gratuita — {{ $tenant->trialDaysRemaining() }} giorni rimasti (scade il {{ $tenant->trial_ends_at->format('d/m/Y') }})</p>
+            <p style="margin:0;font-weight:600">Prima settimana gratis — {{ $tenant->trialDaysRemaining() }} giorni rimasti (fino al {{ $tenant->trial_ends_at->format('d/m/Y') }})</p>
+            <p style="margin:6px 0 0;font-size:.9rem;color:#666">Non devi fare nulla ora. Alla fine ti chiediamo solo l'euro di lancio per continuare.</p>
         @else
-            <p style="margin:0;color:#c62828;font-weight:600">Demo scaduta — abbonati per continuare a usare Hub Core</p>
+            <p style="margin:0;color:#c62828;font-weight:600">La settimana gratuita è finita — attiva con {{ config('services.hub_billing.launch_offer_price_eur') }} € per continuare</p>
         @endif
     </div>
 
@@ -39,6 +40,15 @@
     @elseif (! $configured)
         <p style="color:#666">La fatturazione non è ancora attiva — contatta il team Hub Core.</p>
     @elseif (! $tenant->hasActiveSubscription())
+        <div style="background:linear-gradient(135deg,#eef2ff,#fdf2f8);border:2px solid #c7d2fe;border-radius:16px;padding:20px;margin-bottom:18px">
+            <strong style="font-size:1.1rem">🎉 Offerta di lancio: attiva con {{ config('services.hub_billing.launch_offer_price_eur') }} €</strong>
+            <p style="margin:6px 0 14px;color:#444;font-size:.92rem">Paghi {{ config('services.hub_billing.launch_offer_price_eur') }} € adesso (copre anche l'attivazione del tuo primo modulo). Poi hai {{ config('services.hub_billing.trial_days') }} giorni di prova e solo dopo parte il canone di {{ $monthlyPrice }} €/mese. Disdici quando vuoi.</p>
+            <form method="POST" action="{{ route('admin.billing.launch', $tenant) }}">
+                @csrf
+                <button type="submit" class="btn" style="width:100%;border:0;cursor:pointer;font-size:1.05rem;padding:14px">Attiva con {{ config('services.hub_billing.launch_offer_price_eur') }} €</button>
+            </form>
+        </div>
+        <p style="margin:0 0 10px;color:#666;font-size:.88rem">Oppure scegli direttamente il canone:</p>
         <div style="display:grid;gap:12px;grid-template-columns:1fr 1fr">
             <form method="POST" action="{{ route('admin.billing.checkout', $tenant) }}">
                 @csrf

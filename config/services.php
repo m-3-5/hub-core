@@ -63,10 +63,12 @@ return [
         'secret_key' => env('HUB_STRIPE_SECRET_KEY'),
         'api_base' => env('HUB_STRIPE_API_BASE', 'https://api.stripe.com'),
         'webhook_secret' => env('HUB_STRIPE_WEBHOOK_SECRET'),
+        // Prima settimana gratis, senza pagare nulla: dopo si chiede l'euro di lancio (poi trial_days di prova prima del canone).
+        'free_days' => (int) env('HUB_FREE_DAYS', 7),
         'trial_days' => (int) env('HUB_TRIAL_DAYS', 30),
         'monthly_price_eur' => (int) env('HUB_MONTHLY_PRICE_EUR', 29),
         'annual_price_eur' => (int) env('HUB_ANNUAL_PRICE_EUR', 290),
-        // Offerta di lancio per i nuovi clienti azienda/ente: 1€ invece della prova gratuita,
+        // Offerta di lancio per i clienti azienda/ente: 1€ chiesto DOPO la prima settimana gratuita (free_days),
         // copre anche l'attivazione del primo modulo scelto (Promo o Servizi). I privati
         // restano sempre gratis (subscription_status=free), non toccati da questa offerta.
         'launch_offer_price_eur' => (int) env('HUB_LAUNCH_OFFER_PRICE_EUR', 1),

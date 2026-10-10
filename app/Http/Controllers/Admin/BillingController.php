@@ -69,6 +69,27 @@ class BillingController extends Controller
             ->all();
     }
 
+    /** Offerta di lancio per chi ha finito la prima settimana (o la anticipa): 1 € ora, poi prova e canone. */
+    public function launchCheckout(Tenant $tenant): RedirectResponse
+    {
+        $secretKey = config('services.hub_billing.secret_key');
+
+        if (! $secretKey) {
+            return back()->withErrors(['billing' => 'Fatturazione hub non ancora configurata.']);
+        }
+
+        abort_if($tenant->isFreeTier() || $tenant->hasActiveSubscription(), 404);
+
+        try {
+            $session = (new HubBillingService($secretKey))
+                ->createLaunchOfferCheckoutSession($tenant, $tenant->settings['first_module'] ?? 'promo', existingAccount: true);
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['billing' => $e->getMessage()]);
+        }
+
+        return redirect()->away($session['url']);
+    }
+
     public function checkout(Request $request, Tenant $tenant): RedirectResponse
     {
         $validated = $request->validate([

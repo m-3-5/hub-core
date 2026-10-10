@@ -374,7 +374,7 @@
 <section class="register" id="registrazione">
     <div class="register-card">
         <h2>Registrati su Hub Core</h2>
-        <p>Privato: sempre gratis. Azienda/Ente: attiva con <strong>€{{ config('services.hub_billing.launch_offer_price_eur', 1) }}</strong> invece della solita prova — copre anche l'attivazione del primo modulo che scegli. Poi €{{ config('services.hub_billing.monthly_price_eur', 29) }}/mese, disdici quando vuoi.</p>
+        <p>Privato: sempre gratis. Azienda/Ente: <strong>{{ config('services.hub_billing.free_days', 7) }} giorni gratis</strong>, senza carta; dopo la prima settimana basta <strong>€{{ config('services.hub_billing.launch_offer_price_eur', 1) }}</strong> (copre anche l'attivazione del primo modulo). Poi €{{ config('services.hub_billing.monthly_price_eur', 29) }}/mese, disdici quando vuoi.</p>
 
         @error('registration')
             <p style="background:#fdecea;color:#c62828;padding:12px 16px;border-radius:12px;margin-bottom:20px">{{ $message }}</p>

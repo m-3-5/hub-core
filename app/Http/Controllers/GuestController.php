@@ -27,8 +27,9 @@ class GuestController extends Controller
             'slug' => $this->uniqueTenantSlug($validated['company_name']),
             'plan' => 'demo',
             'subscription_status' => $validated['type'] === 'privato' ? 'free' : 'trialing',
-            'trial_ends_at' => $validated['type'] === 'privato' ? null : now()->addDays(config('services.hub_billing.trial_days', 30)),
+            'trial_ends_at' => $validated['type'] === 'privato' ? null : now()->addDays(config('services.hub_billing.free_days', 7)),
             'guest_verified_at' => null,
+            'settings' => $validated['type'] === 'privato' ? null : ['free_week' => true],
         ]);
 
         $user = User::create([

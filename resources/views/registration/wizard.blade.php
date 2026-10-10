@@ -190,7 +190,7 @@
         $('sub-review').textContent = 'Ti mando un\'email: un clic e il tuo spazio è attivo.';
         $('note-offer').textContent = state.type === 'privato'
             ? 'Per i privati Hub Core è sempre gratis.'
-            : `Offerta di lancio: ${OFFER} € invece della prova gratuita (copre anche l'attivazione del primo modulo). Poi ${MONTHLY} €/mese, disdici quando vuoi.`;
+            : `La prima settimana è gratis, senza carta. Dopo, per continuare, basta ${OFFER} € (offerta di lancio, copre anche il primo modulo); il canone da ${MONTHLY} €/mese parte solo dopo altri giorni di prova. Se non attivi, non succede niente.`;
     }
 
     function next() {

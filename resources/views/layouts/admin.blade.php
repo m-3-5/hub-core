@@ -94,13 +94,13 @@
     @isset($tenant)
         @if ($tenant->trialExpired())
             <div class="alert alert-warning">
-                La demo gratuita di {{ $tenant->name }} è scaduta —
-                <a href="{{ route('admin.billing.show', $tenant) }}">abbonati per continuare</a>.
+                La settimana gratuita di {{ $tenant->name }} è finita —
+                <a href="{{ route('admin.billing.show', $tenant) }}">attiva con {{ config('services.hub_billing.launch_offer_price_eur') }} € per continuare</a>.
             </div>
         @elseif ($tenant->onTrial() && $tenant->trialDaysRemaining() <= 7)
             <div class="alert alert-warning">
-                Demo gratuita in scadenza tra {{ $tenant->trialDaysRemaining() }} giorni —
-                <a href="{{ route('admin.billing.show', $tenant) }}">abbonati ora</a>.
+                Settimana gratuita: ancora {{ $tenant->trialDaysRemaining() }} {{ $tenant->trialDaysRemaining() === 1 ? 'giorno' : 'giorni' }} —
+                poi basta {{ config('services.hub_billing.launch_offer_price_eur') }} € per continuare. <a href="{{ route('admin.billing.show', $tenant) }}">Attiva ora</a>.
             </div>
         @endif
     @endisset

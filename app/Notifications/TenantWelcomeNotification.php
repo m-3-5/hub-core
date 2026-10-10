@@ -41,10 +41,13 @@ class TenantWelcomeNotification extends Notification
                 ->line('Il tuo abbonamento è già attivo con '.$included.' servizi a pagamento inclusi (link Stripe per i tuoi trattamenti/prodotti, pubblicabili sul tuo sito in automatico), e l\'attivazione del tuo primo modulo è coperta dall\'offerta.')
                 ->line('Il primo addebito pieno (**€'.$monthlyPrice.'/mese**) partirà tra **'.$trialDays.' giorni** — fino ad allora usi tutto normalmente.');
         } else {
-            $mail->subject('Benvenuto su Hub Core — la tua demo gratuita è pronta')
+            $launch = config('services.hub_billing.launch_offer_price_eur', 1);
+            $freeDays = config('services.hub_billing.free_days', 7);
+
+            $mail->subject('Benvenuto su Hub Core — la tua prima settimana è gratis')
                 ->line('Grazie per aver registrato **'.$this->tenant->name.'** su Hub Core.')
-                ->line('Hai subito a disposizione una **demo gratuita** con '.$included.' servizi a pagamento inclusi (link Stripe per i tuoi trattamenti/prodotti, pubblicabili sul tuo sito in automatico)'.($trialEnds ? ', valida fino al **'.$trialEnds.'**' : '').'.')
-                ->line('Dopo la demo, per continuare basta un canone di **€'.$monthlyPrice.'/mese** oppure **€'.$annualPrice.'/anno** (risparmi rispetto al mensile) — nessuna carta richiesta ora.');
+                ->line('Hai subito a disposizione **'.$freeDays.' giorni gratis**'.($trialEnds ? ' (fino al **'.$trialEnds.'**)' : '').', con '.$included.' servizi a pagamento inclusi (link Stripe per i tuoi trattamenti/prodotti, pubblicabili sul tuo sito in automatico). Non paghi nulla ora e non serve la carta.')
+                ->line('Dopo la prima settimana, per continuare, ti chiediamo solo l\'offerta di lancio da **€'.$launch.'** (copre anche l\'attivazione del primo modulo). Poi altri '.config('services.hub_billing.trial_days', 30).' giorni di prova e solo dopo il canone: **€'.$monthlyPrice.'/mese** oppure **€'.$annualPrice.'/anno**. Disdici quando vuoi.');
         }
 
         return $mail

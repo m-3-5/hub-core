@@ -102,29 +102,13 @@ class RegistrationController extends Controller
         $tenant->users()->attach($user->id, ['role' => 'admin']);
 
         if (! $isPrivato) {
-            $secretKey = config('services.hub_billing.secret_key');
-
-            if ($secretKey) {
-                try {
-                    $session = (new HubBillingService($secretKey))
-                        ->createLaunchOfferCheckoutSession($tenant, $pending->first_module ?? 'promo');
-
-                    $pending->delete();
-
-                    return redirect()->away($session['url']);
-                } catch (Throwable $e) {
-                    Log::warning('Offerta di lancio non disponibile, ripiego sulla prova gratuita', [
-                        'tenant_id' => $tenant->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }
-
-            // Stripe non configurato o non raggiungibile: non blocchiamo la registrazione,
-            // ripieghiamo sulla prova gratuita di 30 giorni come prima di questa offerta.
+            // Prima settimana gratis, senza pagare nulla: se non attivano subito non succede niente.
+            // L'euro di lancio si chiede dopo la settimana (email + avviso nell'app, vedi hub:launch-offer-reminders).
             $tenant->update([
                 'subscription_status' => 'trialing',
-                'trial_ends_at' => now()->addDays(config('services.hub_billing.trial_days', 30)),
+                'trial_ends_at' => now()->addDays(config('services.hub_billing.free_days', 7)),
+                // Solo chi si registra con la settimana gratuita riceve il promemoria dell'euro di lancio.
+                'settings' => array_merge($tenant->settings ?? [], ['free_week' => true]),
             ]);
         }
 
