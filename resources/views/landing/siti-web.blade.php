@@ -40,6 +40,7 @@
                 'areaServed' => collect($zones)->map(fn ($z) => ['@type' => 'Place', 'name' => $z])->values()->all(),
                 'priceRange' => '€'.$minPrice.' - €'.$plans->max('price'),
                 'telephone' => $phone,
+                'sameAs' => config('landing.facebook_group.url') ? [config('landing.facebook_group.url')] : null,
                 'hasOfferCatalog' => [
                     '@type' => 'OfferCatalog',
                     'name' => 'Siti web',
@@ -321,6 +322,20 @@
         </div>
     </section>
 
+    @if (config('landing.facebook_group.url'))
+    <section>
+        <div class="wrap">
+            <div class="custom" style="background:#eef3ff;margin-top:0">
+                <div>
+                    <b>👥 {{ config('landing.facebook_group.name') }}</b><br>
+                    <span style="color:var(--muted)">Entra nella community: novità, consigli per far crescere la tua attività online e opportunità per chi è di zona.</span>
+                </div>
+                <a class="btn btn-ghost btn-sm" href="{{ config('landing.facebook_group.url') }}" target="_blank" rel="noopener">Entra nel gruppo</a>
+            </div>
+        </div>
+    </section>
+    @endif
+
     <section class="contact" id="contatti">
         <div class="wrap">
             <span class="eyebrow" style="color:#ff8ecb">Preventivo gratuito</span>
@@ -399,6 +414,7 @@
 <footer>
     <div class="wrap">
         M 3.5 S.R.L. · {{ $place }}, {{ $city }} (CS)<br>
+        @if (config('landing.facebook_group.url'))<a href="{{ config('landing.facebook_group.url') }}" target="_blank" rel="noopener">Gruppo Facebook</a> · @endif
         <a href="{{ route('welcome') }}">Hub Core</a> · <a href="{{ route('pricing.show') }}">Prezzi Hub</a> · <a href="{{ route('promo.hub-archive') }}">Promozioni</a>
     </div>
 </footer>

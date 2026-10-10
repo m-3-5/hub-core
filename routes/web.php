@@ -28,6 +28,7 @@ use App\Http\Controllers\PromoArchiveController;
 use App\Http\Controllers\PromoPublicController;
 use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\LandingController;
+use App\Http\Controllers\LlmsController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\WelcomeController;
 use App\Models\Tenant;
@@ -43,6 +44,7 @@ Route::post('/siti-web-corigliano-rossano/richiesta', [LandingController::class,
     ->middleware('throttle:6,10')
     ->name('landing.web.lead');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+Route::get('/llms.txt', LlmsController::class)->name('llms');
 
 Route::post('/registrati', [RegistrationController::class, 'store'])
     ->middleware('throttle:5,10')

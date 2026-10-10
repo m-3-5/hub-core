@@ -43,6 +43,9 @@
         .promo-card--expired .promo-card__cta { background: #94a3b8; }
         .empty { color: var(--muted); font-size: .95rem; }
     </style>
+    @isset($jsonLd)
+    <script type="application/ld+json">{!! $jsonLd !!}</script>
+    @endisset
 </head>
 <body>
 <div class="wrap">

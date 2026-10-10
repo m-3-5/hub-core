@@ -29,6 +29,9 @@
         .section-title { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 1.6rem; margin: 8px 0 4px; }
         .empty { color: var(--muted); font-size: .95rem; }
     </style>
+    @isset($jsonLd)
+    <script type="application/ld+json">{!! $jsonLd !!}</script>
+    @endisset
 </head>
 <body>
 <div class="wrap">

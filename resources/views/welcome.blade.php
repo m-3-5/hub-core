@@ -313,6 +313,9 @@
             color: #fff; font-weight: 700; cursor: pointer; font-size: .95rem;
         }
     </style>
+    @isset($jsonLd)
+    <script type="application/ld+json">{!! $jsonLd !!}</script>
+    @endisset
 </head>
 <body>
 @if (request('checkout') === 'success')
@@ -493,6 +496,10 @@
     <a href="{{ route('pricing.show') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Vedi i prezzi</a>
     ·
     <a href="{{ route('landing.web') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Siti web e app a Corigliano-Rossano</a>
+    @if (config('landing.facebook_group.url'))
+    ·
+    <a href="{{ config('landing.facebook_group.url') }}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-weight:600">{{ config('landing.facebook_group.name') }}</a>
+    @endif
     ·
     <a href="{{ route('promo.hub-archive') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Guarda tutte le promozioni attive →</a>
 </footer>

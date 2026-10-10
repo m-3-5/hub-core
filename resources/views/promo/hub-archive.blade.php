@@ -38,6 +38,9 @@
         .promo-card__cta { display: inline-block; background: var(--primary); color: #fff !important; text-decoration: none; padding: 8px 14px; border-radius: 999px; font-size: .82rem; font-weight: 600; }
         .empty { color: var(--muted); font-size: .95rem; }
     </style>
+    @isset($jsonLd)
+    <script type="application/ld+json">{!! $jsonLd !!}</script>
+    @endisset
 </head>
 <body>
 <div class="wrap">

@@ -14,10 +14,16 @@ return [
 
     // Contatti diretti: se vuoti, i pulsanti «Chiama» e «WhatsApp» non compaiono (resta il modulo).
     'phone' => env('LANDING_PHONE'),          // es. +39 0983 000000
-    'whatsapp' => env('LANDING_WHATSAPP'),    // solo cifre con prefisso, es. 393401234567
+    'whatsapp' => env('LANDING_WHATSAPP', '393487564418'),    // solo cifre con prefisso
 
     // Dove arrivano le richieste (se vuoto: LEADS_MONITOR_EMAIL). Le richieste restano comunque salvate in Dashboard → Richieste sito.
     'leads_email' => env('LANDING_LEADS_EMAIL'),
+
+    // Gruppo Facebook della community (il nome si cambia qui o con LANDING_FB_GROUP_NAME quando verrà rinominato).
+    'facebook_group' => [
+        'url' => env('LANDING_FB_GROUP_URL', 'https://www.facebook.com/groups/1851508502319600'),
+        'name' => env('LANDING_FB_GROUP_NAME', 'Il nostro gruppo Facebook'),
+    ],
 
     'city' => 'Corigliano-Rossano',
     'place' => 'Fabrizio',

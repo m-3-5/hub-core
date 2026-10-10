@@ -48,6 +48,9 @@
         .err { color: #c62828; font-size: .85rem; margin: -6px 0 8px; }
         .sticky { position: sticky; top: 16px; }
     </style>
+    @isset($jsonLd)
+    <script type="application/ld+json">{!! $jsonLd !!}</script>
+    @endisset
 </head>
 <body>
 <div class="nav"><a href="{{ route('classifieds.tenant-board', $tenant) }}">← Tutti gli annunci di {{ $tenant->name }}</a></div>

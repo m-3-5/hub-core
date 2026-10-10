@@ -38,6 +38,9 @@
         .pager nav svg { height: 18px; }
         .pager a, .pager span { padding: 6px 10px; }
     </style>
+    @isset($jsonLd)
+    <script type="application/ld+json">{!! $jsonLd !!}</script>
+    @endisset
 </head>
 <body>
 <div class="top">
