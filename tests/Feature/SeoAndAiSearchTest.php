@@ -106,6 +106,19 @@ class SeoAndAiSearchTest extends TestCase
         $this->get('/')->assertSee('facebook.com/groups/1851508502319600', false);
     }
 
+    public function test_indexnow_key_is_published_and_submission_lists_public_pages(): void
+    {
+        $key = $this->get('/indexnow-key.txt')->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/^[a-f0-9]{32}$/', $key);
+
+        \Illuminate\Support\Facades\Http::fake(['api.indexnow.org/*' => \Illuminate\Support\Facades\Http::response('', 202)]);
+        $this->artisan('hub:indexnow')->assertSuccessful();
+
+        \Illuminate\Support\Facades\Http::assertSent(fn ($request) => $request['key'] === $key
+            && $request['keyLocation'] === route('indexnow.key')
+            && in_array(route('landing.web'), $request['urlList'], true));
+    }
+
     public function test_group_name_can_be_changed_without_touching_code(): void
     {
         config(['landing.facebook_group.name' => 'Community Sibaritide']);

@@ -45,6 +45,7 @@ Route::post('/siti-web-corigliano-rossano/richiesta', [LandingController::class,
     ->name('landing.web.lead');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/llms.txt', LlmsController::class)->name('llms');
+Route::get('/indexnow-key.txt', fn () => response(\App\Console\Commands\IndexNowSubmit::key(), 200, ['Content-Type' => 'text/plain; charset=UTF-8']))->name('indexnow.key');
 
 Route::post('/registrati', [RegistrationController::class, 'store'])
     ->middleware('throttle:5,10')
