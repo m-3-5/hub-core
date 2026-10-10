@@ -31,12 +31,12 @@
         label { display: block; margin-bottom: 6px; font-weight: 600; }
         input[type=file], input[type=password] { width: 100%; margin-bottom: 16px; }
         /* Schede con immagine (promo, annunci…): più foto che testo, X per eliminare e matita per modificare */
-        .mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; margin: 0 0 26px; }
+        .mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; margin: 0 0 26px; align-items: start; }
         .mcard { position: relative; background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid rgba(0,0,0,.06); box-shadow: 0 6px 20px rgba(0,0,0,.07); display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s; }
         .mcard:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.12); }
         .mcard--muted .mcard__media img { filter: grayscale(.55); opacity: .85; }
-        .mcard__media { position: relative; display: block; aspect-ratio: 4/5; background: linear-gradient(135deg, #fdf2f8, #eef2ff); }
-        .mcard__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .mcard__media { position: relative; display: block; min-height: 160px; background: linear-gradient(135deg, #fdf2f8, #eef2ff); }
+        .mcard__media img { width: 100%; height: auto; display: block; }
         .mcard__ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 2.2rem; color: #b8879e; }
         .mcard__ph small { font-size: .72rem; }
         .mcard__badge { position: absolute; left: 10px; bottom: 10px; font-size: .72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; backdrop-filter: blur(6px); }
@@ -56,7 +56,7 @@
         .mcard__open { font-size: .8rem; color: #e91e8c; text-decoration: none; font-weight: 600; margin-top: 2px; }
         .mcard__action { width: 100%; border: 0; border-radius: 999px; padding: 8px 12px; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; background: #f4f4f8; color: #333; }
         .mcard__action:hover { background: #e9e9f0; }
-        .mcard--new { border: 2px dashed #e91e8c; background: #fff7fb; box-shadow: none; min-height: 220px; }
+        .mcard--new { border: 2px dashed #e91e8c; background: #fff7fb; box-shadow: none; min-height: 220px; align-self: stretch; }
         .mcard--new a { flex: 1; display: grid; place-items: center; align-content: center; color: #e91e8c; text-align: center; font-weight: 700; text-decoration: none; padding: 20px; }
         .mcard--new b { display: block; font-size: 2.6rem; line-height: 1; }
         @media (max-width: 560px) { .mgrid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .mcard__tool { width: 36px; height: 36px; } }
