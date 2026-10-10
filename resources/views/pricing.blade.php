@@ -180,6 +180,15 @@
 
     <p class="iva">Prezzi IVA esclusa (+{{ $modulePricing['iva_percent'] }}%)</p>
 
+    @php $feeEx = \M35\HubPayments\Support\StripeFees::example(); @endphp
+    <div class="group-title">Se vendi: pagamenti protetti e trattenute</div>
+    <div class="journey">
+        <div class="tap"><span class="ico">🛍️</span><div><b>Il cliente paga tramite Hub Core</b><span>I soldi sono al sicuro: chi compra è tutelato e chi vende sa di essere pagato.</span></div></div>
+        <div class="tap"><span class="ico">📦</span><div><b>Dopo la consegna ti arrivano</b><span>Quando il cliente conferma, o dopo <span class="big">7 giorni</span> senza problemi, i soldi vanno sul tuo conto.</span></div></div>
+        <div class="tap"><span class="ico">💶</span><div><b>Trattenute di Stripe</b><span>Stripe trattiene circa <span class="big">{{ \M35\HubPayments\Support\StripeFees::rateLabel() }}</span> su ogni pagamento con carta: è un suo costo, sottratto dall'incasso.</span></div></div>
+    </div>
+    <p class="iva" style="margin-top:10px">Esempio: vendita da {{ $feeEx['amount'] }} € → trattenuta circa {{ $feeEx['fee'] }} € → ricevi circa {{ $feeEx['net'] }} €. Le tariffe le decide Stripe e possono variare (carte extra-UE, bonifici): ti mostriamo sempre l'importo netto. Puoi sempre vendere anche direttamente sul tuo sito con il tuo conto Stripe.</p>
+
     @if ($comingSoon->isNotEmpty())
         <div class="group-title">In arrivo</div>
         <div class="soon">
@@ -193,6 +202,8 @@
     <details><summary>Devo pagare per registrarmi?</summary><p>No. Ti registri e usi tutto gratis per {{ $free }} giorni, senza carta. Se non attivi nulla, non succede niente e non ti addebitiamo nulla.</p></details>
     <details><summary>Cosa succede dopo la prima settimana?</summary><p>Ti chiediamo l'offerta di lancio da {{ $launch }} € per continuare. Ti avvisiamo con una email e nell'app: decidi tu quando.</p></details>
     <details><summary>Quando parte il canone da {{ $monthly }} €?</summary><p>Solo dopo altri {{ $trial }} giorni di prova dall'attivazione. Puoi disdire in qualsiasi momento.</p></details>
+    <details><summary>Quanto mi trattiene Stripe quando vendo?</summary><p>Su ogni pagamento con carta Stripe applica una commissione, indicativamente {{ \M35\HubPayments\Support\StripeFees::rateLabel() }} (di più per carte extra-UE). È un costo di Stripe e viene sottratto dall'incasso: nel pannello vedi sempre quanto ricevi netto.</p></details>
+    <details><summary>Posso vendere anche direttamente, senza Hub Core?</summary><p>Sì. Sul tuo sito puoi continuare a incassare con il tuo conto Stripe. I pagamenti protetti valgono per le vendite fatte tramite inm35.it, dove chi compra e chi vende sono tutelati.</p></details>
     <details><summary>Sono un privato: pago qualcosa?</summary><p>No, i privati usano Hub Core sempre gratis. Le funzioni extra oltre la quota mensile si pagano solo se le usi.</p></details>
 </div>
 

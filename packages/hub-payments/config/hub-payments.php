@@ -13,6 +13,12 @@ return [
     // Solo per prove in locale con un finto Stripe: in produzione resta l'indirizzo ufficiale.
     'stripe_api_base' => env('HUB_PAYMENTS_STRIPE_API_BASE', 'https://api.stripe.com'),
 
+    // Trattenute di Stripe sulle carte (indicative, per spiegarle ai venditori: le tariffe vere le applica Stripe).
+    'fees' => [
+        'card_percent' => (float) env('HUB_STRIPE_FEE_PERCENT', 1.5),
+        'card_fixed_cents' => (int) env('HUB_STRIPE_FEE_FIXED_CENTS', 25),
+    ],
+
     'types' => [
         'service' => 'Servizio',
         'promo' => 'Promo a pagamento',

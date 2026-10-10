@@ -6,6 +6,7 @@ use App\Models\Tenant;
 use Illuminate\Support\Facades\Route;
 use M35\HubPayments\Http\Controllers\Admin\ServiceController;
 use M35\HubPayments\Http\Controllers\Admin\CommissionAdminController;
+use M35\HubPayments\Http\Controllers\Admin\ConnectController;
 use M35\HubPayments\Http\Controllers\Admin\OrderController;
 use M35\HubPayments\Http\Controllers\Admin\QuoteController;
 use M35\HubPayments\Http\Controllers\Admin\StripePaymentLinksController;
@@ -76,6 +77,13 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 Route::get('/payment-links', [StripePaymentLinksController::class, 'index'])->name('services.payment-links');
                 Route::post('/payment-links/{link}/deactivate', [StripePaymentLinksController::class, 'deactivate'])->name('services.payment-links.deactivate');
                 Route::post('/payment-links/{link}/import', [StripePaymentLinksController::class, 'import'])->name('services.payment-links.import');
+
+                // Pagamenti protetti (Stripe Connect): il venditore si collega per ricevere i soldi delle vendite sul canale hub.
+                Route::post('/connect/start', [ConnectController::class, 'start'])->name('connect.start');
+                Route::get('/connect/refresh', [ConnectController::class, 'refresh'])->name('connect.refresh');
+                Route::get('/connect/return', [ConnectController::class, 'return'])->name('connect.return');
+                Route::post('/connect/sync', [ConnectController::class, 'sync'])->name('connect.sync');
+                Route::post('/connect/dashboard', [ConnectController::class, 'dashboard'])->name('connect.dashboard');
 
                 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 
