@@ -7,8 +7,7 @@
     <title>Hub Core — La tua attività online, semplice</title>
     <meta name="description" content="Promo, servizi, negozio, agenda, affitti e sito web in un'unica app. Per aziende, privati ed enti — provalo gratis, nessuna carta richiesta.">
     <link rel="canonical" href="{{ url('/') }}">
-    <link rel="icon" href="{{ asset('images/icon-192.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('images/icon-192.png') }}">
+    @include('layouts.partials.favicon')
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Hub Core">
     <meta property="og:title" content="Hub Core — Tutto per la tua attività, in un'unica app">

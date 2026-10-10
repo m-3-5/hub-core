@@ -7,8 +7,7 @@
     <meta name="theme-color" content="#1a1a2e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/images/icon-192.png">
-    <link rel="icon" href="/images/icon-192.png">
+    @include('layouts.partials.favicon')
     <title>@yield('title', 'Hub Core Admin')</title>
     <style>
         * { box-sizing: border-box; }

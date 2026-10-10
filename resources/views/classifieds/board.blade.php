@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @php($brand = $tenant?->primary_color ?: '#4f46e5')
     <title>{{ $tenant ? 'Annunci — '.$tenant->name : 'Annunci immobili' }}</title>
+    @include('layouts.partials.favicon')
     <meta name="description" content="Affitti, case vacanza e vendita immobili{{ $tenant ? ' di '.$tenant->name : '' }}.">
     <link rel="canonical" href="{{ $tenant ? route('classifieds.tenant-board', $tenant) : route('classifieds.board') }}">
     <meta property="og:type" content="website">

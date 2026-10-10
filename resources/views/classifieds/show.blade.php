@@ -10,6 +10,7 @@
         $phoneDigits = preg_replace('/\D+/', '', (string) $ad->contact_phone);
     @endphp
     <title>{{ $ad->title }} — {{ $ad->zone }}</title>
+    @include('layouts.partials.favicon')
     <meta name="description" content="{{ \Illuminate\Support\Str::limit(strip_tags($ad->description), 155) }}">
     <link rel="canonical" href="{{ $ad->publicUrl() }}">
     <meta name="theme-color" content="{{ $brand }}">

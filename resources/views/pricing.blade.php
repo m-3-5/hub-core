@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Prezzi — Hub Core</title>
+    @include('layouts.partials.favicon')
     <meta name="description" content="Listino prezzi di Hub Core: abbonamento, moduli attivi ed extra.">
     <link rel="canonical" href="{{ route('pricing.show') }}">
     <meta property="og:type" content="website">

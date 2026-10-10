@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tutte le promozioni — Hub Core</title>
+    @include('layouts.partials.favicon')
     <meta name="description" content="Le promozioni attive di tutte le attività su Hub Core.">
     <meta name="theme-color" content="#e91e8c">
     <link rel="canonical" href="{{ route('promo.hub-archive') }}">

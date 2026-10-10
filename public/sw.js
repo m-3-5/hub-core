@@ -2,7 +2,7 @@
 // Non mette in cache pagine o dati dinamici — questa è un'app gestionale,
 // mostrare dati vecchi (pagamenti, stato promo, ecc.) sarebbe peggio che
 // non funzionare offline. Aggiorna solo gli asset statici di base.
-const CACHE_NAME = 'hub-core-shell-v1';
+const CACHE_NAME = 'hub-core-shell-v2';
 const STATIC_ASSETS = [
     '/images/icon-192.png',
     '/images/icon-512.png',

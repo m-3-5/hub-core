@@ -24,7 +24,7 @@
     <meta name="twitter:card" content="summary">
     <meta name="geo.region" content="IT-CS">
     <meta name="geo.placename" content="{{ $city }}">
-    <link rel="icon" href="/images/icon-192.png">
+    @include('layouts.partials.favicon')
 
     <script type="application/ld+json">
     {!! json_encode([

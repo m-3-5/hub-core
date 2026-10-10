@@ -9,8 +9,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Hub Core">
     <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/images/icon-192.png">
-    <link rel="icon" href="/images/icon-192.png">
+    @include('layouts.partials.favicon')
     <title>@yield('title', 'Hub') — {{ $tenant->name ?? 'Hub Core' }}</title>
     <style>
         :root {
