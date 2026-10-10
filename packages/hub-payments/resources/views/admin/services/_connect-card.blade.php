@@ -24,8 +24,9 @@
             @if (! $connectAvailable)
                 <span style="color:#888;font-size:.85rem">Non ancora attivi sul sistema.</span>
             @else
-                <form method="POST" action="{{ route('admin.connect.start', $tenant) }}">
+                <form method="POST" action="{{ route('admin.connect.start', $tenant) }}" style="display:grid;gap:8px">
                     @csrf
+                    @include('hub-payments::admin.partials.seller-terms', ['tenant' => $tenant])
                     <button type="submit" class="btn" style="width:100%;border:0;cursor:pointer">
                         {{ $connectState === 'none' ? 'Collega i pagamenti protetti' : ($connectState === 'incomplete' ? 'Completa i dati' : 'Modifica i dati di pagamento') }}
                     </button>

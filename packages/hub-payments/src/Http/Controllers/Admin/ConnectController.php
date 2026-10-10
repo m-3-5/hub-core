@@ -5,8 +5,10 @@ namespace M35\HubPayments\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use M35\HubPayments\Services\StripeConnectService;
+use M35\HubPayments\Support\SellerTerms;
 use M35\HubPayments\Support\TenantConnect;
 use RuntimeException;
 
@@ -14,10 +16,19 @@ use RuntimeException;
 class ConnectController extends Controller
 {
     /** Crea l'account (se serve) e manda alla procedura guidata di Stripe. */
-    public function start(Tenant $tenant): RedirectResponse
+    public function start(Request $request, Tenant $tenant): RedirectResponse
     {
         if (! StripeConnectService::isAvailable()) {
             return back()->withErrors(['connect' => 'I pagamenti protetti non sono ancora attivi: scrivici e li abilitiamo.']);
+        }
+
+        // Prima di vendere si accettano le condizioni economiche (chi sopporta commissioni, rimborsi e contestazioni).
+        if (! SellerTerms::accepted($tenant)) {
+            if (! $request->boolean('accept_terms')) {
+                return back()->withErrors(['connect' => 'Per collegare i pagamenti protetti devi prima accettare le condizioni economiche.']);
+            }
+
+            SellerTerms::accept($tenant, $request->user(), $request->ip());
         }
 
         $stripe = StripeConnectService::make();
@@ -46,9 +57,9 @@ class ConnectController extends Controller
     }
 
     /** Stripe rimanda qui quando il link è scaduto: ne creiamo uno nuovo senza far ricominciare. */
-    public function refresh(Tenant $tenant): RedirectResponse
+    public function refresh(Request $request, Tenant $tenant): RedirectResponse
     {
-        return $this->start($tenant);
+        return $this->start($request, $tenant);
     }
 
     /** Ritorno dalla procedura guidata: rilegge lo stato dell'account e lo mostra. */

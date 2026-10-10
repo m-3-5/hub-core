@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
+use M35\HubPayments\Support\SellerTerms;
 use M35\HubPayments\Support\TenantConnect;
 use Tests\TestCase;
 
@@ -82,7 +83,7 @@ class StripeConnectOnboardingTest extends TestCase
         [$tenant, $user] = $this->seller();
         $this->fakeStripe();
 
-        $this->actingAs($user)->post(route('admin.connect.start', $tenant))->assertRedirect('https://connect.stripe.com/setup/e/acct_1/xyz');
+        $this->actingAs($user)->post(route('admin.connect.start', $tenant), ['accept_terms' => 1])->assertRedirect('https://connect.stripe.com/setup/e/acct_1/xyz');
 
         $this->assertSame('acct_1', TenantConnect::accountId($tenant->fresh()));
         $this->assertSame('incomplete', TenantConnect::state($tenant->fresh()));
@@ -96,13 +97,63 @@ class StripeConnectOnboardingTest extends TestCase
             && $r['return_url'] === route('admin.connect.return', $tenant) && $r['refresh_url'] === route('admin.connect.refresh', $tenant));
     }
 
+    public function test_the_seller_must_accept_the_economic_terms_before_connecting(): void
+    {
+        [$tenant, $user] = $this->seller();
+        $this->fakeStripe();
+
+        $this->actingAs($user)->get(route('admin.services.index', $tenant))->assertSee('accept_terms', false)->assertSee('sono a carico mio');
+
+        $this->actingAs($user)->post(route('admin.connect.start', $tenant))->assertSessionHasErrors('connect');
+
+        Http::assertNothingSent();
+        $this->assertFalse(SellerTerms::accepted($tenant->fresh()));
+        $this->assertNull(TenantConnect::accountId($tenant->fresh()));
+    }
+
+    public function test_accepting_the_terms_is_recorded_with_version_user_and_date_and_not_asked_again(): void
+    {
+        [$tenant, $user] = $this->seller();
+        $this->fakeStripe();
+
+        $this->actingAs($user)->post(route('admin.connect.start', $tenant), ['accept_terms' => 1])->assertRedirect();
+
+        $saved = $tenant->fresh();
+        $this->assertTrue(SellerTerms::accepted($saved));
+        $this->assertSame($user->id, $saved->settings['seller_terms']['user_id']);
+        $this->assertSame(SellerTerms::VERSION, $saved->settings['seller_terms']['version']);
+        $this->assertNotNull(SellerTerms::acceptedAt($saved));
+        $this->assertDatabaseHas('activity_logs', ['tenant_id' => $tenant->id, 'event' => 'seller_terms_accepted']);
+
+        $this->actingAs($user)->get(route('admin.services.index', $tenant))->assertDontSee('name="accept_terms"', false)->assertSee('Condizioni economiche accettate');
+        $this->actingAs($user)->post(route('admin.connect.start', $tenant))->assertRedirect();
+    }
+
+    public function test_an_older_version_of_the_terms_must_be_accepted_again(): void
+    {
+        [$tenant, $user] = $this->seller();
+        $tenant->forceFill(['settings' => ['seller_terms' => ['version' => '2020-01-01', 'accepted_at' => now()->toIso8601String()]]])->save();
+        $this->fakeStripe();
+
+        $this->assertFalse(SellerTerms::accepted($tenant->fresh()));
+        $this->actingAs($user)->post(route('admin.connect.start', $tenant))->assertSessionHasErrors('connect');
+    }
+
+    public function test_the_economic_terms_say_who_pays_for_refunds_and_chargebacks(): void
+    {
+        $this->get(route('terms.economic'))->assertOk()
+            ->assertSee('Chi sopporta i costi')->assertSee('Tutti i costi generati dalle tue vendite sono a tuo carico')
+            ->assertSee('Rimborsi')->assertSee('Contestazioni con la carta')->assertSee('Recupero delle somme')
+            ->assertSee(SellerTerms::VERSION);
+    }
+
     public function test_starting_again_reuses_the_same_account(): void
     {
         [$tenant, $user] = $this->seller();
         TenantConnect::setAccount($tenant, 'acct_1');
         $this->fakeStripe();
 
-        $this->actingAs($user)->post(route('admin.connect.start', $tenant))->assertRedirect();
+        $this->actingAs($user)->post(route('admin.connect.start', $tenant), ['accept_terms' => 1])->assertRedirect();
 
         Http::assertNotSent(fn (HttpRequest $r) => str_ends_with($r->url(), '/v1/accounts'));
     }
@@ -167,7 +218,7 @@ class StripeConnectOnboardingTest extends TestCase
         [$tenant, $user] = $this->seller();
         Http::fake(['api.stripe.com/*' => Http::response(['error' => ['message' => 'Connect non abilitato']], 400)]);
 
-        $this->actingAs($user)->post(route('admin.connect.start', $tenant))->assertSessionHasErrors('connect');
+        $this->actingAs($user)->post(route('admin.connect.start', $tenant), ['accept_terms' => 1])->assertSessionHasErrors('connect');
 
         $this->assertNull(TenantConnect::accountId($tenant->fresh()));
     }
