@@ -2,6 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="utf-8">
+    <meta name="robots" content="noindex, nofollow">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="{{ $tenant->primary_color ?? '#6366f1' }}">
     <meta name="apple-mobile-web-app-capable" content="yes">

@@ -492,6 +492,8 @@
     Hub Core — piattaforma multiservizi per aziende e privati<br>
     <a href="{{ route('pricing.show') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Vedi i prezzi</a>
     ·
+    <a href="{{ route('landing.web') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Siti web e app a Corigliano-Rossano</a>
+    ·
     <a href="{{ route('promo.hub-archive') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Guarda tutte le promozioni attive →</a>
 </footer>
 

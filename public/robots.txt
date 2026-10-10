@@ -1,2 +1,10 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /app
+Disallow: /auth
+Disallow: /api
+Disallow: /registrati
+Disallow: /ospite
+Disallow: /login
+
+Sitemap: https://inm35.it/sitemap.xml

@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\ClassifiedAdController;
 use App\Http\Controllers\Admin\CustomerTicketController;
 use App\Http\Controllers\ClassifiedPublicController;
 use App\Http\Controllers\MagicLoginController;
+use App\Http\Controllers\Admin\SiteLeadController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Admin\WizardController;
 use App\Http\Controllers\Auth\WordPressBridgeController;
@@ -26,6 +27,8 @@ use App\Http\Controllers\PricingController;
 use App\Http\Controllers\PromoArchiveController;
 use App\Http\Controllers\PromoPublicController;
 use App\Http\Controllers\RegistrationController;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\WelcomeController;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +36,13 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', WelcomeController::class)->name('welcome');
 
 Route::get('/prezzi', [PricingController::class, 'show'])->name('pricing.show');
+
+// Landing «Siti web e app a Corigliano-Rossano» + elenco pagine per Google.
+Route::get('/siti-web-corigliano-rossano', [LandingController::class, 'show'])->name('landing.web');
+Route::post('/siti-web-corigliano-rossano/richiesta', [LandingController::class, 'store'])
+    ->middleware('throttle:6,10')
+    ->name('landing.web.lead');
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::post('/registrati', [RegistrationController::class, 'store'])
     ->middleware('throttle:5,10')
@@ -148,6 +158,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('/tenants/{tenant}/customer-tickets', [CustomerTicketController::class, 'index'])->name('customer-tickets.index');
         Route::post('/tenants/{tenant}/customer-tickets/{customerTicket}/toggle-status', [CustomerTicketController::class, 'toggleStatus'])->name('customer-tickets.toggle-status');
+
+        Route::get('/leads', [SiteLeadController::class, 'index'])->name('leads.index');
+        Route::post('/leads/{lead}/toggle', [SiteLeadController::class, 'toggle'])->name('leads.toggle');
 
         Route::get('/activity', [ActivityLogController::class, 'index'])->name('activity.index');
 

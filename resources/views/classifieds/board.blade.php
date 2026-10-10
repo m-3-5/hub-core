@@ -6,6 +6,11 @@
     @php($brand = $tenant?->primary_color ?: '#4f46e5')
     <title>{{ $tenant ? 'Annunci — '.$tenant->name : 'Annunci immobili' }}</title>
     <meta name="description" content="Affitti, case vacanza e vendita immobili{{ $tenant ? ' di '.$tenant->name : '' }}.">
+    <link rel="canonical" href="{{ $tenant ? route('classifieds.tenant-board', $tenant) : route('classifieds.board') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ $tenant ? 'Annunci — '.$tenant->name : 'Annunci immobili' }}">
+    <meta property="og:description" content="Affitti, case vacanza e vendita immobili{{ $tenant ? ' di '.$tenant->name : '' }}.">
+    <meta property="og:url" content="{{ $tenant ? route('classifieds.tenant-board', $tenant) : route('classifieds.board') }}">
     <meta name="theme-color" content="{{ $brand }}">
     <style>
         :root { --primary: {{ $brand }}; --primary-dark: color-mix(in srgb, var(--primary) 75%, #000); --ink: #1b1b24; --muted: #6b6b7b; --line: #e8e8ef; }

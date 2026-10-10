@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Prezzi — Hub Core</title>
     <meta name="description" content="Listino prezzi di Hub Core: abbonamento, moduli attivi ed extra.">
+    <link rel="canonical" href="{{ route('pricing.show') }}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Prezzi — Hub Core">
+    <meta property="og:description" content="Listino prezzi di Hub Core: abbonamento, moduli attivi ed extra.">
+    <meta property="og:url" content="{{ route('pricing.show') }}">
     <meta name="theme-color" content="#6366f1">
     <style>
         :root { --accent: #6366f1; --accent2: #ec4899; --ink: #15131a; --muted: #767085; --line: #ece9f5; --bg: #f7f6fb; --card: #fff; }
