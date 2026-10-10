@@ -50,6 +50,11 @@ Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/llms.txt', LlmsController::class)->name('llms');
 Route::get('/indexnow-key.txt', fn () => response(\App\Console\Commands\IndexNowSubmit::key(), 200, ['Content-Type' => 'text/plain; charset=UTF-8']))->name('indexnow.key');
 
+Route::post('/max/chat', [\App\Http\Controllers\MaxChatController::class, 'ask'])
+    ->middleware('throttle:20,1')
+    ->name('max.chat');
+
+Route::get('/registrati', [RegistrationController::class, 'create'])->name('registration.create');
 Route::post('/registrati', [RegistrationController::class, 'store'])
     ->middleware('throttle:5,10')
     ->name('registration.store');

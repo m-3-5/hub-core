@@ -276,49 +276,15 @@
         .how-step h3 { margin: 2px 0 4px; font-size: .95rem; }
         .how-step p { margin: 0; color: var(--muted); font-size: .85rem; line-height: 1.45; }
 
-        .gmax-overlay {
-            position: fixed; inset: 0; background: rgba(15,23,42,.5);
-            display: flex; align-items: center; justify-content: center;
-            padding: 20px; z-index: 80;
-        }
-        .gmax-overlay[hidden] { display: none; }
-        .gmax-card {
-            background: #fff; border-radius: 24px; padding: 28px 26px 26px;
-            width: 100%; max-width: 380px; box-shadow: 0 30px 80px rgba(15,23,42,.3);
-            position: relative; text-align: center;
-        }
-        .gmax-close {
-            position: absolute; top: 14px; right: 14px; width: 28px; height: 28px;
-            border-radius: 50%; border: 0; background: #f1f5f9; color: #475569;
-            cursor: pointer; font-size: .85rem;
-        }
-        .gmax-avatar { display: flex; justify-content: center; margin-bottom: 14px; }
-        .gmax-step[hidden] { display: none; }
-        .gmax-step h3 { margin: 0 0 8px; font-size: 1.15rem; }
-        .gmax-step p { margin: 0 0 16px; color: var(--muted); font-size: .9rem; }
-        .gmax-choices { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
-        .gmax-chip {
-            display: block; padding: 12px 16px; border-radius: 12px;
-            background: color-mix(in srgb, var(--accent) 10%, #fff);
-            border: 1px solid color-mix(in srgb, var(--accent) 28%, #fff);
-            color: var(--text); font-weight: 700; font-size: .92rem;
-            cursor: pointer; text-decoration: none;
-        }
-        .gmax-step input[type=text] {
-            width: 100%; padding: 12px; margin-bottom: 14px; margin-top: 4px;
-            border: 1px solid #e2e8f0; border-radius: 10px; font-family: inherit; font-size: .95rem;
-        }
-        .gmax-submit {
-            width: 100%; padding: 12px; border: 0; border-radius: 12px;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            color: #fff; font-weight: 700; cursor: pointer; font-size: .95rem;
-        }
-    </style>
+        </style>
     @isset($jsonLd)
     <script type="application/ld+json">{!! $jsonLd !!}</script>
     @endisset
 </head>
 <body>
+@if (session('success'))
+    <p style="background:#e8f5e9;color:#2e7d32;padding:14px 20px;text-align:center;font-weight:600">{{ session('success') }}</p>
+@endif
 @if (request('checkout') === 'success')
     <p style="background:#e8f5e9;color:#2e7d32;padding:14px 20px;text-align:center;font-weight:600">Pagamento ricevuto! Controlla la tua email per impostare la password e iniziare.</p>
 @elseif (request('checkout') === 'cancelled')
@@ -331,7 +297,7 @@
         <p>Promo, servizi, negozio, agenda, affitti e sito web. Per <strong>aziende</strong> e <strong>privati</strong> — semplice come le app del telefono.</p>
         <div class="cta">
             <a class="btn btn-primary" href="{{ route('admin.login') }}">Accedi</a>
-            <a class="btn btn-secondary" href="#registrazione">Registrati</a>
+            <a class="btn btn-secondary" href="{{ route('registration.create') }}">Registrati</a>
             <a class="btn btn-secondary" href="{{ route('pricing.show') }}">Prezzi</a>
         </div>
     </div>
@@ -410,88 +376,23 @@
         <h2>Registrati su Hub Core</h2>
         <p>Privato: sempre gratis. Azienda/Ente: attiva con <strong>€{{ config('services.hub_billing.launch_offer_price_eur', 1) }}</strong> invece della solita prova — copre anche l'attivazione del primo modulo che scegli. Poi €{{ config('services.hub_billing.monthly_price_eur', 29) }}/mese, disdici quando vuoi.</p>
 
-        @if (session('success'))
-            <p style="background:#e8f5e9;color:#2e7d32;padding:12px 16px;border-radius:12px;margin-bottom:20px">{{ session('success') }}</p>
-        @endif
         @error('registration')
             <p style="background:#fdecea;color:#c62828;padding:12px 16px;border-radius:12px;margin-bottom:20px">{{ $message }}</p>
         @enderror
 
-        <form method="POST" action="{{ route('registration.store') }}" style="text-align:left;display:grid;gap:14px;margin-bottom:24px">
-            @csrf
-            <div>
-                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Tipo di registrazione *</label>
-                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-                    @foreach (['azienda' => '🏢 Azienda', 'privato' => '👤 Privato', 'ente' => '🏛️ Ente'] as $value => $label)
-                        <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;font-size:.88rem;font-weight:600;has-[:checked]:border-color:var(--accent)">
-                            <input type="radio" name="type" value="{{ $value }}" @checked(old('type', 'azienda') === $value) required style="accent-color:var(--accent)">
-                            {{ $label }}
-                        </label>
-                    @endforeach
-                </div>
-                @error('type')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
-            </div>
-            <div id="first-module-field">
-                <label style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Quale modulo vuoi attivare per primo? *</label>
-                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
-                    <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;font-size:.88rem;font-weight:600;has-[:checked]:border-color:var(--accent)">
-                        <input type="radio" name="first_module" value="promo" @checked(old('first_module', 'promo') === 'promo') style="accent-color:var(--accent)">
-                        ✨ Promo
-                    </label>
-                    <label style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border:2px solid #e2e8f0;border-radius:10px;cursor:pointer;font-size:.88rem;font-weight:600;has-[:checked]:border-color:var(--accent)">
-                        <input type="radio" name="first_module" value="services" @checked(old('first_module') === 'services') style="accent-color:var(--accent)">
-                        💆 Servizi
-                    </label>
-                </div>
-                @error('first_module')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
-            </div>
-            <div>
-                <label for="company_name" style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Nome / Ragione sociale *</label>
-                <input type="text" name="company_name" id="company_name" value="{{ old('company_name') }}" required maxlength="120"
-                       style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
-                @error('company_name')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
-            </div>
-            <div>
-                <label for="contact_name" style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Il tuo nome *</label>
-                <input type="text" name="contact_name" id="contact_name" value="{{ old('contact_name') }}" required maxlength="120"
-                       style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
-                @error('contact_name')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
-            </div>
-            <div>
-                <label for="email" style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Email *</label>
-                <input type="email" name="email" id="email" value="{{ old('email') }}" required maxlength="190"
-                       style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
-                @error('email')<p style="color:#c62828;font-size:.85rem;margin:4px 0 0">{{ $message }}</p>@enderror
-            </div>
-            <div>
-                <label for="phone" style="display:block;font-weight:600;margin-bottom:6px;font-size:.9rem">Telefono (opzionale)</label>
-                <input type="tel" name="phone" id="phone" value="{{ old('phone') }}" maxlength="30"
-                       style="width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:10px">
-            </div>
-            <button type="submit" class="btn btn-primary" style="border:0;cursor:pointer">Registrati — ti mandiamo un'email di conferma</button>
-        </form>
+        @error('guest')
+            <p style="background:#fdecea;color:#c62828;padding:12px 16px;border-radius:12px;margin-bottom:20px">{{ $message }}</p>
+        @enderror
+        <div class="cta" style="margin-bottom:14px">
+            <a class="btn btn-primary" href="{{ route('registration.create') }}">Inizia la registrazione →</a>
+        </div>
+        <p style="color:#64748b;font-size:.9rem;margin:0 0 20px">Pochi passi, uno alla volta: tipo di account, nome, email. Ci vuole un minuto.</p>
         <div class="cta">
             <a class="btn btn-secondary" href="{{ route('admin.login') }}">Hai già un account? Accedi</a>
         </div>
     </div>
 </section>
 
-<script>
-(function () {
-    var typeRadios = document.querySelectorAll('input[name="type"]');
-    var moduleField = document.getElementById('first-module-field');
-    var moduleRadios = moduleField.querySelectorAll('input[name="first_module"]');
-
-    function sync() {
-        var isPrivato = document.querySelector('input[name="type"]:checked')?.value === 'privato';
-        moduleField.style.display = isPrivato ? 'none' : 'block';
-        moduleRadios.forEach(function (r) { r.disabled = isPrivato; });
-    }
-
-    typeRadios.forEach(function (r) { r.addEventListener('change', sync); });
-    sync();
-})();
-</script>
 
 <footer>
     Hub Core — piattaforma multiservizi per aziende e privati<br>
@@ -506,89 +407,6 @@
     <a href="{{ route('promo.hub-archive') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Guarda tutte le promozioni attive →</a>
 </footer>
 
-<div class="gmax-overlay" id="gmax-overlay" hidden>
-    <div class="gmax-card">
-        <button type="button" class="gmax-close" id="gmax-close" aria-label="Chiudi">✕</button>
-        <div class="gmax-avatar">@include('app.partials.max-avatar', ['size' => 64, 'animated' => true])</div>
-
-        <div class="gmax-step" data-gstep="greeting">
-            <h3>Ciao! Cosa vuoi fare?</h3>
-            <p>Sono Max — ti aiuto a orientarti su Hub Core.</p>
-            <div class="gmax-choices">
-                <a href="{{ route('admin.login') }}" class="gmax-chip">Accedi</a>
-                <a href="#registrazione" class="gmax-chip" id="gmax-goto-register">Registrati</a>
-                <button type="button" class="gmax-chip" data-gmax-goto="type">👋 Continua come ospite</button>
-            </div>
-        </div>
-
-        <form method="POST" action="{{ route('guest.start') }}" id="gmax-guest-form">
-            @csrf
-            <div class="gmax-step" data-gstep="type" hidden>
-                <h3>Sei un'azienda, un privato o un ente?</h3>
-                <p>Ti creo subito uno spazio di prova — puoi decidere dopo se tenerlo.</p>
-                <div class="gmax-choices">
-                    <button type="button" class="gmax-chip" data-gmax-type="azienda">🏢 Azienda</button>
-                    <button type="button" class="gmax-chip" data-gmax-type="privato">👤 Privato</button>
-                    <button type="button" class="gmax-chip" data-gmax-type="ente">🏛️ Ente</button>
-                </div>
-                <input type="hidden" name="type" id="gmax-type">
-            </div>
-            <div class="gmax-step" data-gstep="name" hidden>
-                <h3 id="gmax-name-title">Come si chiama la tua attività?</h3>
-                <p>La useremo per personalizzare quello che crei.</p>
-                <input type="text" name="company_name" id="gmax-name-input" maxlength="120" required placeholder="Es. Salone Anna">
-                <button type="submit" class="gmax-submit">Inizia →</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-(function () {
-    const overlay = document.getElementById('gmax-overlay');
-    const close = document.getElementById('gmax-close');
-    const steps = Array.from(overlay.querySelectorAll('.gmax-step'));
-    const typeInput = document.getElementById('gmax-type');
-    const registerLink = document.getElementById('gmax-goto-register');
-    const nameTitle = document.getElementById('gmax-name-title');
-    const nameInput = document.getElementById('gmax-name-input');
-
-    function showStep(name) {
-        steps.forEach(s => { s.hidden = s.dataset.gstep !== name; });
-    }
-
-    overlay.querySelectorAll('[data-gmax-goto]').forEach(btn => {
-        btn.addEventListener('click', () => showStep(btn.dataset.gmaxGoto));
-    });
-
-    overlay.querySelectorAll('[data-gmax-type]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            typeInput.value = btn.dataset.gmaxType;
-            if (btn.dataset.gmaxType === 'privato') {
-                nameTitle.textContent = 'Come ti chiami?';
-                nameInput.placeholder = 'Es. Mario Rossi';
-            } else {
-                nameTitle.textContent = 'Come si chiama la tua attività?';
-                nameInput.placeholder = 'Es. Salone Anna';
-            }
-            showStep('name');
-        });
-    });
-
-    close.addEventListener('click', () => {
-        overlay.hidden = true;
-        sessionStorage.setItem('gmaxDismissed', '1');
-    });
-
-    registerLink.addEventListener('click', () => { overlay.hidden = true; });
-
-    if (!sessionStorage.getItem('gmaxDismissed')) {
-        setTimeout(() => {
-            overlay.hidden = false;
-            showStep('greeting');
-        }, 1200);
-    }
-})();
-</script>
+@include('partials.max-public-chat')
 </body>
 </html>

@@ -20,6 +20,12 @@ use Throwable;
 
 class RegistrationController extends Controller
 {
+    /** Registrazione a passi, una domanda per schermata (come la creazione guidata delle promo). */
+    public function create(): View
+    {
+        return view('registration.wizard');
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $email = $request->string('email')->toString();

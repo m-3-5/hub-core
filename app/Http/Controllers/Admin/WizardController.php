@@ -64,6 +64,8 @@ class WizardController extends Controller
             'overQuota' => $kind === 'promo' && ! TenantPromoQuota::hasIncludedSlot($tenant),
             'defaultEnd' => now()->addMonth()->toDateString(),
             'today' => now()->toDateString(),
+            // Ospite: l'ultimo passo è la registrazione (email) per poter pubblicare.
+            'guestPending' => $kind === 'promo' && $tenant->isGuestPending(),
         ]);
     }
 

@@ -9,6 +9,7 @@ use App\Models\Promo;
 use App\Models\Tenant;
 use App\Models\TenantModuleCharge;
 use App\Notifications\ConfirmGuestPublishNotification;
+use App\Services\ContentModerator;
 use App\Services\FlyerImagePackGenerator;
 use App\Services\FlyerVideoGenerator;
 use App\Services\GeminiImageGenerator;
@@ -81,6 +82,10 @@ class PromoController extends Controller
             'publish_now' => ['boolean'],
             'price' => ['nullable', 'string', 'max:40'],
             'ai_payload' => ['nullable', 'string', 'max:20000'],
+            'guest_email' => ['nullable', 'email', 'max:190', 'unique:users,email'],
+        ], [
+            'guest_email.email' => 'Controlla l\'indirizzo email.',
+            'guest_email.unique' => 'Questa email è già registrata: accedi con il tuo account.',
         ]);
 
         if ($request->input('visual_tier') === 'ai_flyer') {
@@ -266,6 +271,11 @@ class PromoController extends Controller
             'hashtags' => $hashtags,
             'image_path' => $path,
         ], subject: $promo);
+
+        // Ospite: ultimo passo della creazione guidata = registrazione (email) → controllo IA → email di conferma.
+        if ($request->boolean('publish_now') && $tenant->isGuestPending() && $request->filled('guest_email')) {
+            return $this->requestGuestPublication($tenant, $promo, (string) $request->input('guest_email'));
+        }
 
         // Creazione guidata: «Pubblica» crea e pubblica in un colpo solo (salvo account ospite, che deve prima confermare l'email).
         if ($request->boolean('publish_now') && ! $tenant->isGuestPending()) {
@@ -514,25 +524,7 @@ class PromoController extends Controller
                 'guest_email' => ['required', 'email', 'max:190', 'unique:users,email'],
             ]);
 
-            $user = $tenant->users()->first();
-            $token = Str::random(48);
-
-            try {
-                Notification::route('mail', $validated['guest_email'])
-                    ->notify(new ConfirmGuestPublishNotification($tenant, $promo, $token));
-            } catch (Throwable $e) {
-                return back()->withErrors([
-                    'guest_email' => 'Non sono riuscito a inviare l\'email di conferma a questo indirizzo. Controlla che sia scritto correttamente e riprova.',
-                ]);
-            }
-
-            $user->update(['email' => $validated['guest_email']]);
-            $tenant->update([
-                'guest_email_token' => $token,
-                'guest_email_token_expires_at' => now()->addHours(48),
-            ]);
-
-            return back()->with('success', 'Controlla '.$validated['guest_email'].' e clicca il link per pubblicare davvero la promo.');
+            return $this->requestGuestPublication($tenant, $promo, $validated['guest_email']);
         }
 
         if ($promo->isDraft()) {
@@ -547,6 +539,43 @@ class PromoController extends Controller
         return redirect()
             ->route('admin.promos.show', [$tenant, $promo])
             ->with('success', 'Promo pubblicata! Popup, card WordPress e landing sono ora attivi.');
+    }
+
+    /**
+     * Ospite: l'IA controlla la promo (niente volgarità, violenza, terrorismo…); solo se la ritiene adatta
+     * parte l'email di conferma che, una volta cliccata, la pubblica davvero.
+     */
+    private function requestGuestPublication(Tenant $tenant, Promo $promo, string $email): RedirectResponse
+    {
+        $check = app(ContentModerator::class)->checkPromo($promo);
+
+        if (! $check['allowed']) {
+            return redirect()
+                ->route('admin.promos.show', [$tenant, $promo])
+                ->withErrors(['moderation' => $check['unavailable']
+                    ? $check['reason']
+                    : 'Non posso pubblicare questa promo: '.$check['reason'].' Modificala e riprova.']);
+        }
+
+        $token = Str::random(48);
+
+        try {
+            Notification::route('mail', $email)->notify(new ConfirmGuestPublishNotification($tenant, $promo, $token));
+        } catch (Throwable $e) {
+            return redirect()
+                ->route('admin.promos.show', [$tenant, $promo])
+                ->withErrors(['guest_email' => 'Non sono riuscito a inviare l\'email di conferma a questo indirizzo. Controlla che sia scritto correttamente e riprova.']);
+        }
+
+        $tenant->users()->first()?->update(['email' => $email]);
+        $tenant->update([
+            'guest_email_token' => $token,
+            'guest_email_token_expires_at' => now()->addHours(48),
+        ]);
+
+        return redirect()
+            ->route('admin.promos.show', [$tenant, $promo])
+            ->with('success', 'La tua promo è piaciuta al nostro controllo! Controlla '.$email.' e clicca il link per pubblicarla davvero.');
     }
 
     public function generateVideo(Tenant $tenant, Promo $promo, FlyerVideoGenerator $videoGenerator): RedirectResponse

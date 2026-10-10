@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Notifications\TenantWelcomeNotification;
+use App\Services\ContentModerator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -51,6 +52,16 @@ class GuestController extends Controller
             return redirect()->route('welcome')->withErrors(['guest' => 'Link non valido o scaduto.']);
         }
 
+        // L'IA ricontrolla ogni promo subito prima di pubblicarla (potrebbe essere stata modificata dopo il primo controllo).
+        $moderator = app(ContentModerator::class);
+        $drafts = $tenant->promos()->where('status', 'draft')->get();
+        $checks = $drafts->map(fn ($promo) => [$promo, $moderator->checkPromo($promo)]);
+
+        // Controllo non disponibile: non si consuma il link, così può riprovare.
+        if ($checks->contains(fn ($c) => $c[1]['unavailable'])) {
+            return redirect()->route('welcome')->withErrors(['guest' => 'Il controllo automatico dei contenuti non è disponibile in questo momento: riclicca il link di conferma tra qualche minuto.']);
+        }
+
         $tenant->update([
             'guest_verified_at' => now(),
             'guest_email_token' => null,
@@ -58,20 +69,37 @@ class GuestController extends Controller
         ]);
 
         $webhook = app(\App\Services\WordPressWebhookDispatcher::class);
+        $published = 0;
+        $refused = [];
 
-        foreach ($tenant->promos()->where('status', 'draft')->get() as $promo) {
+        foreach ($checks as [$promo, $check]) {
+            if (! $check['allowed']) {
+                $refused[] = '«'.$promo->title.'»: '.$check['reason'];
+
+                continue;
+            }
+
             $promo->update(['status' => 'published', 'published_at' => now()]);
             $webhook->promoPublished($tenant, $promo->fresh());
+            $published++;
         }
 
         $user = $tenant->users()->first();
         $passwordToken = Password::broker()->createToken($user);
         $user->notify(new TenantWelcomeNotification($tenant, $passwordToken));
 
-        return redirect()->route('admin.password.reset', [
+        $redirect = redirect()->route('admin.password.reset', [
             'token' => $passwordToken,
             'email' => $user->email,
-        ])->with('success', 'Email confermata! La tua promo è online — imposta la password per accedere sempre alla tua area.');
+        ])->with('success', $published > 0
+            ? 'Email confermata! La tua promo è online — imposta la password per accedere sempre alla tua area.'
+            : 'Email confermata! Imposta la password per accedere alla tua area.');
+
+        if ($refused) {
+            $redirect->with('warning', 'Non ho pubblicato: '.implode(' ', $refused).' Puoi modificarla dalla tua area e riprovare.');
+        }
+
+        return $redirect;
     }
 
     private function uniqueTenantSlug(string $name): string

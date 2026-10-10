@@ -12,6 +12,10 @@
         : null;
 @endphp
 
+@error('moderation')
+    <div class="alert" style="background:#fdecea;color:#b71c1c">{{ $message }}</div>
+@enderror
+
 <div class="card" style="margin-bottom:20px">
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px">
         <div>
