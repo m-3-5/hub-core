@@ -642,7 +642,7 @@ class PromoController extends Controller
         }
 
         return redirect()
-            ->route('app.home', $tenant)
+            ->route('admin.promos.index', $tenant)
             ->with('success', 'Promo eliminata.');
     }
 

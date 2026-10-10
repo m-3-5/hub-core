@@ -7,7 +7,7 @@
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
         <div>
             <h1>Promozioni — {{ $tenant->name }}</h1>
-            <p style="color:#666;margin-top:6px">Attive, archivio scadute e bozze.</p>
+            <p style="color:#666;margin-top:6px">Tocca una promo per aprirla, ✎ per modificarla, ✕ per eliminarla.</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
             <a class="btn" href="{{ route('admin.wizard.show', [$tenant, 'promo']) }}">+ Nuova promo</a>
@@ -17,51 +17,62 @@
     </div>
 
     <h2 style="font-size:1.1rem;margin:20px 0 12px;color:#e91e8c">Attive ({{ $active->count() }})</h2>
-    @if ($active->isEmpty())
-        <p style="color:#888">Nessuna promo attiva.</p>
-    @else
-        <ul class="promo-list" style="list-style:none;padding:0;margin:0 0 24px">
-            @foreach ($active as $promo)
-                <li style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #eee">
-                    <div>
-                        <a href="{{ route('admin.promos.show', [$tenant, $promo]) }}"><strong>{{ $promo->title }}</strong></a>
-                        @if ($promo->expiryLabel())
-                            <br><small style="color:#666">{{ $promo->expiryLabel() }}</small>
-                        @endif
-                    </div>
-                    <a class="btn btn-secondary" style="font-size:.85rem;padding:6px 12px" href="{{ route('promo.show', [$tenant, $promo]) }}" target="_blank">Pubblica ↗</a>
-                </li>
-            @endforeach
-        </ul>
-    @endif
+    <div class="mgrid">
+        @foreach ($active as $promo)
+            @include('layouts.partials.media-card', [
+                'title' => $promo->title,
+                'href' => route('admin.promos.show', [$tenant, $promo]),
+                'image' => $promo->imageUrl(),
+                'meta' => $promo->expiryLabel(),
+                'badge' => 'Attiva',
+                'tone' => 'ok',
+                'editUrl' => route('admin.promos.edit', [$tenant, $promo]),
+                'deleteUrl' => route('admin.promos.destroy', [$tenant, $promo]),
+                'deleteConfirm' => 'Eliminare la promo «'.$promo->title.'»? Sparirà anche dal sito.',
+                'openUrl' => route('promo.show', [$tenant, $promo]),
+            ])
+        @endforeach
+        <div class="mcard mcard--new"><a href="{{ route('admin.wizard.show', [$tenant, 'promo']) }}"><span><b>＋</b>Nuova promo</span></a></div>
+    </div>
 
-    <h2 style="font-size:1.1rem;margin:20px 0 12px;color:#64748b">Archivio scadute ({{ $expired->count() }})</h2>
-    @if ($expired->isEmpty())
-        <p style="color:#888">Nessuna promo scaduta.</p>
-    @else
-        <ul class="promo-list" style="list-style:none;padding:0;margin:0 0 24px;opacity:.85">
+    @if ($expired->isNotEmpty())
+        <h2 style="font-size:1.1rem;margin:20px 0 12px;color:#64748b">Archivio scadute ({{ $expired->count() }})</h2>
+        <div class="mgrid">
             @foreach ($expired as $promo)
-                <li style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #eee">
-                    <div>
-                        <a href="{{ route('admin.promos.show', [$tenant, $promo]) }}">{{ $promo->title }}</a>
-                        <br><small style="color:#94a3b8">{{ $promo->expiryLabel() }}</small>
-                    </div>
-                    <a class="btn btn-secondary" style="font-size:.85rem;padding:6px 12px" href="{{ route('promo.show', [$tenant, $promo]) }}" target="_blank">Vedi ↗</a>
-                </li>
+                @include('layouts.partials.media-card', [
+                    'title' => $promo->title,
+                    'href' => route('admin.promos.show', [$tenant, $promo]),
+                    'image' => $promo->imageUrl(),
+                    'meta' => $promo->expiryLabel(),
+                    'badge' => 'Scaduta',
+                    'tone' => 'off',
+                    'muted' => true,
+                    'editUrl' => route('admin.promos.edit', [$tenant, $promo]),
+                    'deleteUrl' => route('admin.promos.destroy', [$tenant, $promo]),
+                    'deleteConfirm' => 'Eliminare la promo scaduta «'.$promo->title.'»?',
+                    'openUrl' => route('promo.show', [$tenant, $promo]),
+                ])
             @endforeach
-        </ul>
+        </div>
     @endif
 
     @if ($drafts->isNotEmpty())
         <h2 style="font-size:1.1rem;margin:20px 0 12px">Bozze ({{ $drafts->count() }})</h2>
-        <ul class="promo-list" style="list-style:none;padding:0">
+        <div class="mgrid">
             @foreach ($drafts as $promo)
-                <li style="padding:8px 0;border-bottom:1px solid #eee">
-                    <a href="{{ route('admin.promos.show', [$tenant, $promo]) }}">{{ $promo->title }}</a>
-                    <span style="color:#f59e0b;font-size:.85rem"> · Bozza</span>
-                </li>
+                @include('layouts.partials.media-card', [
+                    'title' => $promo->title,
+                    'href' => route('admin.promos.show', [$tenant, $promo]),
+                    'image' => $promo->imageUrl(),
+                    'meta' => 'Non ancora pubblicata',
+                    'badge' => 'Bozza',
+                    'tone' => 'warn',
+                    'editUrl' => route('admin.promos.edit', [$tenant, $promo]),
+                    'deleteUrl' => route('admin.promos.destroy', [$tenant, $promo]),
+                    'deleteConfirm' => 'Eliminare la bozza «'.$promo->title.'»?',
+                ])
             @endforeach
-        </ul>
+        </div>
     @endif
 </div>
 @endsection
