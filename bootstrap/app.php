@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.module' => \App\Http\Middleware\EnsureTenantModuleAccess::class,
         ]);
 
+        // Stripe chiama questo indirizzo (impostato nella Dashboard prima di /api/stripe/webhook): niente token CSRF, la firma basta.
+        $middleware->validateCsrfTokens(except: ['stripe/billing/webhook']);
+
         $middleware->redirectGuestsTo(fn (Request $request) => route('admin.login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {

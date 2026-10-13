@@ -20,10 +20,13 @@ class StripeBillingWebhookController extends Controller
 {
     public function handle(Request $request): Response
     {
-        $secret = config('services.hub_billing.webhook_secret');
+        // Più segreti separati da virgola: uno per endpoint (modalità live e modalità di prova di Stripe hanno segreti diversi).
+        $secrets = array_values(array_filter(array_map('trim', explode(',', (string) config('services.hub_billing.webhook_secret')))));
         $payload = $request->getContent();
 
-        if (! $secret || ! $this->verifySignature($payload, $request->header('Stripe-Signature'), $secret)) {
+        $valid = collect($secrets)->contains(fn (string $secret) => $this->verifySignature($payload, $request->header('Stripe-Signature'), $secret));
+
+        if (! $valid) {
             return response('Invalid signature', 401);
         }
 

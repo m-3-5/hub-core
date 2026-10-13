@@ -23,6 +23,7 @@ php artisan hub:provision-workspace {slug} --skip-create
 ## Documentazione
 
 - `docs/CONTESTO-PROGETTO.md` — contesto completo
+- `docs/STATO-PROGETTO.md` — **stato aggiornato** (cosa è online, cosa manca, problemi aperti)
 - `docs/MODULO-PAGAMENTI.md` — servizi Stripe
 - `docs/DEPLOY-PLESK.md` — deploy produzione
 - `docs/PIANO-SVILUPPO.md` — roadmap

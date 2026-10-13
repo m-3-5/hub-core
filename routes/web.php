@@ -50,6 +50,9 @@ Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/llms.txt', LlmsController::class)->name('llms');
 Route::get('/indexnow-key.txt', fn () => response(\App\Console\Commands\IndexNowSubmit::key(), 200, ['Content-Type' => 'text/plain; charset=UTF-8']))->name('indexnow.key');
 
+// Stesso webhook di fatturazione di /api/stripe/webhook: la Dashboard Stripe lo ha registrato a questo indirizzo.
+Route::post('/stripe/billing/webhook', [\App\Http\Controllers\StripeBillingWebhookController::class, 'handle'])->name('stripe.webhook.billing');
+
 // Guide su come ricevere i soldi delle vendite + condizioni economiche (pagine pubbliche).
 Route::get('/guide/pagamenti', [\App\Http\Controllers\GuideController::class, 'index'])->name('guides.index');
 Route::get('/guide/pagamenti/{slug}', [\App\Http\Controllers\GuideController::class, 'show'])->name('guides.show');
