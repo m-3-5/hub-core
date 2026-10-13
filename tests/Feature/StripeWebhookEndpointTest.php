@@ -72,4 +72,24 @@ class StripeWebhookEndpointTest extends TestCase
 
         $this->assertSame('trialing', $tenant->fresh()->subscription_status);
     }
+
+    public function test_a_sellers_direct_sale_with_a_numeric_reference_never_touches_a_tenant_subscription(): void
+    {
+        config(['services.hub_billing.webhook_secret' => 'whsec_live']);
+        $tenant = $this->tenant();
+        $payload = json_encode(['type' => 'checkout.session.completed', 'data' => ['object' => [
+            'id' => 'cs_live_direct', 'payment_status' => 'paid',
+            'client_reference_id' => (string) $tenant->id, // numero d'ordine del venditore che coincide con un id di tenant
+            'metadata' => [],
+        ]]]);
+        $t = time();
+
+        $this->call('POST', '/stripe/billing/webhook', [], [], [], [
+            'HTTP_STRIPE_SIGNATURE' => "t={$t},v1=".hash_hmac('sha256', $t.'.'.$payload, 'whsec_live'),
+            'CONTENT_TYPE' => 'application/json',
+        ], $payload)->assertOk();
+
+        $this->assertSame('trialing', $tenant->fresh()->subscription_status);
+        $this->assertSame('sub_1', $tenant->fresh()->stripe_subscription_id);
+    }
 }

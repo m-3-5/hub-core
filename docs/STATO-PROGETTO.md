@@ -1,6 +1,6 @@
 # Stato del progetto Hub Core (documento vivo)
 
-> Aggiornato: **2026-10-14** (commit 124e97e). Si aggiorna a ogni pezzo consegnato (commit su `hub-core`).
+> Aggiornato: **2026-10-14** (commit del 14 ottobre). Si aggiorna a ogni pezzo consegnato (commit su `hub-core`).
 > Contesto tecnico e architettura: `CONTESTO-PROGETTO.md` · roadmap lunga: `PIANO-SVILUPPO.md` · pagamenti: `MODULO-PAGAMENTI.md` · deploy: `DEPLOY-PLESK.md`.
 
 ## 1. In produzione su inm35.it (verificato)
@@ -37,9 +37,9 @@
 
 ## 3. Problemi aperti
 
-1. **Webhook Stripe 404 (email Stripe del 10 e 13 ottobre).** La Dashboard (modalità live) invia a `https://inm35.it/stripe/billing/webhook`, ma l'app serviva solo `/api/stripe/webhook` → 404 dal 7 ottobre. **Corretto e online dal 14 ottobre** (commit 124e97e: alias `/stripe/billing/webhook` + più segreti separati da virgola; ora risponde 401 senza firma invece di 404). Resta da verificare con un evento reale (Dashboard → Webhook → «Invia di nuovo»): se risponde 401 il segreto in `.env` non è quello dell'endpoint live. Stripe smette di inviare il 16 ottobre 2026 se continua a fallire.
-2. **Webhook in modalità di prova mancante.** I pagamenti protetti di prova generano eventi in *modalità test*, che richiedono un endpoint **test** in Stripe (Sviluppatori → Webhook, con «Modalità di prova» attiva) verso `/api/stripe/webhook`, evento `checkout.session.completed`. Il suo segreto va aggiunto in `HUB_STRIPE_WEBHOOK_SECRET` dopo quello live, separato da virgola.
-3. Verifica che `HUB_STRIPE_WEBHOOK_SECRET` in produzione sia il segreto dell'endpoint live (altrimenti 401 invece di 404).
+1. **Webhook Stripe live: 401.** La Dashboard (live) ha l'endpoint `hub-core-billing-live` → `https://inm35.it/stripe/billing/webhook`. Era 404 dal 7 ottobre; dal 14 ottobre il sito risponde (alias nel codice) ma rifiuta la firma (401): `HUB_STRIPE_WEBHOOK_SECRET` sul server è il segreto dell'endpoint **sandbox** (`exquisite-oasis`, → `/api/stripe/webhook`, 0 errori), non quello live. Soluzione: nel `.env` mettere **entrambi** i segreti separati da virgola: `HUB_STRIPE_WEBHOOK_SECRET=whsec_SANDBOX,whsec_LIVE` (il codice li accetta tutti). Gli eventi falliti sono tutti `checkout.session.expired` (innocui). Stripe disattiva l'endpoint il 16 ottobre 2026 se continua a fallire.
+2. **Il server usa chiavi Stripe di prova** (`HUB_STRIPE_SECRET_KEY` = test + segreto webhook sandbox). Tutti i pagamenti protetti oggi girano in sandbox. Per il live: chiave live + segreto live (già accettato in virgola) + ripetere il collegamento dei venditori con dati veri.
+3. Sicurezza corretta il 14 ottobre: il webhook di fatturazione ignora le sessioni senza `metadata.tenant_id` (prima usava `client_reference_id`, che nelle vendite dirette dei venditori è un numero d'ordine e poteva coincidere con un id di tenant).
 
 ## 4. Da fare per l'utente (non automatizzabili)
 

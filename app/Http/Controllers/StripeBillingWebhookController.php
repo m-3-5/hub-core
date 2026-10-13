@@ -68,10 +68,13 @@ class StripeBillingWebhookController extends Controller
             return;
         }
 
-        $tenant = Tenant::find($session['metadata']['tenant_id'] ?? $session['client_reference_id'] ?? null);
+        // Solo le sessioni di abbonamento create da Hub Core portano metadata.tenant_id. Il conto Stripe riceve anche le
+        // vendite dirette dei venditori (con le loro chiavi): il loro client_reference_id non è un id di tenant e non va mai usato.
+        $tenantId = $session['metadata']['tenant_id'] ?? null;
+        $tenant = is_string($tenantId) && ctype_digit($tenantId) ? Tenant::find((int) $tenantId) : null;
 
         if (! $tenant) {
-            Log::warning('Stripe billing webhook: tenant non trovato', ['session' => $session['id'] ?? null]);
+            Log::info('Stripe billing webhook: sessione non di fatturazione Hub Core, ignorata', ['session' => $session['id'] ?? null]);
 
             return;
         }
