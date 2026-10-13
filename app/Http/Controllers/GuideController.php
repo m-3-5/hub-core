@@ -37,4 +37,9 @@ class GuideController extends Controller
     {
         return view('guides.economic-terms');
     }
+
+    public function buyerTerms(): View
+    {
+        return view('guides.buyer-terms');
+    }
 }

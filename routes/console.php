@@ -15,5 +15,8 @@ Schedule::command('hub:charge-pending-module-charges')->daily();
 // Finita la prima settimana gratuita: una email che chiede l'euro dell'offerta di lancio.
 Schedule::command('hub:launch-offer-reminders')->dailyAt('10:00');
 
+// Pagamenti protetti: gira ai venditori i soldi il cui compratore ha confermato o la cui attesa è finita.
+Schedule::command('hub:release-protected-payments')->hourly()->withoutOverlapping();
+
 // Commissioni del mese scorso sulle vendite del canale hub → registro addebiti (con commissione 0 non scrive nulla).
 Schedule::command('hub:charge-commissions')->monthlyOn(1, '03:00');

@@ -33,7 +33,7 @@ class ProtectedCheckout
      *
      * @throws RuntimeException se Stripe non risponde o la risposta non è valida
      */
-    public static function begin(Tenant $tenant, PayableService $service, int $quantity, ?string $email): string
+    public static function begin(Tenant $tenant, PayableService $service, int $quantity, ?string $email, ?string $buyerIp = null): string
     {
         $accountId = TenantConnect::accountId($tenant);
         $quantity = max(1, min(20, $quantity));
@@ -55,6 +55,10 @@ class ProtectedCheckout
             'amount_cents' => $service->amount_cents * $quantity,
             'customer_email' => $email,
             'buyer_token' => Str::random(40),
+            // Il compratore ha spuntato le condizioni di acquisto protetto sulla pagina prima di arrivare qui.
+            'buyer_terms_version' => BuyerTerms::VERSION,
+            'buyer_terms_accepted_at' => now(),
+            'buyer_terms_ip' => $buyerIp,
         ]);
 
         $fields = [
@@ -76,6 +80,10 @@ class ProtectedCheckout
             // Lega il pagamento al futuro trasferimento verso il venditore.
             'payment_intent_data[transfer_group]' => 'order_'.$order->id,
             'payment_intent_data[description]' => Str::limit($service->title.' — '.$tenant->name, 200, ''),
+            // Testo informativo accanto al pulsante «Paga» di Stripe.
+            'custom_text[submit][message]' => 'Il tuo pagamento è protetto da Hub Core: '.Str::limit($tenant->name, 60, '')
+                .' lo riceve dopo la consegna (tua conferma o dopo '.self::holdDays().' giorni senza segnalazioni). '
+                .'Se qualcosa non va, segnalalo dalla pagina del tuo ordine. [Condizioni di acquisto]('.route('terms.buyer').')',
         ];
 
         if ($image = $service->stripeImageUrl()) {

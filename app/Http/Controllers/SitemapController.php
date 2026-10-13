@@ -40,6 +40,7 @@ class SitemapController extends Controller
             $urls[] = ['loc' => route('guides.show', $slug), 'lastmod' => null, 'priority' => '0.5'];
         }
         $urls[] = ['loc' => route('terms.economic'), 'lastmod' => null, 'priority' => '0.4'];
+        $urls[] = ['loc' => route('terms.buyer'), 'lastmod' => null, 'priority' => '0.4'];
 
         // Promo attive: archivio dell'azienda e ogni landing.
         $promos = Promo::query()->published()->active()->with('tenant:id,slug')->get();

@@ -71,11 +71,56 @@ class StripeConnectService
         return (string) $this->post('/v1/accounts/'.$accountId.'/login_links', [])['url'];
     }
 
-    /** @param  array<string, mixed>  $fields */
-    private function post(string $path, array $fields): array
+    /**
+     * Pagamento con il suo addebito e la commissione reale di Stripe (balance transaction).
+     *
+     * @return array<string, mixed>
+     */
+    public function paymentIntent(string $paymentIntentId): array
     {
         try {
-            return Http::withToken($this->platformSecretKey)->asForm()->timeout(30)->post($this->base().$path, $fields)->throw()->json();
+            return Http::withToken($this->platformSecretKey)->timeout(30)
+                ->get($this->base().'/v1/payment_intents/'.$paymentIntentId, ['expand' => ['latest_charge.balance_transaction']])
+                ->throw()->json();
+        } catch (RequestException $e) {
+            throw new RuntimeException('Stripe: '.($e->response?->json('error.message') ?? $e->getMessage()), 0, $e);
+        }
+    }
+
+    /**
+     * Gira i soldi al venditore. La chiave di idempotenza evita doppi trasferimenti se la richiesta viene ripetuta.
+     *
+     * @param  array<string, mixed>  $fields
+     * @return array<string, mixed>
+     */
+    public function createTransfer(array $fields, string $idempotencyKey): array
+    {
+        return $this->post('/v1/transfers', $fields, $idempotencyKey);
+    }
+
+    /** Annulla un trasferimento già fatto (serve prima di un rimborso al compratore). @return array<string, mixed> */
+    public function reverseTransfer(string $transferId, string $idempotencyKey): array
+    {
+        return $this->post('/v1/transfers/'.$transferId.'/reversals', [], $idempotencyKey);
+    }
+
+    /** Rimborsa il pagamento al compratore (importo intero). @return array<string, mixed> */
+    public function refund(string $paymentIntentId, string $idempotencyKey): array
+    {
+        return $this->post('/v1/refunds', ['payment_intent' => $paymentIntentId], $idempotencyKey);
+    }
+
+    /** @param  array<string, mixed>  $fields */
+    private function post(string $path, array $fields, ?string $idempotencyKey = null): array
+    {
+        try {
+            $request = Http::withToken($this->platformSecretKey)->asForm()->timeout(30);
+
+            if ($idempotencyKey) {
+                $request = $request->withHeaders(['Idempotency-Key' => $idempotencyKey]);
+            }
+
+            return $request->post($this->base().$path, $fields)->throw()->json();
         } catch (RequestException $e) {
             throw new RuntimeException('Stripe: '.($e->response?->json('error.message') ?? $e->getMessage()), 0, $e);
         }

@@ -104,6 +104,10 @@
                         @if ($isProduct)
                             <label style="font-size:.9rem;color:var(--muted)">Quantità <input type="number" name="quantity" value="1" min="1" max="20" style="width:64px;padding:10px;border:1px solid #ddd;border-radius:10px;font:inherit"></label>
                         @endif
+                        <label style="flex:1 1 100%;display:flex;gap:8px;align-items:flex-start;font-size:.88rem;color:var(--muted);line-height:1.4;cursor:pointer">
+                            <input type="checkbox" name="accept_buyer_terms" value="1" required style="margin-top:3px;width:18px;height:18px;flex:none">
+                            <span>Ho letto e accetto le <a href="{{ route('terms.buyer') }}" target="_blank" rel="noopener">condizioni di acquisto protetto</a>: il pagamento resta custodito da Hub Core fino alla mia conferma di ricezione (o {{ \M35\HubPayments\Support\ProtectedCheckout::holdDays() }} giorni) e posso segnalare un problema.</span>
+                        </label>
                         <button type="submit" class="btn-primary" style="border:0;cursor:pointer;font:inherit;font-weight:700">{{ $isProduct ? 'Acquista ora' : 'Prenota e paga ora' }}</button>
                     </form>
                 @else

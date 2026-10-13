@@ -39,8 +39,9 @@ class BuyerOrderNotification extends Notification
 
         $mail->line('🛡️ **Sei protetto:** i soldi restano custoditi da Hub Core e '.$this->tenant->name.' li riceve solo dopo la consegna.'
             .($order->release_at ? ' Se non ci segnali problemi, vengono consegnati al venditore il '.$order->release_at->timezone(config('app.timezone'))->locale('it')->translatedFormat('d F Y').'.' : ''))
+            ->line('**Quando hai ricevuto tutto**, apri la pagina del tuo ordine e premi «Ho ricevuto tutto». **Se qualcosa non va**, premi «Segnala un problema»: il pagamento si ferma subito e, se non si risolve, ti rimborsiamo.')
             ->action('Vedi il tuo ordine', route('protected.order.show', $order->buyer_token))
-            ->line('Se qualcosa non va, scrivici prima di quella data e blocchiamo il pagamento.')
+            ->line('Hai accettato le condizioni di acquisto protetto prima di pagare: '.route('terms.buyer'))
             ->salutation('Hub Core');
 
         return $mail;

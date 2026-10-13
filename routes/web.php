@@ -57,6 +57,7 @@ Route::post('/stripe/billing/webhook', [\App\Http\Controllers\StripeBillingWebho
 Route::get('/guide/pagamenti', [\App\Http\Controllers\GuideController::class, 'index'])->name('guides.index');
 Route::get('/guide/pagamenti/{slug}', [\App\Http\Controllers\GuideController::class, 'show'])->name('guides.show');
 Route::get('/condizioni-economiche', [\App\Http\Controllers\GuideController::class, 'economicTerms'])->name('terms.economic');
+Route::get('/condizioni-acquisto', [\App\Http\Controllers\GuideController::class, 'buyerTerms'])->name('terms.buyer');
 
 Route::post('/max/chat', [\App\Http\Controllers\MaxChatController::class, 'ask'])
     ->middleware('throttle:20,1')

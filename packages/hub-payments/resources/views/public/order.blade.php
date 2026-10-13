@@ -24,13 +24,19 @@
         .row:last-child { border-bottom: 0; }
         .muted { color: var(--muted); font-size: .92rem; }
         .shield { display: grid; gap: 6px; }
-        a.btn { display: inline-block; background: var(--primary); color: #fff; text-decoration: none; padding: 12px 20px; border-radius: 999px; font-weight: 700; }
+        a.btn, button.btn { display: inline-block; background: var(--primary); color: #fff; text-decoration: none; padding: 12px 20px; border-radius: 999px; font: inherit; font-weight: 700; border: 0; cursor: pointer; }
+        button.btn.line, a.btn.line { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
+        textarea { width: 100%; font: inherit; padding: 10px; border: 1px solid #ddd; border-radius: 12px; min-height: 90px; margin: 8px 0; }
+        .err { color: #b91c1c; font-weight: 600; }
+        details summary { cursor: pointer; font-weight: 700; padding: 6px 0; }
     </style>
 </head>
 <body>
 <div class="wrap">
     <div class="card">
         <h1>🛡️ Il tuo ordine da {{ $tenant->name }}</h1>
+
+        @if (session('status'))<div class="ok">{{ session('status') }}</div>@endif
 
         @if (! $paid)
             <div class="wait">Stiamo aspettando la conferma del pagamento. Se hai appena pagato, ricarica la pagina tra qualche secondo.</div>
@@ -55,12 +61,39 @@
             <strong>Come sei protetto</strong>
             <p class="muted">Il tuo pagamento è custodito da Hub Core: {{ $tenant->name }} lo riceve solo dopo che hai ricevuto quello che hai comprato.
             @if ($order->release_at)Se non ci segnali problemi, i soldi vengono consegnati al venditore il <strong>{{ $order->release_at->timezone(config('app.timezone'))->locale('it')->translatedFormat('d F Y') }}</strong>.@endif</p>
-            <p class="muted">Se qualcosa non va, scrivici prima di quella data e blocchiamo il pagamento.</p>
-            @if ($wa)<p><a class="btn" href="https://wa.me/{{ $wa }}?text={{ rawurlencode('Ciao, ho un problema con il mio ordine '.$tenant->name.' (codice '.substr($order->buyer_token, 0, 8).')') }}" rel="noopener">Scrivici su WhatsApp</a></p>@endif
+
+            <form method="POST" action="{{ route('protected.order.confirm', $order->buyer_token) }}" onsubmit="return confirm('Confermi di aver ricevuto quanto hai acquistato? I soldi verranno consegnati al venditore.')">
+                @csrf
+                <button class="btn" type="submit">✓ Ho ricevuto tutto</button>
+                <p class="muted" style="margin-top:6px">Premi solo quando hai ricevuto il prodotto o il servizio e sei soddisfatto.</p>
+            </form>
+
+            <details @if ($errors->has('message')) open @endif>
+                <summary>Qualcosa non va? Segnala un problema</summary>
+                <form method="POST" action="{{ route('protected.order.report', $order->buyer_token) }}">
+                    @csrf
+                    <textarea name="message" maxlength="1000" placeholder="Descrivi cosa non va (non ho ricevuto, è diverso da come descritto, è danneggiato…)" required>{{ old('message') }}</textarea>
+                    @error('message')<p class="err">{{ $message }}</p>@enderror
+                    <button class="btn line" type="submit">Segnala e ferma il pagamento</button>
+                </form>
+            </details>
+            @if ($wa)<p class="muted">Preferisci parlarci? <a href="https://wa.me/{{ $wa }}?text={{ rawurlencode('Ciao, ho un problema con il mio ordine '.$tenant->name.' (codice '.substr($order->buyer_token, 0, 8).')') }}" rel="noopener">Scrivici su WhatsApp</a>.</p>@endif
+        </div>
+    @elseif ($paid && $order->isFrozen())
+        <div class="card shield">
+            <strong>Segnalazione in corso</strong>
+            @if ($order->problem_message)<p class="muted">Hai scritto: «{{ $order->problem_message }}»</p>@endif
+            <p class="muted">Il pagamento è fermo. Ti contatteremo noi o il venditore; se il problema non si risolve, ti rimborsiamo.</p>
+            @if ($wa)<p><a class="btn line" href="https://wa.me/{{ $wa }}?text={{ rawurlencode('Ciao, scrivo per la mia segnalazione sull\'ordine '.$tenant->name.' (codice '.substr($order->buyer_token, 0, 8).')') }}" rel="noopener">Scrivici su WhatsApp</a></p>@endif
+        </div>
+    @elseif ($paid && $order->payout_status === 'released')
+        <div class="card shield">
+            <p class="muted">Il pagamento è stato consegnato al venditore. Se hai ancora un problema scrivici: valutiamo ogni caso.</p>
+            @if ($wa)<p><a class="btn line" href="https://wa.me/{{ $wa }}?text={{ rawurlencode('Ciao, ho un problema con il mio ordine '.$tenant->name.' (codice '.substr($order->buyer_token, 0, 8).')') }}" rel="noopener">Scrivici su WhatsApp</a></p>@endif
         </div>
     @endif
 
-    <p class="muted" style="text-align:center">Pagamento sicuro tramite Stripe · Pagamenti protetti Hub Core · <a href="{{ route('terms.economic') }}">condizioni</a></p>
+    <p class="muted" style="text-align:center">Pagamento sicuro tramite Stripe · Pagamenti protetti Hub Core · <a href="{{ route('terms.buyer') }}">condizioni di acquisto</a></p>
 </div>
 </body>
 </html>

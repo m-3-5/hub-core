@@ -12,7 +12,7 @@ use App\Models\User;
  */
 class SellerTerms
 {
-    public const VERSION = '2026-10-11';
+    public const VERSION = '2026-10-14';
 
     public static function accepted(Tenant $tenant): bool
     {

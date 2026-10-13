@@ -9,6 +9,7 @@ use M35\HubPayments\Http\Controllers\Admin\CommissionAdminController;
 use M35\HubPayments\Http\Controllers\Admin\ConnectController;
 use M35\HubPayments\Http\Controllers\Admin\OrderController;
 use M35\HubPayments\Http\Controllers\Admin\PayoutSetupController;
+use M35\HubPayments\Http\Controllers\Admin\ProtectedOrdersAdminController;
 use M35\HubPayments\Http\Controllers\Admin\QuoteController;
 use M35\HubPayments\Http\Controllers\Admin\StripePaymentLinksController;
 use M35\HubPayments\Http\Controllers\Admin\StripeWebhookSettingsController;
@@ -122,6 +123,12 @@ class HubPaymentsServiceProvider extends ServiceProvider
         Route::middleware(['web', 'auth'])->prefix('admin')->name('admin.')->group(function () {
             Route::get('/commissions', [CommissionAdminController::class, 'index'])->name('commissions.index');
             Route::put('/commissions/{tenant}', [CommissionAdminController::class, 'update'])->name('commissions.update');
+
+            // Pagamenti protetti: elenco per il team Hub Core (rilascio manuale, rimborso, ripresa dopo un blocco).
+            Route::get('/protected-orders', [ProtectedOrdersAdminController::class, 'index'])->name('protected-orders.index');
+            Route::post('/protected-orders/{order}/release', [ProtectedOrdersAdminController::class, 'release'])->name('protected-orders.release');
+            Route::post('/protected-orders/{order}/refund', [ProtectedOrdersAdminController::class, 'refund'])->name('protected-orders.refund');
+            Route::post('/protected-orders/{order}/resume', [ProtectedOrdersAdminController::class, 'resume'])->name('protected-orders.resume');
         });
 
         Route::prefix('api/v1')
@@ -154,6 +161,8 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 // Acquisto con pagamento protetto + pagina dell'ordine del compratore (codice segreto nel link).
                 Route::post('/s/{tenant}/{service}/acquista', [ProtectedOrderController::class, 'buy'])->middleware('throttle:20,1')->name('services.public.buy');
                 Route::get('/ordine/{token}', [ProtectedOrderController::class, 'show'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:60,1')->name('protected.order.show');
+                Route::post('/ordine/{token}/ricevuto', [ProtectedOrderController::class, 'confirm'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:20,1')->name('protected.order.confirm');
+                Route::post('/ordine/{token}/segnala', [ProtectedOrderController::class, 'report'])->where('token', '[A-Za-z0-9]{40}')->middleware('throttle:10,1')->name('protected.order.report');
                 Route::get('/client/{tenant}/services/{service}/embed', [ServicePublicController::class, 'embed'])->name('client.services.embed');
                 Route::get('/client/{tenant}/services/{service}/iframe-snippet', [ServicePublicController::class, 'iframeSnippet'])->name('client.services.iframe');
             });

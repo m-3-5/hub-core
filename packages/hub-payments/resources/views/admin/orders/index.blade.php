@@ -75,7 +75,16 @@
                             {{ $eur($order->amount_cents) }}
                             @if ($order->isProtected())
                                 <div style="font-size:.8rem;color:#4338ca">{{ $payoutLabel[$order->payout_status] ?? 'Protetto' }}@if ($order->isHeld() && $order->release_at) · fino al {{ $order->release_at->timezone(config('app.timezone'))->format('d/m') }}@endif</div>
-                                <div style="font-size:.78rem;color:#6b7280">ricevi circa {{ $eur($order->amount_cents - $order->commission_cents - \M35\HubPayments\Support\StripeFees::estimateCents($order->amount_cents)) }}</div>
+                                @if ($order->payout_status === 'released')
+                                    <div style="font-size:.78rem;color:#166534">hai ricevuto {{ $eur($order->payout_cents) }} (Stripe −{{ $eur($order->stripe_fee_cents) }})</div>
+                                @elseif ($order->payout_status === 'refunded')
+                                    <div style="font-size:.78rem;color:#6b7280">cliente rimborsato</div>
+                                @else
+                                    <div style="font-size:.78rem;color:#6b7280">ricevi circa {{ $eur($order->amount_cents - $order->commission_cents - \M35\HubPayments\Support\StripeFees::estimateCents($order->amount_cents)) }}</div>
+                                @endif
+                                @if ($order->problem_message)
+                                    <div style="font-size:.8rem;color:#b45309;max-width:260px;white-space:normal">⚠ Il cliente segnala: «{{ \Illuminate\Support\Str::limit($order->problem_message, 140) }}». Rispondigli per sbloccare il pagamento.</div>
+                                @endif
                             @endif
                         </td>
                         @if ($commissionActive)

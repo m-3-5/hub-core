@@ -1,6 +1,6 @@
 # Stato del progetto Hub Core (documento vivo)
 
-> Aggiornato: **2026-10-14** (commit del 14 ottobre). Si aggiorna a ogni pezzo consegnato (commit su `hub-core`).
+> Aggiornato: **2026-10-14** (pezzo 3 dei pagamenti protetti). Si aggiorna a ogni pezzo consegnato (commit su `hub-core`).
 > Contesto tecnico e architettura: `CONTESTO-PROGETTO.md` · roadmap lunga: `PIANO-SVILUPPO.md` · pagamenti: `MODULO-PAGAMENTI.md` · deploy: `DEPLOY-PLESK.md`.
 
 ## 1. In produzione su inm35.it (verificato)
@@ -32,8 +32,10 @@
 |-------|-------|
 | 1 Collegamento venditore (Connect) | ✅ |
 | 2 Cassa + trattenuta + ordine «Trattenuto» + ricevute | ✅ **provato dal vivo il 13/10** (sandbox, 1 €): ordine «Trattenuto fino al 20/10», email al compratore e ai venditori, pagina `/ordine/{codice}`, webhook ok |
-| 3 Rilascio: pulsante «Ho ricevuto», comando giornaliero (Transfer = incasso − fee Stripe reale − commissione), «Segnala un problema», rimborsi | ⏳ da fare |
-| 4 Viste venditore/compratore complete, notifiche, PayPal/bonifico automatici | ⏳ da fare |
+| 3 Rilascio ai venditori | ✅ **costruito il 14/10, da provare dal vivo**: «Ho ricevuto tutto» (rilascio immediato), comando `hub:release-protected-payments` ogni ora (Transfer = incasso − commissione Stripe reale − commissione Hub Core, idempotente), «Segnala un problema» (blocca + ticket + email), contestazioni/rimborsi da Stripe che bloccano l'ordine, rimborso e ripresa dal pannello team `/admin/protected-orders`, condizioni di acquisto del compratore con accettazione obbligatoria (`/condizioni-acquisto`, registrate su ordine), condizioni venditore v2026-10-14 (da riaccettare) |
+| 4 Rifiniture: PayPal/bonifico automatici, vendita tra privati con annuncio | ⏳ da decidere |
+
+**Chi può vendere con i pagamenti protetti oggi:** aziende ed enti (moduli Servizi/Prodotti, `config/hub.php`). I **privati** hanno solo Promo e Annunci (contatto telefonico, nessun pagamento): per farli vendere servono prodotti-per-privati e il pulsante «Compra con pagamento protetto» negli annunci (stesso rilascio/segnalazione/rimborso già pronti).
 
 ## 3. Problemi aperti
 

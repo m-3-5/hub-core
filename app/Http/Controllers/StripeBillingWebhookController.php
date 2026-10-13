@@ -36,6 +36,9 @@ class StripeBillingWebhookController extends Controller
 
         match ($type) {
             'checkout.session.completed', 'checkout.session.async_payment_succeeded' => $this->handleCheckoutCompleted($object),
+            // Pagamenti protetti: contestazione aperta dalla banca del compratore o rimborso fatto dalla Dashboard di Stripe.
+            'charge.dispute.created' => \M35\HubPayments\Support\ProtectedPayout::handleStripeEvent('dispute', is_string($object['payment_intent'] ?? null) ? $object['payment_intent'] : null),
+            'charge.refunded' => \M35\HubPayments\Support\ProtectedPayout::handleStripeEvent('refunded', is_string($object['payment_intent'] ?? null) ? $object['payment_intent'] : null),
             'customer.subscription.updated' => $this->handleSubscriptionUpdated($object),
             'customer.subscription.deleted' => $this->handleSubscriptionDeleted($object),
             default => null,

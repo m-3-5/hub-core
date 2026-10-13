@@ -13,8 +13,13 @@ use Illuminate\Support\Facades\Notification;
 use M35\HubPayments\Models\PayableOrder;
 use M35\HubPayments\Models\PayableService;
 use M35\HubPayments\Notifications\BuyerOrderNotification;
+use M35\HubPayments\Notifications\BuyerOrderUpdateNotification;
+use M35\HubPayments\Notifications\ProtectedProblemNotification;
+use M35\HubPayments\Notifications\ProtectedReleasedNotification;
 use M35\HubPayments\Notifications\PaymentReceivedNotification;
+use M35\HubPayments\Support\BuyerTerms;
 use M35\HubPayments\Support\PaymentRecorder;
+use M35\HubPayments\Support\ProtectedPayout;
 use M35\HubPayments\Support\SellerTerms;
 use M35\HubPayments\Support\TenantCommission;
 use M35\HubPayments\Support\TenantConnect;
@@ -97,7 +102,8 @@ class ProtectedCheckoutTest extends TestCase
 
         $this->get(route('services.public.show', [$tenant, $item]))->assertOk()
             ->assertSee(route('services.public.buy', [$tenant, $item]), false)
-            ->assertSee('Pagamento protetto da Hub Core')->assertSee('name="quantity"', false);
+            ->assertSee('Pagamento protetto da Hub Core')->assertSee('name="quantity"', false)
+            ->assertSee('name="accept_buyer_terms"', false)->assertSee(route('terms.buyer'), false);
     }
 
     public function test_without_connection_or_acceptance_the_page_keeps_the_usual_payment_link(): void
@@ -128,7 +134,7 @@ class ProtectedCheckoutTest extends TestCase
         $item = $this->item($tenant, cents: 4500);
         $this->fakeCheckout();
 
-        $this->post(route('services.public.buy', [$tenant, $item]), ['quantity' => 2, 'customer_email' => 'compratore@example.com'])
+        $this->post(route('services.public.buy', [$tenant, $item]), ['quantity' => 2, 'customer_email' => 'compratore@example.com', 'accept_buyer_terms' => 1])
             ->assertRedirect('https://checkout.stripe.com/c/pay/cs_test_1');
 
         $order = PayableOrder::sole();
@@ -156,7 +162,7 @@ class ProtectedCheckoutTest extends TestCase
         $service = $this->item($tenant, 'service', 'Piega', 3000);
         $this->fakeCheckout();
 
-        $this->post(route('services.public.buy', [$tenant, $service]), ['quantity' => 5, 'amount' => 1])->assertRedirect();
+        $this->post(route('services.public.buy', [$tenant, $service]), ['quantity' => 5, 'amount' => 1, 'accept_buyer_terms' => 1])->assertRedirect();
 
         $this->assertSame(3000, PayableOrder::sole()->amount_cents);
     }
@@ -172,7 +178,7 @@ class ProtectedCheckoutTest extends TestCase
 
         $this->post(route('services.public.buy', [$tenant, $hidden]))->assertNotFound();
         $this->post(route('services.public.buy', [$tenant, $foreign]))->assertNotFound();
-        $this->post(route('services.public.buy', [$tenant, $this->item($tenant, title: 'Ok')]), ['quantity' => 99])->assertSessionHasErrors('quantity');
+        $this->post(route('services.public.buy', [$tenant, $this->item($tenant, title: 'Ok')]), ['quantity' => 99, 'accept_buyer_terms' => 1])->assertSessionHasErrors('quantity');
 
         Http::assertNothingSent();
         $this->assertSame(0, PayableOrder::count());
@@ -184,7 +190,7 @@ class ProtectedCheckoutTest extends TestCase
         $item = $this->item($tenant);
         Http::fake(['api.stripe.com/*' => Http::response(['error' => ['message' => 'no']], 500)]);
 
-        $this->from(route('services.public.show', [$tenant, $item]))->post(route('services.public.buy', [$tenant, $item]))
+        $this->from(route('services.public.show', [$tenant, $item]))->post(route('services.public.buy', [$tenant, $item]), ['accept_buyer_terms' => 1])
             ->assertRedirect(route('services.public.show', [$tenant, $item]))->assertSessionHasErrors('buy');
 
         $this->assertSame(0, PayableOrder::count());
@@ -200,7 +206,7 @@ class ProtectedCheckoutTest extends TestCase
         $tenant->users()->attach($owner->id, ['role' => 'admin']);
         $item = $this->item($tenant);
         $this->fakeCheckout();
-        $this->post(route('services.public.buy', [$tenant, $item]));
+        $this->post(route('services.public.buy', [$tenant, $item]), ['accept_buyer_terms' => 1]);
         $order = PayableOrder::sole();
 
         $this->platformWebhook($this->paidSession($order))->assertOk();
@@ -223,7 +229,7 @@ class ProtectedCheckoutTest extends TestCase
         $tenant = $this->seller();
         $tenant->users()->attach(User::factory()->create()->id, ['role' => 'admin']);
         $this->fakeCheckout();
-        $this->post(route('services.public.buy', [$tenant, $this->item($tenant)]));
+        $this->post(route('services.public.buy', [$tenant, $this->item($tenant)]), ['accept_buyer_terms' => 1]);
         $order = PayableOrder::sole();
 
         $this->platformWebhook($this->paidSession($order))->assertOk();
@@ -240,7 +246,7 @@ class ProtectedCheckoutTest extends TestCase
     {
         $tenant = $this->seller();
         $this->fakeCheckout();
-        $this->post(route('services.public.buy', [$tenant, $this->item($tenant)]));
+        $this->post(route('services.public.buy', [$tenant, $this->item($tenant)]), ['accept_buyer_terms' => 1]);
         $order = PayableOrder::sole();
 
         $this->platformWebhook($this->paidSession($order, ['payment_status' => 'unpaid']))->assertOk();
@@ -253,7 +259,7 @@ class ProtectedCheckoutTest extends TestCase
     {
         $tenant = $this->seller();
         $this->fakeCheckout();
-        $this->post(route('services.public.buy', [$tenant, $this->item($tenant)]));
+        $this->post(route('services.public.buy', [$tenant, $this->item($tenant)]), ['accept_buyer_terms' => 1]);
         $order = PayableOrder::sole();
 
         // Stessa sessione, ma arrivata dal conto Stripe del venditore (non da quello di Hub Core).
@@ -301,7 +307,7 @@ class ProtectedCheckoutTest extends TestCase
     {
         $tenant = $this->seller();
         $this->fakeCheckout();
-        $this->post(route('services.public.buy', [$tenant, $this->item($tenant)]));
+        $this->post(route('services.public.buy', [$tenant, $this->item($tenant)]), ['accept_buyer_terms' => 1]);
         $order = PayableOrder::sole();
         $url = route('protected.order.show', $order->buyer_token);
 
@@ -322,11 +328,325 @@ class ProtectedCheckoutTest extends TestCase
         $user = User::factory()->create();
         $tenant->users()->attach($user->id, ['role' => 'admin']);
         $this->fakeCheckout();
-        $this->post(route('services.public.buy', [$tenant, $this->item($tenant, cents: 10000)]));
+        $this->post(route('services.public.buy', [$tenant, $this->item($tenant, cents: 10000)]), ['accept_buyer_terms' => 1]);
         $order = PayableOrder::sole();
         $this->platformWebhook($this->paidSession($order))->assertOk();
 
         $this->actingAs($user)->get(route('admin.orders.index', $tenant))->assertOk()
             ->assertSee('Trattenuto')->assertSee('custoditi da Hub Core')->assertSee('ricevi circa 98,25 €');
+    }
+
+    // ---- accettazione del compratore ----
+
+    public function test_the_buyer_cannot_pay_without_accepting_the_purchase_terms(): void
+    {
+        $tenant = $this->seller();
+        $item = $this->item($tenant);
+        Http::fake();
+
+        $this->from(route('services.public.show', [$tenant, $item]))->post(route('services.public.buy', [$tenant, $item]))
+            ->assertRedirect(route('services.public.show', [$tenant, $item]))->assertSessionHasErrors('buy');
+
+        Http::assertNothingSent();
+        $this->assertSame(0, PayableOrder::count());
+    }
+
+    public function test_the_acceptance_of_the_buyer_terms_is_recorded_on_the_order_and_shown_on_the_stripe_page(): void
+    {
+        $tenant = $this->seller();
+        $this->fakeCheckout();
+
+        $this->post(route('services.public.buy', [$tenant, $this->item($tenant)]), ['accept_buyer_terms' => 1]);
+
+        $order = PayableOrder::sole();
+        $this->assertSame(BuyerTerms::VERSION, $order->buyer_terms_version);
+        $this->assertNotNull($order->buyer_terms_accepted_at);
+        $this->assertSame('127.0.0.1', $order->buyer_terms_ip);
+
+        Http::assertSent(fn (HttpRequest $r) => str_ends_with($r->url(), '/v1/checkout/sessions')
+            && str_contains($r['custom_text[submit][message]'], route('terms.buyer')) && str_contains($r['custom_text[submit][message]'], '7 giorni'));
+    }
+
+    public function test_the_buyer_terms_page_explains_everything(): void
+    {
+        $this->get(route('terms.buyer'))->assertOk()
+            ->assertSee('Ho ricevuto tutto')->assertSee('Segnala un problema')->assertSee('7 giorni')->assertSee('rimborsiamo')
+            ->assertSee('garanzia legale')->assertSee('recesso')->assertSee(BuyerTerms::VERSION);
+
+        $this->assertStringContainsString(route('terms.buyer'), $this->get('/sitemap.xml')->getContent());
+    }
+
+    // ---- rilascio ai venditori ----
+
+    private function heldOrder(Tenant $tenant, int $cents = 10000, int $commission = 0): PayableOrder
+    {
+        return PayableOrder::create([
+            'tenant_id' => $tenant->id, 'channel' => 'hub', 'flow' => 'protected', 'status' => 'paid', 'payout_status' => 'held',
+            'connect_account_id' => 'acct_seller', 'stripe_payment_intent_id' => 'pi_123', 'items' => [['title' => 'Siero viso', 'quantity' => 1, 'unit_amount_cents' => $cents]],
+            'amount_cents' => $cents, 'commission_cents' => $commission, 'currency' => 'eur', 'customer_email' => 'compratore@example.com',
+            'customer_name' => 'Anna', 'paid_at' => now()->subDays(8), 'release_at' => now()->subHour(), 'buyer_token' => \Illuminate\Support\Str::random(40),
+        ]);
+    }
+
+    private function fakeStripeForRelease(array $charge = []): void
+    {
+        Http::fake([
+            'api.stripe.com/v1/payment_intents/pi_123*' => Http::response(['id' => 'pi_123', 'latest_charge' => $charge + [
+                'id' => 'ch_1', 'amount' => 10000, 'refunded' => false, 'disputed' => false, 'amount_refunded' => 0,
+                'balance_transaction' => ['id' => 'txn_1', 'fee' => 175, 'net' => 9825],
+            ]]),
+            'api.stripe.com/v1/transfers/tr_1/reversals' => Http::response(['id' => 'trr_1']),
+            'api.stripe.com/v1/transfers' => Http::response(['id' => 'tr_1']),
+            'api.stripe.com/v1/refunds' => Http::response(['id' => 're_1']),
+        ]);
+    }
+
+    public function test_release_sends_the_amount_net_of_the_real_stripe_fee_and_the_hub_commission(): void
+    {
+        Notification::fake();
+        $tenant = $this->seller();
+        $tenant->users()->attach(User::factory()->create()->id, ['role' => 'admin']);
+        $order = $this->heldOrder($tenant, 10000, 500);
+        $this->fakeStripeForRelease();
+
+        $this->assertTrue(ProtectedPayout::release($order));
+
+        $order->refresh();
+        $this->assertSame('released', $order->payout_status);
+        $this->assertSame(175, $order->stripe_fee_cents);
+        $this->assertSame(9325, $order->payout_cents); // 100,00 − 1,75 Stripe − 5,00 Hub Core
+        $this->assertSame('tr_1', $order->stripe_transfer_id);
+        $this->assertNotNull($order->released_at);
+
+        Http::assertSent(fn (HttpRequest $r) => str_ends_with($r->url(), '/v1/transfers')
+            && (int) $r['amount'] === 9325 && $r['destination'] === 'acct_seller' && $r['source_transaction'] === 'ch_1'
+            && $r['transfer_group'] === 'order_'.$order->id && $r->hasHeader('Idempotency-Key', 'hub-release-'.$order->id));
+        Notification::assertSentTo($tenant->users->first(), ProtectedReleasedNotification::class);
+        Notification::assertSentOnDemand(BuyerOrderUpdateNotification::class);
+    }
+
+    public function test_releasing_twice_moves_the_money_once(): void
+    {
+        $tenant = $this->seller();
+        $order = $this->heldOrder($tenant);
+        $this->fakeStripeForRelease();
+
+        $this->assertTrue(ProtectedPayout::release($order));
+        $this->assertFalse(ProtectedPayout::release($order->fresh()));
+
+        Http::assertSentCount(2); // un solo pagamento letto e un solo trasferimento
+    }
+
+    public function test_a_charge_that_was_refunded_or_disputed_on_stripe_is_frozen_instead_of_released(): void
+    {
+        Notification::fake();
+        $tenant = $this->seller();
+        $order = $this->heldOrder($tenant);
+        $this->fakeStripeForRelease(['disputed' => true]);
+
+        $this->assertFalse(ProtectedPayout::release($order));
+
+        $this->assertSame('frozen', $order->fresh()->payout_status);
+        Http::assertNotSent(fn (HttpRequest $r) => str_ends_with($r->url(), '/v1/transfers'));
+    }
+
+    public function test_when_stripe_has_no_data_yet_the_order_stays_held_and_the_command_goes_on(): void
+    {
+        $tenant = $this->seller();
+        $a = $this->heldOrder($tenant);
+        $b = PayableOrder::create(['tenant_id' => $tenant->id, 'channel' => 'hub', 'flow' => 'protected', 'status' => 'paid', 'payout_status' => 'held',
+            'connect_account_id' => 'acct_seller', 'stripe_payment_intent_id' => 'pi_456', 'items' => [], 'amount_cents' => 2000,
+            'paid_at' => now()->subDays(9), 'release_at' => now()->subDay(), 'buyer_token' => str_repeat('c', 40)]);
+        Http::fake([
+            'api.stripe.com/v1/payment_intents/pi_456*' => Http::response(['error' => ['message' => 'boom']], 500),
+            'api.stripe.com/v1/payment_intents/pi_123*' => Http::response(['id' => 'pi_123', 'latest_charge' => ['id' => 'ch_1', 'amount' => 10000, 'balance_transaction' => ['fee' => 175]]]),
+            'api.stripe.com/v1/transfers' => Http::response(['id' => 'tr_1']),
+        ]);
+
+        $this->artisan('hub:release-protected-payments')->assertExitCode(1);
+
+        $this->assertSame('released', $a->fresh()->payout_status);
+        $this->assertSame('held', $b->fresh()->payout_status);
+    }
+
+    public function test_the_command_releases_only_orders_that_are_due_and_not_frozen(): void
+    {
+        $tenant = $this->seller();
+        $due = $this->heldOrder($tenant);
+        $notYet = PayableOrder::create(['tenant_id' => $tenant->id, 'channel' => 'hub', 'flow' => 'protected', 'status' => 'paid', 'payout_status' => 'held',
+            'connect_account_id' => 'acct_seller', 'stripe_payment_intent_id' => 'pi_999', 'items' => [], 'amount_cents' => 1000, 'release_at' => now()->addDays(3), 'buyer_token' => str_repeat('d', 40)]);
+        $frozen = PayableOrder::create(['tenant_id' => $tenant->id, 'channel' => 'hub', 'flow' => 'protected', 'status' => 'paid', 'payout_status' => 'frozen',
+            'connect_account_id' => 'acct_seller', 'stripe_payment_intent_id' => 'pi_888', 'items' => [], 'amount_cents' => 1000, 'release_at' => now()->subDay(), 'buyer_token' => str_repeat('e', 40)]);
+        $this->fakeStripeForRelease();
+
+        $this->artisan('hub:release-protected-payments', ['--dry-run' => true])->assertExitCode(0);
+        $this->assertSame('held', $due->fresh()->payout_status);
+
+        $this->artisan('hub:release-protected-payments')->assertExitCode(0);
+
+        $this->assertSame('released', $due->fresh()->payout_status);
+        $this->assertSame('held', $notYet->fresh()->payout_status);
+        $this->assertSame('frozen', $frozen->fresh()->payout_status);
+    }
+
+    // ---- compratore: «Ho ricevuto» e «Segnala un problema» ----
+
+    public function test_the_buyer_confirms_reception_and_the_money_goes_to_the_seller_at_once(): void
+    {
+        Notification::fake();
+        $tenant = $this->seller();
+        $order = $this->heldOrder($tenant);
+        $order->update(['release_at' => now()->addDays(5)]);
+        $this->fakeStripeForRelease();
+
+        $this->get(route('protected.order.show', $order->buyer_token))->assertOk()->assertSee('Ho ricevuto tutto')->assertSee('Segnala un problema');
+
+        $this->post(route('protected.order.confirm', $order->buyer_token))->assertRedirect(route('protected.order.show', $order->buyer_token));
+
+        $order->refresh();
+        $this->assertSame('released', $order->payout_status);
+        $this->assertNotNull($order->confirmed_at);
+        $this->get(route('protected.order.show', $order->buyer_token))->assertSee('consegnato al venditore')->assertDontSee('Ho ricevuto tutto');
+    }
+
+    public function test_if_stripe_is_down_the_confirmation_is_kept_and_released_later(): void
+    {
+        $tenant = $this->seller();
+        $order = $this->heldOrder($tenant);
+        $order->update(['release_at' => now()->addDays(5)]);
+        Http::fake(['api.stripe.com/*' => Http::response(['error' => ['message' => 'down']], 503)]);
+
+        $this->post(route('protected.order.confirm', $order->buyer_token))->assertRedirect();
+
+        $order->refresh();
+        $this->assertSame('held', $order->payout_status);
+        $this->assertNotNull($order->confirmed_at);
+        $this->assertTrue($order->release_at->lte(now())); // pronto per il comando orario
+    }
+
+    public function test_reporting_a_problem_freezes_the_payment_and_alerts_seller_team_and_buyer(): void
+    {
+        Notification::fake();
+        $tenant = $this->seller();
+        $seller = User::factory()->create();
+        $tenant->users()->attach($seller->id, ['role' => 'admin']);
+        $admin = User::factory()->create(['is_super_admin' => true]);
+        $order = $this->heldOrder($tenant);
+        Http::fake();
+
+        $this->post(route('protected.order.report', $order->buyer_token), ['message' => 'Il prodotto non è mai arrivato'])
+            ->assertRedirect(route('protected.order.show', $order->buyer_token))->assertSessionHas('status');
+
+        $order->refresh();
+        $this->assertSame('frozen', $order->payout_status);
+        $this->assertSame('Il prodotto non è mai arrivato', $order->problem_message);
+        $this->assertNotNull($order->problem_reported_at);
+        $this->assertDatabaseHas('tickets', ['tenant_id' => $tenant->id, 'context_type' => 'protected_order', 'context_id' => $order->id]);
+        Notification::assertSentTo($seller, ProtectedProblemNotification::class);
+        Notification::assertSentTo($admin, \App\Notifications\NewTicketNotification::class);
+        Notification::assertSentOnDemand(BuyerOrderUpdateNotification::class);
+
+        // Ordine bloccato: né il comando né una conferma lo rilasciano.
+        $this->artisan('hub:release-protected-payments')->assertExitCode(0);
+        $this->post(route('protected.order.confirm', $order->buyer_token));
+        $this->assertSame('frozen', $order->fresh()->payout_status);
+        Http::assertNothingSent();
+    }
+
+    public function test_a_problem_report_needs_a_real_description_and_a_valid_link(): void
+    {
+        $tenant = $this->seller();
+        $order = $this->heldOrder($tenant);
+
+        $this->post(route('protected.order.report', $order->buyer_token), ['message' => 'no'])->assertSessionHasErrors('message');
+        $this->assertSame('held', $order->fresh()->payout_status);
+
+        $this->post('/ordine/'.str_repeat('z', 40).'/segnala', ['message' => 'Messaggio abbastanza lungo'])->assertNotFound();
+    }
+
+    // ---- rimborsi e contestazioni ----
+
+    public function test_the_team_can_refund_a_held_or_already_released_order(): void
+    {
+        Notification::fake();
+        $tenant = $this->seller();
+        $admin = User::factory()->create(['is_super_admin' => true]);
+        $held = $this->heldOrder($tenant);
+        $this->fakeStripeForRelease();
+
+        $this->actingAs($admin)->post(route('admin.protected-orders.refund', $held))->assertSessionHasNoErrors();
+        $this->assertSame('refunded', $held->fresh()->payout_status);
+        Http::assertNotSent(fn (HttpRequest $r) => str_contains($r->url(), 'reversals'));
+
+        $released = $this->heldOrder($tenant);
+        $released->update(['buyer_token' => str_repeat('f', 40), 'stripe_payment_intent_id' => 'pi_123']);
+        ProtectedPayout::release($released);
+
+        $this->actingAs($admin)->post(route('admin.protected-orders.refund', $released->fresh()))->assertSessionHasNoErrors();
+
+        $this->assertSame('refunded', $released->fresh()->payout_status);
+        Http::assertSent(fn (HttpRequest $r) => str_ends_with($r->url(), '/v1/transfers/tr_1/reversals'));
+        Http::assertSent(fn (HttpRequest $r) => str_ends_with($r->url(), '/v1/refunds') && $r['payment_intent'] === 'pi_123');
+    }
+
+    public function test_only_super_admins_manage_protected_orders(): void
+    {
+        $tenant = $this->seller();
+        $owner = User::factory()->create();
+        $tenant->users()->attach($owner->id, ['role' => 'admin']);
+        $order = $this->heldOrder($tenant);
+        Http::fake();
+
+        $this->actingAs($owner)->get(route('admin.protected-orders.index'))->assertForbidden();
+        $this->actingAs($owner)->post(route('admin.protected-orders.release', $order))->assertForbidden();
+        $this->actingAs($owner)->post(route('admin.protected-orders.refund', $order))->assertForbidden();
+
+        Http::assertNothingSent();
+        $this->assertSame('held', $order->fresh()->payout_status);
+
+        $admin = User::factory()->create(['is_super_admin' => true]);
+        $this->actingAs($admin)->get(route('admin.protected-orders.index'))->assertOk()->assertSee('Siero viso')->assertSee('Rilascia ora');
+    }
+
+    public function test_a_frozen_order_resumes_with_a_new_date_after_the_problem_is_solved(): void
+    {
+        $tenant = $this->seller();
+        $admin = User::factory()->create(['is_super_admin' => true]);
+        $order = $this->heldOrder($tenant);
+        $order->update(['payout_status' => 'frozen']);
+
+        $this->actingAs($admin)->post(route('admin.protected-orders.resume', $order))->assertSessionHas('status');
+
+        $order->refresh();
+        $this->assertSame('held', $order->payout_status);
+        $this->assertEqualsWithDelta(now()->addDays(2)->timestamp, $order->release_at->timestamp, 5);
+    }
+
+    public function test_a_card_dispute_opened_at_stripe_freezes_the_order_automatically(): void
+    {
+        Notification::fake();
+        $tenant = $this->seller();
+        User::factory()->create(['is_super_admin' => true]);
+        $order = $this->heldOrder($tenant);
+        $payload = json_encode(['type' => 'charge.dispute.created', 'data' => ['object' => ['id' => 'dp_1', 'payment_intent' => 'pi_123']]]);
+        $t = time();
+
+        $this->call('POST', '/api/stripe/webhook', [], [], [], [
+            'HTTP_STRIPE_SIGNATURE' => "t={$t},v1=".hash_hmac('sha256', $t.'.'.$payload, $this->whsec),
+            'CONTENT_TYPE' => 'application/json',
+        ], $payload)->assertOk();
+
+        $this->assertSame('frozen', $order->fresh()->payout_status);
+        $this->assertStringContainsString('Contestazione', $order->fresh()->problem_message);
+    }
+
+    public function test_the_seller_must_accept_the_new_terms_version_before_selling_again(): void
+    {
+        $tenant = $this->seller(accepted: false);
+        $tenant->forceFill(['settings' => array_merge($tenant->settings ?? [], ['seller_terms' => ['version' => '2026-10-11', 'accepted_at' => now()->toIso8601String()]])])->save();
+        $item = $this->item($tenant->fresh());
+
+        $this->assertFalse(SellerTerms::accepted($tenant->fresh()));
+        $this->get(route('services.public.show', [$tenant->fresh(), $item]))->assertDontSee(route('services.public.buy', [$tenant, $item]), false);
     }
 }
