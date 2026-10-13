@@ -39,12 +39,17 @@ class ProtectedReleasedNotification extends Notification
             $mail->line('**Commissione Hub Core:** − '.$eur($o->commission_cents));
         }
 
-        return $mail
-            ->line('**Ti viene accreditato: '.$eur($o->payout_cents).'**')
+        $mail->line('**Ti viene accreditato: '.$eur($o->payout_cents).'**')
             ->line($o->confirmed_at
                 ? 'Il cliente ha confermato di aver ricevuto quanto acquistato.'
                 : 'Sono passati i giorni di attesa senza segnalazioni del cliente.')
             ->line('I soldi arrivano sul tuo conto Stripe e poi, con i bonifici di Stripe, sul tuo IBAN (di solito entro pochi giorni lavorativi).')
             ->salutation('Hub Core');
+
+        if ($monitor = config('mail.leads_monitor_email')) {
+            $mail->bcc($monitor);
+        }
+
+        return $mail;
     }
 }

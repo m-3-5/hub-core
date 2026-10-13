@@ -43,9 +43,14 @@ class ProtectedProblemNotification extends Notification
             $mail->replyTo($o->customer_email, $o->customer_name ?: null);
         }
 
-        return $mail
-            ->line('Risolvere in fretta (consegna, sostituzione, accordo con il cliente) sblocca il pagamento. Se la segnalazione è fondata e non viene risolta, il cliente viene rimborsato e il costo è a tuo carico, come da condizioni economiche.')
+        $mail->line('Risolvere in fretta (consegna, sostituzione, accordo con il cliente) sblocca il pagamento. Se la segnalazione è fondata e non viene risolta, il cliente viene rimborsato e il costo è a tuo carico, come da condizioni economiche.')
             ->action('Condizioni economiche', route('terms.economic'))
             ->salutation('Hub Core');
+
+        if ($monitor = config('mail.leads_monitor_email')) {
+            $mail->bcc($monitor);
+        }
+
+        return $mail;
     }
 }
