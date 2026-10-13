@@ -1,6 +1,6 @@
 # Stato del progetto Hub Core (documento vivo)
 
-> Aggiornato: **2026-10-14**. Si aggiorna a ogni pezzo consegnato (commit su `hub-core`).
+> Aggiornato: **2026-10-14** (commit 124e97e). Si aggiorna a ogni pezzo consegnato (commit su `hub-core`).
 > Contesto tecnico e architettura: `CONTESTO-PROGETTO.md` · roadmap lunga: `PIANO-SVILUPPO.md` · pagamenti: `MODULO-PAGAMENTI.md` · deploy: `DEPLOY-PLESK.md`.
 
 ## 1. In produzione su inm35.it (verificato)
@@ -37,7 +37,7 @@
 
 ## 3. Problemi aperti
 
-1. **Webhook Stripe 404 (email Stripe del 10 e 13 ottobre).** La Dashboard (modalità live) invia a `https://inm35.it/stripe/billing/webhook`, ma l'app serviva solo `/api/stripe/webhook` → 404 dal 7 ottobre. **Corretto nel codice** (alias `/stripe/billing/webhook` + più segreti separati da virgola, test `StripeWebhookEndpointTest`); serve deploy. Stripe smette di inviare il 16 ottobre 2026 se non risponde.
+1. **Webhook Stripe 404 (email Stripe del 10 e 13 ottobre).** La Dashboard (modalità live) invia a `https://inm35.it/stripe/billing/webhook`, ma l'app serviva solo `/api/stripe/webhook` → 404 dal 7 ottobre. **Corretto e online dal 14 ottobre** (commit 124e97e: alias `/stripe/billing/webhook` + più segreti separati da virgola; ora risponde 401 senza firma invece di 404). Resta da verificare con un evento reale (Dashboard → Webhook → «Invia di nuovo»): se risponde 401 il segreto in `.env` non è quello dell'endpoint live. Stripe smette di inviare il 16 ottobre 2026 se continua a fallire.
 2. **Webhook in modalità di prova mancante.** I pagamenti protetti di prova generano eventi in *modalità test*, che richiedono un endpoint **test** in Stripe (Sviluppatori → Webhook, con «Modalità di prova» attiva) verso `/api/stripe/webhook`, evento `checkout.session.completed`. Il suo segreto va aggiunto in `HUB_STRIPE_WEBHOOK_SECRET` dopo quello live, separato da virgola.
 3. Verifica che `HUB_STRIPE_WEBHOOK_SECRET` in produzione sia il segreto dell'endpoint live (altrimenti 401 invece di 404).
 
