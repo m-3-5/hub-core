@@ -119,7 +119,7 @@
                 @endif
             </div>
             @if ($protectedBuy)
-                <p class="trust-note">🛡️ Pagamento protetto da Hub Core: {{ $tenant->name }} riceve i soldi solo dopo la consegna (tua conferma, o dopo {{ \M35\HubPayments\Support\ProtectedCheckout::holdDays() }} giorni se non segnali problemi). Pagamento sicuro tramite Stripe.</p>
+                <p class="trust-note"><a href="{{ route('terms.buyer') }}" target="_blank" rel="noopener">Leggi termini e condizioni</a></p>
             @else
                 <p class="trust-note">Pagamento sicuro tramite Stripe · {{ $tenant->name }}</p>
             @endif

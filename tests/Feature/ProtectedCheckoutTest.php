@@ -102,7 +102,7 @@ class ProtectedCheckoutTest extends TestCase
 
         $this->get(route('services.public.show', [$tenant, $item]))->assertOk()
             ->assertSee(route('services.public.buy', [$tenant, $item]), false)
-            ->assertSee('Pagamento protetto da Hub Core')->assertSee('name="quantity"', false)
+            ->assertSee('Leggi termini e condizioni')->assertSee('name="quantity"', false)
             ->assertSee('name="accept_buyer_terms"', false)->assertSee(route('terms.buyer'), false);
     }
 
@@ -111,7 +111,7 @@ class ProtectedCheckoutTest extends TestCase
         foreach ([$this->seller(connected: false), ] as $tenant) {
             $item = $this->item($tenant);
             $this->get(route('services.public.show', [$tenant, $item]))->assertOk()
-                ->assertSee('https://buy.stripe.com/test_abc?client_reference_id=hub', false)->assertDontSee('Pagamento protetto da Hub Core');
+                ->assertSee('https://buy.stripe.com/test_abc?client_reference_id=hub', false)->assertDontSee('Leggi termini e condizioni');
         }
     }
 
