@@ -31,7 +31,7 @@
 | Pezzo | Stato |
 |-------|-------|
 | 1 Collegamento venditore (Connect) | ✅ |
-| 2 Cassa + trattenuta + ordine «Trattenuto» + ricevute | ✅ (da provare con acquisto di prova) |
+| 2 Cassa + trattenuta + ordine «Trattenuto» + ricevute | ✅ **provato dal vivo il 13/10** (sandbox, 1 €): ordine «Trattenuto fino al 20/10», email al compratore e ai venditori, pagina `/ordine/{codice}`, webhook ok |
 | 3 Rilascio: pulsante «Ho ricevuto», comando giornaliero (Transfer = incasso − fee Stripe reale − commissione), «Segnala un problema», rimborsi | ⏳ da fare |
 | 4 Viste venditore/compratore complete, notifiche, PayPal/bonifico automatici | ⏳ da fare |
 
@@ -43,7 +43,8 @@
 
 ## 4. Da fare per l'utente (non automatizzabili)
 
-- Beauty: spuntare l'accettazione delle condizioni economiche (impegna l'attività) in `/admin/tenants/beauty-of-image/services`.
+- ~~Beauty: accettazione delle condizioni economiche~~ fatta il 13/10.
+- Eliminare gli ordini/prodotti di prova «Prova carrello (da eliminare)».
 - Commercialista/legale: IVA/fattura sulla commissione, DAC7, recesso 14 giorni, clausola «recupero somme».
 - Prova pagamento reale 1 € (preventivo e landing), Bing Webmaster Tools (login Microsoft), nome del gruppo Facebook (`LANDING_FB_GROUP_NAME`; suggerito «Sibaritide Digitale – Attività, Web e Idee»), eliminare i prodotti di prova su inm35.it.
 - Verificare tariffe Stripe reali (default 1,5% + 0,25 €: `HUB_STRIPE_FEE_PERCENT` / `HUB_STRIPE_FEE_FIXED_CENTS`).
