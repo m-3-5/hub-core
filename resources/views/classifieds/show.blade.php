@@ -93,6 +93,26 @@
     </div>
 
     <div class="sticky">
+        @if (! empty($protectedBuy))
+            <div class="panel" style="margin-bottom:16px;border-color:#c7d2fe;background:#f5f7ff">
+                <h2 style="font-size:1.1rem;margin-bottom:6px">🛡️ Compra con pagamento protetto</h2>
+                <p style="font-size:.9rem;color:var(--muted);margin-bottom:10px">Paghi online {{ $ad->priceLabel() }}: i soldi restano custoditi da Hub Core e l'inserzionista li riceve solo dopo la consegna (tua conferma, o dopo {{ \M35\HubPayments\Support\ProtectedCheckout::holdDays() }} giorni se non segnali problemi).
+                @if ($tenant->type === 'privato')Il venditore è un <strong>privato</strong>: non valgono garanzia legale e recesso da consumatore, ma il pagamento è protetto e, se non ricevi l'oggetto, ti rimborsiamo.@endif</p>
+                @error('buy')<p class="err" style="margin:0 0 8px">{{ $message }}</p>@enderror
+                <form class="form" method="POST" action="{{ route('classifieds.buy', [$tenant, $ad]) }}">
+                    @csrf
+                    <input type="email" name="customer_email" maxlength="190" placeholder="La tua email (per la ricevuta)" value="{{ old('customer_email') }}">
+                    <label style="display:flex;gap:8px;align-items:flex-start;font-size:.85rem;color:var(--muted);line-height:1.4;margin-bottom:10px;cursor:pointer">
+                        <input type="checkbox" name="accept_buyer_terms" value="1" required style="width:18px;height:18px;margin:2px 0 0;flex:none">
+                        <span>Ho letto e accetto le <a href="{{ route('terms.buyer') }}" target="_blank" rel="noopener">condizioni di acquisto protetto</a>.</span>
+                    </label>
+                    <button type="submit">Compra ora · {{ $ad->priceLabel() }}</button>
+                </form>
+            </div>
+        @elseif ($errors->has('buy'))
+            <div class="panel" style="margin-bottom:16px"><p class="err" style="margin:0">{{ $errors->first('buy') }}</p></div>
+        @endif
+
         <div class="panel">
             <h2 style="font-size:1.1rem;margin-bottom:12px">Contatta l'inserzionista{{ $ad->contact_name ? ': '.$ad->contact_name : '' }}</h2>
             @if ($ad->contact_phone)

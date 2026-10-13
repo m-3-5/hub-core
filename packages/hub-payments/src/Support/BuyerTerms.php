@@ -8,5 +8,5 @@ namespace M35\HubPayments\Support;
  */
 class BuyerTerms
 {
-    public const VERSION = '2026-10-14';
+    public const VERSION = '2026-10-15';
 }

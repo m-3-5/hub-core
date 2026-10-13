@@ -37,13 +37,16 @@
 <h2>4. I tuoi diritti di consumatore</h2>
 <p>Se acquisti come consumatore da un venditore professionista valgono le regole di legge: informazioni chiare sul prodotto, <strong>garanzia legale di conformità</strong> e, per gli acquisti a distanza, <strong>diritto di recesso di 14 giorni</strong> dove previsto (non vale, ad esempio, per servizi già erogati su tua richiesta o per prodotti personalizzati). Il venditore è responsabile di rispettarli e te li indica nella sua pagina; il pagamento protetto <em>si aggiunge</em> a questi diritti, non li sostituisce.</p>
 
-<h2>5. Costi</h2>
+<h2>5. Se il venditore è un privato</h2>
+<p>Negli annunci puoi comprare anche da un <strong>privato</strong> (lo trovi indicato sulla pagina). Tra privati <strong>non valgono</strong> la garanzia legale di conformità e il recesso previsti per i consumatori verso i professionisti: controlla bene l'oggetto e le foto prima di pagare. Resta però la protezione di Hub Core: il pagamento è custodito, puoi segnalare un problema e, se non ricevi l'oggetto o è diverso da come descritto, <strong>ti rimborsiamo</strong>.</p>
+
+<h2>6. Costi</h2>
 <p>Per te nessun costo in più: paghi il prezzo indicato. Le commissioni di Stripe e di Hub Core sono a carico del venditore.</p>
 
-<h2>6. I tuoi dati</h2>
+<h2>7. I tuoi dati</h2>
 <p>Per gestire l'ordine usiamo nome, email e telefono che inserisci al pagamento: li comunichiamo al venditore (per consegna o prenotazione) e a Stripe (per il pagamento). Conserviamo i dati dell'ordine e la tua accettazione di queste condizioni (data, versione e indirizzo IP) per gestire eventuali segnalazioni.</p>
 
-<h2>7. Accettazione</h2>
+<h2>8. Accettazione</h2>
 <p>Prima di pagare ti chiediamo di spuntare la casella «Ho letto e accetto le condizioni di acquisto protetto». Registriamo la versione di queste condizioni ({{ \M35\HubPayments\Support\BuyerTerms::VERSION }}), la data e l'indirizzo IP.</p>
 
 <p class="small">Versione {{ \M35\HubPayments\Support\BuyerTerms::VERSION }} · Vendi anche tu? Leggi le <a href="{{ route('terms.economic') }}">condizioni economiche per chi vende</a>. Per domande scrivici su WhatsApp o chiedi a Max.</p>

@@ -33,9 +33,10 @@
 | 1 Collegamento venditore (Connect) | ✅ |
 | 2 Cassa + trattenuta + ordine «Trattenuto» + ricevute | ✅ **provato dal vivo il 13/10** (sandbox, 1 €): ordine «Trattenuto fino al 20/10», email al compratore e ai venditori, pagina `/ordine/{codice}`, webhook ok |
 | 3 Rilascio ai venditori | ✅ **online dal 14/10; rilascio provato in sandbox** (1,00 € → commissione Stripe reale 0,28 € → 0,72 € al venditore); restano da provare dal vivo segnalazione e rimborso: «Ho ricevuto tutto» (rilascio immediato), comando `hub:release-protected-payments` ogni ora (Transfer = incasso − commissione Stripe reale − commissione Hub Core, idempotente), «Segnala un problema» (blocca + ticket + email), contestazioni/rimborsi da Stripe che bloccano l'ordine, rimborso e ripresa dal pannello team `/admin/protected-orders`, condizioni di acquisto del compratore con accettazione obbligatoria (`/condizioni-acquisto`, registrate su ordine), condizioni venditore v2026-10-14 (da riaccettare) |
-| 4 Rifiniture: PayPal/bonifico automatici, vendita tra privati con annuncio | ⏳ da decidere |
+| 4 Privati che vendono con un annuncio | ✅ **costruito il 15/10**: categoria «Oggetti in vendita» a prezzo fisso, opzione «Vendi con pagamento protetto», pulsante «Compra con pagamento protetto» nella pagina annuncio, ordine → oggetto «Venduto»; il collegamento Stripe e gli ordini sono nella pagina Annunci (non serve il modulo Servizi); condizioni venditore/compratore estese ai privati (v2026-10-15) |
+| 5 Rifiniture da decidere | PayPal/bonifico automatici, IA di controllo sugli annunci con vendita, recensioni |
 
-**Chi può vendere con i pagamenti protetti oggi:** aziende ed enti (moduli Servizi/Prodotti, `config/hub.php`). I **privati** hanno solo Promo e Annunci (contatto telefonico, nessun pagamento): per farli vendere servono prodotti-per-privati e il pulsante «Compra con pagamento protetto» negli annunci (stesso rilascio/segnalazione/rimborso già pronti).
+**Chi può vendere con i pagamenti protetti oggi:** aziende ed enti con Servizi/Prodotti; **privati con annunci «Oggetti in vendita»** (non immobili: restano contatti diretti).
 
 ## 3. Problemi aperti
 

@@ -129,6 +129,7 @@ class ClassifiedAdController extends Controller
             'zone' => ['required', 'string', 'max:120'],
             'price' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'price_unit' => ['nullable', 'in:,'.implode(',', array_filter(array_keys(ClassifiedAd::PRICE_UNITS)))],
+            'protected_sale' => ['nullable', 'boolean'],
             'description' => ['required', 'string', 'max:5000'],
             'features' => ['nullable', 'array'],
             'features.*' => ['nullable', 'integer', 'min:0', 'max:100000'],
@@ -146,6 +147,11 @@ class ClassifiedAdController extends Controller
             ->filter(fn ($v) => $v !== null && $v !== '')
             ->all();
         $validated['price_unit'] = ($validated['price_unit'] ?? '') ?: null;
+        // Il pagamento protetto vale solo per gli oggetti a prezzo fisso.
+        $validated['protected_sale'] = $request->boolean('protected_sale')
+            && $validated['category'] === 'oggetti'
+            && ($validated['price'] ?? 0) > 0
+            && $validated['price_unit'] === null;
         unset($validated['images'], $validated['videos']);
 
         return $validated;

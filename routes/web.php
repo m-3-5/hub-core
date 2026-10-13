@@ -109,6 +109,9 @@ Route::get('/a/{tenant}', [ClassifiedPublicController::class, 'board'])->name('c
 Route::get('/a/{tenant}/{classifiedAd}', [ClassifiedPublicController::class, 'show'])
     ->name('classifieds.show')
     ->scopeBindings();
+Route::post('/a/{tenant}/{classifiedAd}/acquista', [ClassifiedPublicController::class, 'buy'])
+    ->middleware('throttle:20,1')
+    ->name('classifieds.buy');
 Route::post('/a/{tenant}/{classifiedAd}/contatto', [ClassifiedPublicController::class, 'contact'])
     ->name('classifieds.contact')
     ->middleware('throttle:5,10')

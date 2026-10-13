@@ -100,6 +100,15 @@ class PaymentRecorder
 
             $order->save();
 
+            // Annuncio di un oggetto: una volta pagato risulta «venduto» e sparisce dalla bacheca.
+            foreach ((array) $order->items as $item) {
+                if (($item['type'] ?? null) === 'classified' && isset($item['id'])) {
+                    \App\Models\ClassifiedAd::query()
+                        ->where('tenant_id', $tenant->id)->whereKey((int) $item['id'])
+                        ->update(['status' => 'sold']);
+                }
+            }
+
             return [$order, true];
         });
     }

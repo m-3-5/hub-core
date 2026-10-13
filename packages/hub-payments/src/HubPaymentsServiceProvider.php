@@ -81,19 +81,6 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 Route::post('/payment-links/{link}/deactivate', [StripePaymentLinksController::class, 'deactivate'])->name('services.payment-links.deactivate');
                 Route::post('/payment-links/{link}/import', [StripePaymentLinksController::class, 'import'])->name('services.payment-links.import');
 
-                // Pagamenti protetti (Stripe Connect): il venditore si collega per ricevere i soldi delle vendite sul canale hub.
-                Route::post('/connect/start', [ConnectController::class, 'start'])->name('connect.start');
-                Route::get('/connect/refresh', [ConnectController::class, 'refresh'])->name('connect.refresh');
-                Route::get('/connect/return', [ConnectController::class, 'return'])->name('connect.return');
-                Route::post('/connect/sync', [ConnectController::class, 'sync'])->name('connect.sync');
-                Route::post('/connect/dashboard', [ConnectController::class, 'dashboard'])->name('connect.dashboard');
-
-                // «Come vuoi ricevere i soldi?»: scelta guidata (con le guide) quando si inizia a vendere.
-                Route::get('/payout-setup', [PayoutSetupController::class, 'show'])->name('payout.setup');
-                Route::post('/payout-setup/interest', [PayoutSetupController::class, 'interest'])->name('payout.interest');
-
-                Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-
                 // Preventivi a importo libero (type "quote"): fuori da quota servizi e addebiti modulo.
                 Route::get('/quotes', [QuoteController::class, 'index'])->name('quotes.index');
                 Route::post('/quotes', [QuoteController::class, 'store'])->name('quotes.store');
@@ -117,6 +104,26 @@ class HubPaymentsServiceProvider extends ServiceProvider
                         $route->defaults('kind', 'product');
                     }
                 });
+            });
+
+        // Pagamenti protetti, scelta di come ricevere i soldi e ordini: per ogni attività e per i privati che vendono
+        // con un annuncio (non richiedono il modulo «Servizi», riservato ad aziende ed enti).
+        Route::middleware(['web', 'auth', 'tenant.access'])
+            ->prefix('admin/tenants/{tenant}')
+            ->name('admin.')
+            ->group(function () {
+                // Stripe Connect: il venditore si collega per ricevere i soldi delle vendite sul canale hub.
+                Route::post('/connect/start', [ConnectController::class, 'start'])->name('connect.start');
+                Route::get('/connect/refresh', [ConnectController::class, 'refresh'])->name('connect.refresh');
+                Route::get('/connect/return', [ConnectController::class, 'return'])->name('connect.return');
+                Route::post('/connect/sync', [ConnectController::class, 'sync'])->name('connect.sync');
+                Route::post('/connect/dashboard', [ConnectController::class, 'dashboard'])->name('connect.dashboard');
+
+                // «Come vuoi ricevere i soldi?»: scelta guidata (con le guide) quando si inizia a vendere.
+                Route::get('/payout-setup', [PayoutSetupController::class, 'show'])->name('payout.setup');
+                Route::post('/payout-setup/interest', [PayoutSetupController::class, 'interest'])->name('payout.interest');
+
+                Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
             });
 
         // Commissioni sul canale hub: solo super admin (controllo nel controller).

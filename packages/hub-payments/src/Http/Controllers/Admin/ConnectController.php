@@ -77,8 +77,13 @@ class ConnectController extends Controller
 
         $tenant->refresh();
 
-        return redirect()
-            ->route('admin.services.index', $tenant)
+        // I privati non hanno il modulo «Servizi»: tornano alla pagina Annunci, dove si collegano.
+        $servicesTypes = collect(config('hub.modules'))->firstWhere('key', 'services')['for_types'] ?? ['azienda', 'privato', 'ente'];
+        $back = in_array($tenant->type ?: 'azienda', $servicesTypes, true)
+            ? route('admin.services.index', $tenant)
+            : route('admin.classifieds.index', $tenant);
+
+        return redirect($back)
             ->with('status', TenantConnect::isReady($tenant)
                 ? 'Collegamento completato: ora puoi ricevere i pagamenti protetti!'
                 : 'Hai salvato i dati, ma Stripe ne chiede ancora alcuni: riprendi da «Completa i dati».');

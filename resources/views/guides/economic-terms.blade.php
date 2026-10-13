@@ -58,13 +58,23 @@
 </ul>
 <p>Accettando queste condizioni prima di collegare i pagamenti protetti, confermi di averle lette e capite. Registriamo data, versione ({{ \M35\HubPayments\Support\SellerTerms::VERSION }}) e utente che accetta. Se le condizioni cambiano in modo rilevante ti avvisiamo con almeno 30 giorni di anticipo e ti chiediamo di accettare di nuovo.</p>
 
-<h2>5. Vendite dirette (fuori da Hub Core)</h2>
+<h2>5. Se vendi come privato con un annuncio</h2>
+<ul>
+    <li>Anche i privati possono vendere <strong>oggetti</strong> con un annuncio e il pulsante «Compra con pagamento protetto»: valgono le stesse regole di questa pagina (pagamento custodito, rilascio dopo la conferma o i {{ \M35\HubPayments\Support\ProtectedCheckout::holdDays() }} giorni, costi a tuo carico).</li>
+    <li><strong>Cosa si può vendere:</strong> oggetti leciti, tuoi, descritti in modo veritiero. Sono vietati armi, droghe, farmaci, animali vivi, prodotti contraffatti o rubati, contenuti per adulti e tutto ciò che la legge vieta di vendere. Non è possibile vendere immobili con il pagamento protetto (restano i contatti diretti).</li>
+    <li><strong>Vendita occasionale:</strong> vendere di tanto in tanto oggetti usati è un'attività non professionale. Se vendi in modo continuativo o a scopo di guadagno, o oltre le soglie fissate dalla legge, devi aprire una partita IVA e rispettare gli obblighi fiscali: la valutazione e la responsabilità sono tue (per dubbi, rivolgiti a un commercialista).</li>
+    <li><strong>Verifica dell'identità:</strong> per ricevere i soldi Stripe ti chiede documento e IBAN. Le piattaforme possono essere obbligate a comunicare all'Agenzia delle Entrate i dati dei venditori e dei loro incassi: ci impegniamo a farlo quando richiesto.</li>
+    <li><strong>Consegna:</strong> concordi tu con l'acquirente ritiro o spedizione. Prima della conferma o della scadenza dei giorni non ricevi i soldi, quindi spedisci con tracciamento e conserva la prova di consegna.</li>
+    <li><strong>Tutela dell'acquirente:</strong> poiché vendi come privato non si applicano garanzia legale e recesso da consumatore, ma l'acquirente è protetto dal pagamento custodito: se non riceve l'oggetto o è diverso da come descritto, viene rimborsato a tuo carico.</li>
+</ul>
+
+<h2>6. Vendite dirette (fuori da Hub Core)</h2>
 <p>Puoi anche incassare sul tuo sito con il tuo conto Stripe, con PayPal o con bonifico, come spiegato nelle <a href="{{ route('guides.index') }}">guide</a>. In quel caso i costi sono quelli del servizio che scegli, la protezione di Hub Core non c'è e rimborsi, contestazioni e ricevute sono a tuo carico.</p>
 
-<h2>6. Servizi di terzi</h2>
+<h2>7. Servizi di terzi</h2>
 <p>PayPal, banche, conti online e carte hanno le loro tariffe e condizioni, che non dipendono da noi e possono cambiare: controlla sempre il sito ufficiale.</p>
 
-<h2>7. Tasse, fatture e obblighi di vendita</h2>
+<h2>8. Tasse, fatture e obblighi di vendita</h2>
 <p>Gli importi di Hub Core sono IVA esclusa. Le tasse, le fatture, le ricevute e gli obblighi verso i consumatori (informazioni sul prodotto, garanzia legale, diritto di recesso di 14 giorni nelle vendite a distanza quando previsto) restano di tua responsabilità: per dubbi rivolgiti a un commercialista. Per le piattaforme come Hub Core può esserci l'obbligo di comunicare all'Agenzia delle Entrate i dati dei venditori e dei loro incassi: ci impegniamo a farlo quando richiesto.</p>
 
 <p class="small">Versione {{ \M35\HubPayments\Support\SellerTerms::VERSION }}. Per domande chiedi a Max o scrivici su WhatsApp.</p>

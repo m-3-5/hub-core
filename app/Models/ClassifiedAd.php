@@ -15,6 +15,8 @@ class ClassifiedAd extends Model
         'affitto' => 'Affitto',
         'vacanze' => 'Case vacanza',
         'vendita' => 'Vendita immobili',
+        // Oggetti e beni usati o nuovi: l'unica categoria acquistabile online con il pagamento protetto.
+        'oggetti' => 'Oggetti in vendita',
     ];
 
     public const PRICE_UNITS = [
@@ -32,7 +34,7 @@ class ClassifiedAd extends Model
     ];
 
     protected $fillable = [
-        'tenant_id', 'slug', 'category', 'title', 'zone', 'price', 'price_unit', 'description',
+        'tenant_id', 'slug', 'category', 'title', 'zone', 'price', 'price_unit', 'protected_sale', 'description',
         'features', 'images', 'videos', 'contact_name', 'contact_phone', 'contact_email', 'status', 'published_at',
     ];
 
@@ -44,6 +46,7 @@ class ClassifiedAd extends Model
             'videos' => 'array',
             'published_at' => 'datetime',
             'price' => 'decimal:2',
+            'protected_sale' => 'boolean',
         ];
     }
 
@@ -65,6 +68,26 @@ class ClassifiedAd extends Model
     public function isPublished(): bool
     {
         return $this->status === 'published';
+    }
+
+    /** L'annuncio può essere comprato online con il pagamento protetto: oggetto a prezzo fisso, pubblicato, con l'opzione attiva. */
+    public function offersProtectedSale(): bool
+    {
+        return $this->protected_sale
+            && $this->category === 'oggetti'
+            && $this->isPublished()
+            && $this->price !== null && (float) $this->price > 0
+            && empty($this->price_unit);
+    }
+
+    public function priceCents(): int
+    {
+        return (int) round(((float) $this->price) * 100);
+    }
+
+    public function isSold(): bool
+    {
+        return $this->status === 'sold';
     }
 
     public function categoryLabel(): string

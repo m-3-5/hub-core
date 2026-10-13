@@ -108,7 +108,7 @@ return [
         'classifieds' => [
             'key' => 'classifieds',
             'label' => 'Annunci',
-            'description' => 'Affitti e vendita immobili',
+            'description' => 'Affitti, immobili e oggetti in vendita',
             'emoji' => '📋',
             'active' => true,
             'for_types' => ['azienda', 'privato', 'ente'],

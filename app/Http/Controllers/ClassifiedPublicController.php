@@ -7,8 +7,11 @@ use App\Models\Tenant;
 use App\Notifications\ClassifiedContactRequestNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\View\View;
+use M35\HubPayments\Support\ProtectedCheckout;
+use RuntimeException;
 use Throwable;
 
 class ClassifiedPublicController extends Controller
@@ -47,7 +50,39 @@ class ClassifiedPublicController extends Controller
     {
         abort_unless($classifiedAd->tenant_id === $tenant->id && $classifiedAd->isPublished(), 404);
 
-        return view('classifieds.show', ['tenant' => $tenant, 'ad' => $classifiedAd]);
+        return view('classifieds.show', [
+            'tenant' => $tenant,
+            'ad' => $classifiedAd,
+            'protectedBuy' => $classifiedAd->offersProtectedSale() && ProtectedCheckout::available($tenant),
+        ]);
+    }
+
+    /** «Compra con pagamento protetto» dall'annuncio: il compratore accetta le condizioni e paga a Hub Core. */
+    public function buy(Request $request, Tenant $tenant, ClassifiedAd $classifiedAd): RedirectResponse
+    {
+        abort_unless($classifiedAd->tenant_id === $tenant->id, 404);
+
+        if (! $classifiedAd->offersProtectedSale() || ! ProtectedCheckout::available($tenant)) {
+            return back()->withErrors(['buy' => $classifiedAd->isSold()
+                ? 'Questo oggetto è già stato venduto.'
+                : 'Questo annuncio non si può acquistare online: contatta l\'inserzionista.']);
+        }
+
+        $data = $request->validate(['customer_email' => ['nullable', 'email', 'max:190']]);
+
+        if (! $request->boolean('accept_buyer_terms')) {
+            return back()->withErrors(['buy' => 'Per acquistare devi accettare le condizioni di acquisto protetto.']);
+        }
+
+        try {
+            $url = ProtectedCheckout::beginForAd($tenant, $classifiedAd, $data['customer_email'] ?? null, $request->ip());
+        } catch (RuntimeException $e) {
+            Log::warning('Pagamento protetto annuncio: sessione non creata', ['ad' => $classifiedAd->id, 'message' => $e->getMessage()]);
+
+            return back()->withErrors(['buy' => 'Non riesco ad aprire il pagamento in questo momento. Riprova tra poco.']);
+        }
+
+        return redirect()->away($url);
     }
 
     public function contact(Request $request, Tenant $tenant, ClassifiedAd $classifiedAd): RedirectResponse

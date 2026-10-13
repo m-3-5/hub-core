@@ -15,7 +15,11 @@
             <h1 style="margin:0 0 6px">Ordini</h1>
             <p style="margin:0;color:#666">Pagamenti ricevuti da carrello, preventivi e link di pagamento, divisi per dove ha comprato il cliente.</p>
         </div>
-        <a class="btn btn-secondary" href="{{ route('admin.services.index', $tenant) }}">← Servizi</a>
+        @if (in_array($tenant->type ?: 'azienda', ['azienda', 'ente'], true))
+            <a class="btn btn-secondary" href="{{ route('admin.services.index', $tenant) }}">← Servizi</a>
+        @else
+            <a class="btn btn-secondary" href="{{ route('admin.classifieds.index', $tenant) }}">← Annunci</a>
+        @endif
     </div>
 
     <div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-bottom:28px">

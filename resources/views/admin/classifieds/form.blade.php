@@ -61,6 +61,13 @@
             </div>
         </div>
 
+        <div style="margin-bottom:16px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:12px 14px">
+            <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-weight:600">
+                <input type="checkbox" name="protected_sale" value="1" @checked(old('protected_sale', $ad->protected_sale)) style="margin-top:4px;width:18px;height:18px;flex:none">
+                <span>🛡️ Vendi con pagamento protetto <span style="font-weight:400;color:#4b5563;display:block;font-size:.9rem">Solo per «Oggetti in vendita» a prezzo fisso. Chi compra paga online, i soldi restano custoditi da Hub Core e li ricevi dopo la consegna (conferma o 7 giorni). Devi prima collegare i pagamenti protetti dalla pagina Annunci.</span></span>
+            </label>
+        </div>
+
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px;margin-bottom:16px">
             @foreach (\App\Models\ClassifiedAd::FEATURE_LABELS as $key => $label)
                 <div>
