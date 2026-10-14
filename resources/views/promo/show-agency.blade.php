@@ -7,7 +7,7 @@
     <meta name="description" content="{{ $promo->seo_description }}">
     <meta property="og:title" content="{{ $promo->seo_title ?? $promo->title }}">
     <meta property="og:description" content="{{ $promo->seo_description }}">
-    <meta property="og:image" content="{{ $promo->variantUrl('og') }}">
+    <meta property="og:image" content="{{ $promo->shareImageUrl() }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ $tenant->name }}">
     <meta property="og:url" content="{{ $promo->publicUrl() }}">
@@ -15,7 +15,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $promo->seo_title ?? $promo->title }}">
     <meta name="twitter:description" content="{{ $promo->seo_description }}">
-    <meta name="twitter:image" content="{{ $promo->variantUrl('og') }}">
+    <meta name="twitter:image" content="{{ $promo->shareImageUrl() }}">
     <link rel="canonical" href="{{ $promo->publicUrl() }}">
     <meta name="theme-color" content="{{ $tenant->primary_color }}">
     @php
@@ -316,6 +316,7 @@
     </div>
 </section>
 
-<footer>{{ $tenant->name }} — {{ $tenant->address ?? 'Senise (PZ) · Roma' }}</footer>
+<div style="max-width:760px;margin:24px auto;padding:0 20px;text-align:center">@include('layouts.partials.share-bar', ['shareTitle' => $promo->title, 'shareUrl' => $promo->publicUrl()])</div>
+<footer>{{ $tenant->name }}{{ $tenant->address ? ' — '.$tenant->address : '' }}</footer>
 </body>
 </html>

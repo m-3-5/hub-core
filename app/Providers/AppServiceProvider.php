@@ -36,5 +36,31 @@ class AppServiceProvider extends ServiceProvider
         )));
         View::composer('classifieds.board', fn ($view) => $view->with('jsonLd', SeoSchema::classifiedBoard($view->getData()['tenant'] ?? null, collect($view->getData()['ads']->items()))));
         View::composer('classifieds.show', fn ($view) => $view->with('jsonLd', SeoSchema::classifiedAd($view->getData()['tenant'], $view->getData()['ad'])));
+
+        // Contenuti nuovi o modificati: la sitemap si rigenera subito e i motori di ricerca vengono avvisati (IndexNow).
+        $changed = function (string $url): void {
+            \Illuminate\Support\Facades\Cache::forget('sitemap.xml');
+            \App\Services\IndexNow::queue($url);
+        };
+
+        \App\Models\Promo::saved(function (\App\Models\Promo $promo) use ($changed) {
+            if ($promo->isPublished() && ($promo->wasRecentlyCreated || $promo->wasChanged(['status', 'title', 'description', 'image_path', 'offers', 'ends_at']))) {
+                $changed($promo->publicUrl());
+            }
+        });
+
+        \App\Models\ClassifiedAd::saved(function (\App\Models\ClassifiedAd $ad) use ($changed) {
+            if ($ad->isPublished() && ($ad->wasRecentlyCreated || $ad->wasChanged(['status', 'title', 'description', 'price', 'price_unit', 'images', 'features', 'zone']))) {
+                $changed($ad->publicUrl());
+            }
+        });
+
+        \M35\HubPayments\Models\PayableService::saved(function (\M35\HubPayments\Models\PayableService $item) use ($changed) {
+            if ($item->status === 'active' && $item->published_to_site && $item->tenant
+                && in_array($item->type, ['service', 'product'], true)
+                && ($item->wasRecentlyCreated || $item->wasChanged(['status', 'published_to_site', 'title', 'description', 'amount_cents', 'cover_image_path']))) {
+                $changed(route('services.public.show', [$item->tenant, $item]));
+            }
+        });
     }
 }

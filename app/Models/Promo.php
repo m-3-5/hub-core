@@ -180,6 +180,12 @@ class Promo extends Model
         return Storage::disk('public')->url($this->image_path);
     }
 
+    /** Immagine per le anteprime sui social: variante «og», altrimenti la foto della promo, altrimenti l'immagine del sito. */
+    public function shareImageUrl(): string
+    {
+        return $this->variantUrl('og') ?: ($this->imageUrl() ?: asset('images/og-hub-core.png'));
+    }
+
     public function publicUrl(): string
     {
         return route('promo.show', [

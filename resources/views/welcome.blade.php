@@ -7,6 +7,7 @@
     <title>Hub Core — La tua attività online, semplice</title>
     <meta name="description" content="Promo, servizi, negozio, agenda, affitti e sito web in un'unica app. Per aziende, privati ed enti — provalo gratis, nessuna carta richiesta.">
     <link rel="canonical" href="{{ url('/') }}">
+    <link rel="search" type="application/opensearchdescription+xml" title="Hub Core" href="{{ route('opensearch') }}">
     @include('layouts.partials.favicon')
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Hub Core">
@@ -405,6 +406,8 @@
     @endif
     ·
     <a href="{{ route('promo.hub-archive') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Guarda tutte le promozioni attive →</a>
+    ·
+    <a href="{{ route('search') }}" style="color:var(--accent);text-decoration:none;font-weight:600">🔍 Cerca</a>
     @include('layouts.partials.company-footer')
 </footer>
 

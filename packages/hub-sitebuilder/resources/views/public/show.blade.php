@@ -22,6 +22,11 @@
     <meta property="og:description" content="{{ \Illuminate\Support\Str::limit($tagline, 160) }}">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="it_IT">
+    <meta property="og:url" content="{{ route('site.public.show', $tenant) }}">
+    <meta property="og:image" content="{{ asset('images/og-hub-core.png') }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $tenant->name }}">
+    <meta name="twitter:image" content="{{ asset('images/og-hub-core.png') }}">
     <meta name="theme-color" content="{{ $tenant->primary_color }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -106,6 +111,7 @@
     </div>
 </section>
 
+<div style="max-width:760px;margin:0 auto;padding:0 20px;text-align:center">@include('layouts.partials.share-bar', ['shareTitle' => $tenant->name, 'shareUrl' => route('site.public.show', $tenant)])</div>
 <footer>{{ $tenant->name }} · sito creato con <a href="{{ url('/') }}">Max</a></footer>
 </body>
 </html>

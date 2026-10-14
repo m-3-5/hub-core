@@ -140,6 +140,7 @@
             @else
                 <p class="trust-note">Pagamento sicuro tramite Stripe · {{ $tenant->name }}</p>
             @endif
+            @include('layouts.partials.share-bar', ['shareTitle' => $service->title.' — '.$tenant->name, 'shareUrl' => url()->current()])
         </div>
     </div>
 

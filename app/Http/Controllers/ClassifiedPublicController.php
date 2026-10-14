@@ -41,13 +41,18 @@ class ClassifiedPublicController extends Controller
             $category = null;
         }
 
+        $page = $query->paginate(18)->withQueryString();
+        $boardImage = $page->first()?->coverUrl();
+
         return view('classifieds.board', [
             'tenant' => $tenant,
-            'ads' => $query->paginate(18)->withQueryString(),
+            'ads' => $page,
             'category' => $category,
             'search' => $search,
             'counts' => $counts,
             'total' => array_sum($counts),
+            'boardTitle' => $tenant ? 'Annunci — '.$tenant->name : 'Annunci: immobili, oggetti, servizi e lezioni',
+            'boardImage' => $boardImage ?? asset('images/og-hub-core.png'),
             'qs' => $search !== '' ? ['q' => $search] : [],
         ]);
     }

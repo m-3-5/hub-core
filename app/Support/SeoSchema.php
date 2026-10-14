@@ -49,6 +49,12 @@ class SeoSchema
                 'name' => 'Hub Core',
                 'inLanguage' => 'it-IT',
                 'publisher' => ['@id' => url('/').'#organizzazione'],
+                // Casella di ricerca del sito nei risultati di Google.
+                'potentialAction' => [
+                    '@type' => 'SearchAction',
+                    'target' => ['@type' => 'EntryPoint', 'urlTemplate' => route('search').'?q={search_term_string}'],
+                    'query-input' => 'required name=search_term_string',
+                ],
             ],
             [
                 '@type' => 'SoftwareApplication',
@@ -106,17 +112,47 @@ class SeoSchema
     {
         $price = $ad->price !== null ? number_format((float) $ad->price, 2, '.', '') : null;
 
-        return self::json([array_filter([
-            '@type' => 'RealEstateListing',
+        // Il tipo schema.org segue la categoria: non tutto è un immobile.
+        $type = match ($ad->category) {
+            'oggetti' => 'Product',
+            'libri' => 'Book',
+            'servizi' => 'Service',
+            default => 'RealEstateListing',
+        };
+
+        $offer = $price ? array_filter([
+            '@type' => 'Offer',
+            'price' => $price,
+            'priceCurrency' => 'EUR',
+            'category' => $ad->categoryLabel(),
+            'url' => $ad->buyUrl() ?: $ad->publicUrl(),
+            'availability' => $ad->isSold() ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+        ]) : null;
+
+        $node = [
+            '@type' => $type,
             'name' => $ad->title,
             'url' => $ad->publicUrl(),
             'description' => mb_substr(trim(strip_tags($ad->description)), 0, 300),
             'image' => array_slice($ad->imageUrls(), 0, 4) ?: null,
-            'datePosted' => $ad->published_at?->toDateString(),
-            'about' => ['@type' => 'Place', 'name' => $ad->zone],
-            'offers' => $price ? ['@type' => 'Offer', 'price' => $price, 'priceCurrency' => 'EUR', 'category' => $ad->categoryLabel()] : null,
-            'provider' => self::business($tenant),
-        ])]);
+            'offers' => $offer,
+        ];
+
+        if ($type === 'RealEstateListing') {
+            $node += ['datePosted' => $ad->published_at?->toDateString(), 'about' => ['@type' => 'Place', 'name' => $ad->zone], 'provider' => self::business($tenant)];
+        } elseif ($type === 'Service') {
+            $node += ['serviceType' => $ad->categoryLabel(), 'areaServed' => ['@type' => 'Place', 'name' => $ad->zone], 'provider' => self::business($tenant)];
+        } elseif ($type === 'Book') {
+            $node += ['author' => ! empty($ad->features['author']) ? ['@type' => 'Person', 'name' => $ad->features['author']] : null, 'inLanguage' => null];
+        } else {
+            $node += ['brand' => $tenant->name, 'itemCondition' => match ($ad->features['condition'] ?? null) {
+                'nuovo' => 'https://schema.org/NewCondition',
+                'usato', 'come_nuovo' => 'https://schema.org/UsedCondition',
+                default => null,
+            }];
+        }
+
+        return self::json([array_filter($node, fn ($v) => $v !== null && $v !== [])]);
     }
 
     /** Attività dell'azienda (non quella di M 3.5). */

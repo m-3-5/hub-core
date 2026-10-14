@@ -16,7 +16,27 @@
     <meta name="theme-color" content="{{ $brand }}">
     <meta property="og:title" content="{{ $ad->title }}">
     <meta property="og:description" content="{{ $ad->categoryLabel() }} · {{ $ad->zone }}{{ $ad->priceLabel() ? ' · '.$ad->priceLabel() : '' }}">
-    @if ($images)<meta property="og:image" content="{{ $images[0] }}">@endif
+    @php
+        // Immagine per Facebook/WhatsApp: la prima foto dell'annuncio, altrimenti l'immagine generica del sito.
+        $ogImage = $images[0] ?? asset('images/og-hub-core.png');
+        $ogSize = null;
+        if ($images) {
+            $ogPath = \Illuminate\Support\Facades\Storage::disk('public')->path($ad->images[0]);
+            $ogSize = is_file($ogPath) ? @getimagesize($ogPath) : null;
+        }
+    @endphp
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ $ad->publicUrl() }}">
+    <meta property="og:site_name" content="{{ $tenant->name }}">
+    <meta property="og:locale" content="it_IT">
+    <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:image:secure_url" content="{{ $ogImage }}">
+    @if ($ogSize)<meta property="og:image:width" content="{{ $ogSize[0] }}"><meta property="og:image:height" content="{{ $ogSize[1] }}">@endif
+    <meta property="og:image:alt" content="{{ $ad->title }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $ad->title }}">
+    <meta name="twitter:description" content="{{ $ad->categoryLabel() }} · {{ $ad->zone }}{{ $ad->priceLabel() ? ' · '.$ad->priceLabel() : '' }}">
+    <meta name="twitter:image" content="{{ $ogImage }}">
     <style>
         :root { --primary: {{ $brand }}; --primary-dark: color-mix(in srgb, var(--primary) 75%, #000); --ink: #1b1b24; --muted: #6b6b7b; --line: #e8e8ef; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -108,6 +128,7 @@
                 <p class="zone" style="font-size:.82rem;margin:0 0 6px">L'acquisto avviene sul sito del venditore: non passa da questo sito. Il link può essere un link di affiliazione.</p>
             @endif
             <div class="desc">{!! \App\Support\Linkify::html($ad->description) !!}</div>
+            @include('layouts.partials.share-bar', ['shareTitle' => $ad->title, 'shareUrl' => $ad->publicUrl()])
             <p class="zone" style="margin-top:14px;font-size:.85rem">Pubblicato {{ optional($ad->published_at)->format('d/m/Y') }} · {{ $tenant->name }}</p>
         </div>
     </div>

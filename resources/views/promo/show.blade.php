@@ -7,13 +7,13 @@
     <meta name="description" content="{{ $promo->seo_description }}">
     <meta property="og:title" content="{{ $promo->seo_title ?? $promo->title }}">
     <meta property="og:description" content="{{ $promo->seo_description }}">
-    <meta property="og:image" content="{{ $promo->variantUrl('og') }}">
+    <meta property="og:image" content="{{ $promo->shareImageUrl() }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="{{ $tenant->name }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $promo->seo_title ?? $promo->title }}">
     <meta name="twitter:description" content="{{ $promo->seo_description }}">
-    <meta name="twitter:image" content="{{ $promo->variantUrl('og') }}">
+    <meta name="twitter:image" content="{{ $promo->shareImageUrl() }}">
     <meta property="og:url" content="{{ $promo->publicUrl() }}">
     <meta property="og:locale" content="it_IT">
     <link rel="canonical" href="{{ $promo->publicUrl() }}">
@@ -230,16 +230,6 @@
             background: #fef3c7; color: #92400e; text-align: center; padding: 12px 16px;
             font-weight: 600; font-size: .92rem;
         }
-        .share-bar {
-            display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;
-        }
-        .share-btn {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 14px; border-radius: 999px; font-size: .82rem; font-weight: 600;
-            text-decoration: none; border: 1px solid rgba(255,255,255,.35); color: #fff;
-            background: rgba(255,255,255,.12);
-        }
-        .share-btn:hover { background: rgba(255,255,255,.22); }
         .deco-img--2 { bottom: 40px; left: 2%; width: 130px; height: 130px; transform: rotate(-8deg); }
     </style>
     <script type="application/ld+json">
@@ -293,13 +283,7 @@
                         @endforeach
                     </div>
                 @endif
-                <div class="share-bar" aria-label="Condividi promo">
-                    <button type="button" class="share-btn" data-native-share data-title="{{ $promo->seo_title ?? $promo->title }}" data-url="{{ $shareLinks['copy'] }}" hidden>Condividi</button>
-                    <a class="share-btn" href="{{ $shareLinks['whatsapp'] }}" target="_blank" rel="noopener">WhatsApp</a>
-                    <a class="share-btn" href="{{ $shareLinks['facebook'] }}" target="_blank" rel="noopener">Facebook</a>
-                    <a class="share-btn" href="{{ $shareLinks['twitter'] }}" target="_blank" rel="noopener">X</a>
-                    <button type="button" class="share-btn" data-copy="{{ $shareLinks['copy'] }}">Copia link</button>
-                </div>
+                @include('layouts.partials.share-bar', ['shareTitle' => $promo->seo_title ?? $promo->title, 'shareUrl' => $shareLinks['copy'], 'shareDark' => true])
             </div>
             @if ($flyerUrl)
                 <div class="flyer-card">
@@ -447,37 +431,6 @@
     </div>
 </div>
 <script>
-function legacyCopy(url) {
-    var t = document.createElement('textarea');
-    t.value = url; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
-    document.body.appendChild(t); t.select();
-    var ok = false;
-    try { ok = document.execCommand('copy'); } catch (e) {}
-    t.remove();
-    return ok;
-}
-document.querySelectorAll('[data-copy]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-        var url = btn.getAttribute('data-copy');
-        var done = function () {
-            btn.textContent = 'Link copiato!';
-            setTimeout(function () { btn.textContent = 'Copia link'; }, 2000);
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(url).then(done, function () { if (legacyCopy(url)) done(); });
-        } else if (legacyCopy(url)) {
-            done();
-        }
-    });
-});
-// Da telefono: la finestra di condivisione del sistema (WhatsApp, Instagram, Telegram, messaggi…).
-document.querySelectorAll('[data-native-share]').forEach(function (btn) {
-    if (!navigator.share) { return; }
-    btn.hidden = false;
-    btn.addEventListener('click', function () {
-        navigator.share({ title: btn.getAttribute('data-title'), url: btn.getAttribute('data-url') }).catch(function () {});
-    });
-});
 </script>
 </body>
 </html>

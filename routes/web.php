@@ -47,6 +47,8 @@ Route::post('/siti-web-corigliano-rossano/parti', [LandingController::class, 'st
     ->middleware('throttle:6,10')
     ->name('landing.web.start');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+Route::get('/cerca', [\App\Http\Controllers\SearchController::class, 'index'])->name('search');
+Route::get('/opensearch.xml', [\App\Http\Controllers\SearchController::class, 'openSearch'])->name('opensearch');
 Route::get('/llms.txt', LlmsController::class)->name('llms');
 Route::get('/indexnow-key.txt', fn () => response(\App\Console\Commands\IndexNowSubmit::key(), 200, ['Content-Type' => 'text/plain; charset=UTF-8']))->name('indexnow.key');
 

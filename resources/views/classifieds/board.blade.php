@@ -45,6 +45,12 @@
         .pager nav svg { height: 18px; }
         .pager a, .pager span { padding: 6px 10px; }
     </style>
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request()->url() }}">
+    <meta property="og:image" content="{{ $boardImage }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $boardTitle }}">
+    <meta name="twitter:image" content="{{ $boardImage }}">
     @isset($jsonLd)
     <script type="application/ld+json">{!! $jsonLd !!}</script>
     @endisset
@@ -54,6 +60,7 @@
     <h1>{{ $tenant ? $tenant->name : 'Annunci' }}</h1>
     <p>Immobili, oggetti in vendita, servizi e lezioni</p>
 </div>
+<div style="max-width:1100px;margin:14px auto 0;padding:0 16px">@include('layouts.partials.share-bar', ['shareTitle' => $boardTitle, 'shareUrl' => request()->url()])</div>
 
 <div class="wrap">
     <nav class="cats" aria-label="Categorie">

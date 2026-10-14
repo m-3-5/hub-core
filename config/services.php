@@ -59,6 +59,12 @@ return [
         'services_webhook_url' => env('HUB_SERVICES_WEBHOOK_URL'),
     ],
 
+    // IndexNow: avvisa i motori di ricerca dei contenuti nuovi o cambiati (attivo da solo in produzione).
+    'indexnow' => [
+        'enabled' => env('INDEXNOW_ENABLED'),
+        'key' => env('INDEXNOW_KEY'),
+    ],
+
     'hub_billing' => [
         'secret_key' => env('HUB_STRIPE_SECRET_KEY'),
         'api_base' => env('HUB_STRIPE_API_BASE', 'https://api.stripe.com'),
