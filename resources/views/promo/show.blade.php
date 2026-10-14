@@ -312,9 +312,9 @@
     <section class="section section--alt">
         <h2>Le nostre offerte</h2>
         <p class="intro">
-            {{ $tenant->name }} ti propone trattamenti selezionati per valorizzare il tuo look e il benessere del corpo.
-            Prenota ora per approfittare delle condizioni promozionali: posti limitati e promozione
-            {{ $promo->always_active ? 'sempre valida' : 'per tempo limitato' }}.
+            {{ $tenant->name }} ti propone {{ ($promo->offers && count($promo->offers) > 1) ? 'queste offerte' : 'questa offerta' }}.
+            Contattaci per i dettagli: la promozione è
+            {{ $promo->always_active ? 'sempre valida' : 'valida per tempo limitato' }}.
         </p>
 
         @if ($promo->offers)
@@ -361,9 +361,9 @@
 
         <h2>Come prenotare</h2>
         <p class="intro">
-            Siamo a {{ $tenant->address ?? 'Senise' }}. Contattaci per fissare un appuntamento
-            o passa a trovarci negli orari di apertura. Il team di {{ $tenant->name }} è a disposizione
-            per aiutarti a scegliere la soluzione più adatta a te.
+            @if ($tenant->address)Siamo a {{ $tenant->address }}. @endif
+            Contattaci per fissare un appuntamento o per avere maggiori informazioni.
+            {{ $tenant->name }} è a disposizione per aiutarti a scegliere la soluzione più adatta a te.
         </p>
         @php
             $offerNames = collect($promo->offers ?? [])->pluck('name')->filter()->implode(', ');
@@ -375,11 +375,11 @@
             </div>
             <div class="step">
                 <strong>2. Prenota</strong>
-                <span>Chiama {{ $tenant->phone ?? 'il centro' }} o compila il form contatti sul sito ufficiale.</span>
+                <span>{{ $tenant->phone ? 'Chiama '.$tenant->phone.' o scrivici con il form contatti.' : 'Scrivici con il form contatti qui sotto.' }}</span>
             </div>
             <div class="step">
-                <strong>3. Vieni a trovarci</strong>
-                <span>Ti accogliamo in {{ $tenant->address ?? 'sede' }} e ci occupiamo di te.</span>
+                <strong>3. Ci mettiamo d'accordo</strong>
+                <span>Concordiamo insieme giorno, orario e modalità.</span>
             </div>
         </div>
     </section>

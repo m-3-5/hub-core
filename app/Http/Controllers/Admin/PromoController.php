@@ -488,16 +488,48 @@ class PromoController extends Controller
             }
         }
 
+        // Le immagini «a tema» generate per le vecchie voci non valgono più se la voce è cambiata o è sparita.
+        $oldOffers = $before['offers'] ?? [];
+        $decor = (array) ($imageVariants['decor'] ?? []);
+
+        foreach (array_keys($decor) as $slot) {
+            if ($slot === 'beauty' && $offers !== []) {
+                unset($decor[$slot]);
+            } elseif (preg_match('/^offer-(\d+)$/', (string) $slot, $m)) {
+                $i = (int) $m[1];
+
+                if (($oldOffers[$i]['name'] ?? null) !== ($offers[$i]['name'] ?? null)) {
+                    unset($decor[$slot]);
+                }
+            }
+        }
+
+        if ($imageVariants !== null && array_key_exists('decor', (array) $imageVariants)) {
+            $imageVariants['decor'] = $decor;
+        }
+
+        $newDescription = $validated['description'] ?? null;
+        $seo = [];
+
+        // Titolo e descrizione per i motori di ricerca seguono i testi nuovi, non quelli generati alla creazione.
+        if ($validated['title'] !== $promo->title) {
+            $seo['seo_title'] = Str::limit($validated['title'], 70, '');
+        }
+
+        if ($newDescription !== null && trim($newDescription) !== '' && $newDescription !== $promo->description) {
+            $seo['seo_description'] = Str::limit(trim(preg_replace('/\s+/', ' ', $newDescription)), 155, '…');
+        }
+
         $promo->update([
             'title' => $validated['title'],
-            'description' => $validated['description'] ?? null,
+            'description' => $newDescription,
             'offers' => $offers,
             'always_active' => $alwaysActive,
             'starts_at' => $alwaysActive ? null : ($validated['starts_at'] ?? null),
             'ends_at' => $alwaysActive ? null : ($validated['ends_at'] ?? null),
             'image_path' => $imagePath,
             'image_variants' => $imageVariants,
-        ]);
+        ] + $seo);
 
         ActivityLog::record($tenant, 'promo_updated', input: $before, output: [
             'title' => $validated['title'],
