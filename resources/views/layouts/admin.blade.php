@@ -61,13 +61,14 @@
         .mcard--new b { display: block; font-size: 2.6rem; line-height: 1; }
         @media (max-width: 560px) { .mgrid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .mcard__tool { width: 36px; height: 36px; } }
     </style>
+    @include('layouts.partials.app-mobile')
 </head>
 <body class="@isset($tenant) has-bottom-nav @endisset">
-<header>
+<header class="hdr">
     <div>
         <span style="background:#fff;border-radius:10px;padding:3px 7px;display:inline-flex;vertical-align:middle;margin-right:8px"><img src="{{ asset('images/logo-m35.png') }}" alt="M 3.5" height="28" style="height:28px;width:auto;display:block"></span><strong>Hub Core</strong>
         @auth
-            <span style="opacity:.75;font-size:14px;margin-left:12px">{{ auth()->user()->name }}</span>
+            <span class="hdr-name" style="opacity:.75;font-size:14px;margin-left:12px">{{ auth()->user()->name }}</span>
         @endauth
     </div>
     <div style="display:flex;gap:8px;align-items:center">

@@ -4,24 +4,19 @@
 
 @section('content')
 <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-        <h1 style="margin:0">Clienti</h1>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a class="btn btn-secondary" href="{{ route('admin.tickets.index') }}">
-                🎫 Ticket clienti
-                @if ($openTicketsCount > 0)
-                    <span style="background:#c62828;color:#fff;border-radius:999px;padding:1px 8px;font-size:12px;margin-left:6px">{{ $openTicketsCount }}</span>
-                @endif
-            </a>
-            <a class="btn btn-secondary" href="{{ route('admin.activity.index') }}">📊 Attività</a>
-            <a class="btn btn-secondary" href="{{ route('admin.feedback.index') }}">💬 Feedback</a>
-            <a class="btn btn-secondary" href="{{ route('admin.commissions.index') }}">💶 Commissioni</a>
-            <a class="btn btn-secondary" href="{{ route('admin.protected-orders.index') }}">🛡️ Pagamenti protetti</a>
-            <a class="btn btn-secondary" href="{{ route('admin.leads.index') }}">📩 Richieste sito</a>
-            <a class="btn btn-secondary" href="{{ route('pricing.show') }}" target="_blank">💶 Listino prezzi</a>
-        </div>
+    <h1 style="margin:0 0 4px">Clienti</h1>
+    <p style="color:#666;margin:0">Crea promo in bozza, controlla anteprima, poi pubblica sul sito del cliente.</p>
+    <div class="tiles">
+        <a class="tile" href="{{ route('admin.tickets.index') }}"><span class="ti">🎫</span>Ticket clienti
+            @if ($openTicketsCount > 0)<span class="tb">{{ $openTicketsCount }}</span>@endif
+        </a>
+        <a class="tile" href="{{ route('admin.activity.index') }}"><span class="ti">📊</span>Attività</a>
+        <a class="tile" href="{{ route('admin.feedback.index') }}"><span class="ti">💬</span>Feedback</a>
+        <a class="tile" href="{{ route('admin.commissions.index') }}"><span class="ti">💶</span>Commissioni</a>
+        <a class="tile" href="{{ route('admin.protected-orders.index') }}"><span class="ti">🛡️</span>Pagamenti protetti</a>
+        <a class="tile" href="{{ route('admin.leads.index') }}"><span class="ti">📩</span>Richieste sito</a>
+        <a class="tile" href="{{ route('pricing.show') }}" target="_blank"><span class="ti">🏷️</span>Listino prezzi</a>
     </div>
-    <p style="color:#666">Crea promo in bozza, controlla anteprima, poi pubblica sul sito del cliente.</p>
     @foreach ($tenants as $t)
         <div style="padding:20px 0;border-bottom:1px solid #eee">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">

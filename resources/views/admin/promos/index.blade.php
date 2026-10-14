@@ -4,15 +4,17 @@
 
 @section('content')
 <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+    <div class="ph-row">
         <div>
             <h1>Promozioni — {{ $tenant->name }}</h1>
             <p style="color:#666;margin-top:6px">Tocca una promo per aprirla, ✎ per modificarla, ✕ per eliminarla.</p>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a class="btn" href="{{ route('admin.wizard.show', [$tenant, 'promo']) }}">+ Nuova promo</a>
-            <a class="btn btn-secondary" href="{{ route('promo.archive', $tenant) }}" target="_blank">Vedi archivio pubblico ↗</a>
-            <a class="btn btn-secondary" href="{{ route('app.home', $tenant) }}">← Home</a>
+        <div class="ph-act">
+            <div class="chips">
+                <a class="btn btn-secondary" href="{{ route('promo.archive', $tenant) }}" target="_blank">Vedi archivio pubblico ↗</a>
+                <a class="btn btn-secondary" href="{{ route('app.home', $tenant) }}">← Home</a>
+            </div>
+            <div class="fab-bar"><a class="btn" href="{{ route('admin.wizard.show', [$tenant, 'promo']) }}">+ Nuova promo</a></div>
         </div>
     </div>
 

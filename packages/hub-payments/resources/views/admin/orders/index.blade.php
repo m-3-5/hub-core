@@ -10,16 +10,18 @@
     $payoutLabel = ['held' => '🛡️ Trattenuto', 'released' => '✓ Liberato', 'frozen' => '⏸ Segnalazione', 'refunded' => '↩ Rimborsato'];
 @endphp
 <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+    <div class="ph-row">
         <div>
             <h1 style="margin:0 0 6px">Ordini</h1>
             <p style="margin:0;color:#666">Pagamenti ricevuti da carrello, preventivi e link di pagamento, divisi per dove ha comprato il cliente.</p>
         </div>
+        <div class="ph-act"><div class="chips">
         @if (in_array($tenant->type ?: 'azienda', ['azienda', 'ente'], true))
             <a class="btn btn-secondary" href="{{ route('admin.services.index', $tenant) }}">← Servizi</a>
         @else
             <a class="btn btn-secondary" href="{{ route('admin.classifieds.index', $tenant) }}">← Annunci</a>
         @endif
+        </div></div>
     </div>
 
     <div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-bottom:28px">
@@ -49,7 +51,7 @@
         <p style="color:#666">Nessun ordine pagato ancora.</p>
     @else
         <div style="overflow-x:auto">
-            <table style="width:100%;border-collapse:collapse;font-size:.92rem">
+            <table class="rtable" style="width:100%;border-collapse:collapse;font-size:.92rem">
                 <thead>
                     <tr style="text-align:left;border-bottom:2px solid #eee">
                         <th style="padding:8px">Data</th>
@@ -63,19 +65,19 @@
                 <tbody>
                 @foreach ($orders as $order)
                     <tr style="border-bottom:1px solid #f0f0f0;vertical-align:top">
-                        <td style="padding:8px;white-space:nowrap">{{ $order->paid_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
-                        <td style="padding:8px">
+                        <td data-label="Data" style="padding:8px;white-space:nowrap">{{ $order->paid_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}</td>
+                        <td data-label="Cosa" style="padding:8px">
                             @foreach ($order->items as $item)
                                 <div>{{ ($item['quantity'] ?? 1) > 1 ? $item['quantity'].' × ' : '' }}{{ $item['title'] ?? 'Voce' }}@if (($item['type'] ?? '') === 'quote') <span style="color:#888">(preventivo)</span>@endif</div>
                             @endforeach
                         </td>
-                        <td style="padding:8px">
+                        <td data-label="Cliente" style="padding:8px">
                             {{ $order->customer_name ?: '—' }}
                             @if ($order->customer_email)<div style="color:#666;font-size:.85rem">{{ $order->customer_email }}</div>@endif
                             @if ($order->customer_phone)<div style="color:#666;font-size:.85rem">{{ $order->customer_phone }}</div>@endif
                         </td>
-                        <td style="padding:8px">{{ $channelLabel[$order->channel] ?? $order->channel }}</td>
-                        <td style="padding:8px;text-align:right;white-space:nowrap">
+                        <td data-label="Canale" style="padding:8px">{{ $channelLabel[$order->channel] ?? $order->channel }}</td>
+                        <td data-label="Importo" style="padding:8px;text-align:right;white-space:nowrap">
                             {{ $eur($order->amount_cents) }}
                             @if ($order->isProtected())
                                 <div style="font-size:.8rem;color:#4338ca">{{ $payoutLabel[$order->payout_status] ?? 'Protetto' }}@if ($order->isHeld() && $order->release_at) · fino al {{ $order->release_at->timezone(config('app.timezone'))->format('d/m') }}@endif</div>
@@ -92,7 +94,7 @@
                             @endif
                         </td>
                         @if ($commissionActive)
-                            <td style="padding:8px;text-align:right;white-space:nowrap">{{ $order->commission_cents ? $eur($order->commission_cents) : '—' }}</td>
+                            <td data-label="Commissione" style="padding:8px;text-align:right;white-space:nowrap">{{ $order->commission_cents ? $eur($order->commission_cents) : '—' }}</td>
                         @endif
                     </tr>
                 @endforeach

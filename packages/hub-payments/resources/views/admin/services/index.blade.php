@@ -31,7 +31,7 @@
 </style>
 
 <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+    <div class="ph-row">
         <div>
             <h1 style="margin:0 0 6px">{{ $kind['plural'] }}</h1>
             <p style="margin:0;color:#666">
@@ -42,13 +42,17 @@
                 @endif
             </p>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a class="btn btn-secondary" href="{{ route('admin.module-billing.show', $tenant) }}">Costi e pagamenti</a>
-            <a class="btn btn-secondary" href="{{ route('admin.orders.index', $tenant) }}">Ordini</a>
-            <a class="btn btn-secondary" href="{{ route('admin.quotes.index', $tenant) }}">Preventivi</a>
+        <div class="ph-act">
+            <div class="chips">
+                <a class="btn btn-secondary" href="{{ route('admin.module-billing.show', $tenant) }}">Costi e pagamenti</a>
+                <a class="btn btn-secondary" href="{{ route('admin.orders.index', $tenant) }}">Ordini</a>
+                <a class="btn btn-secondary" href="{{ route('admin.quotes.index', $tenant) }}">Preventivi</a>
+                @if ($stripeConfigured)
+                    <a class="btn btn-secondary" href="{{ route('admin.services.payment-links', $tenant) }}">Link di pagamento</a>
+                @endif
+            </div>
             @if ($stripeConfigured)
-                <a class="btn btn-secondary" href="{{ route('admin.services.payment-links', $tenant) }}">Link di pagamento</a>
-                <a class="btn" href="{{ route('admin.wizard.show', [$tenant, $kind['type']]) }}">+ {{ $kind['new'] }}</a>
+                <div class="fab-bar"><a class="btn" href="{{ route('admin.wizard.show', [$tenant, $kind['type']]) }}">+ {{ $kind['new'] }}</a></div>
             @endif
         </div>
     </div>

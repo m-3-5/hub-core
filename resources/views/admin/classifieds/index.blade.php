@@ -4,12 +4,14 @@
 
 @section('content')
 <div class="card">
-    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px">
+    <div class="ph-row" style="align-items:center;margin-bottom:8px">
         <h1 style="margin:0">Annunci — {{ $tenant->name }}</h1>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a href="{{ route('admin.classifieds.create', $tenant) }}" class="btn">+ Nuovo annuncio</a>
-            <a href="{{ route('classifieds.tenant-board', $tenant) }}" target="_blank" class="btn btn-secondary">Vedi bacheca pubblica ↗</a>
-            <a href="{{ route('app.home', $tenant) }}" class="btn btn-secondary">← Home</a>
+        <div class="ph-act">
+            <div class="chips">
+                <a href="{{ route('classifieds.tenant-board', $tenant) }}" target="_blank" class="btn btn-secondary">Vedi bacheca pubblica ↗</a>
+                <a href="{{ route('app.home', $tenant) }}" class="btn btn-secondary">← Home</a>
+            </div>
+            <div class="fab-bar"><a href="{{ route('admin.classifieds.create', $tenant) }}" class="btn">+ Nuovo annuncio</a></div>
         </div>
     </div>
     <p style="color:#666;margin:0 0 20px">Affitti, case vacanza, immobili e oggetti in vendita. Tocca ✎ per modificare, ✕ per eliminare.</p>

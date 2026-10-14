@@ -138,6 +138,7 @@
             .badge-soon { font-size: .55rem; margin-top: 2px; overflow-wrap: anywhere; white-space: normal; }
         }
     </style>
+    @include('layouts.partials.app-mobile')
 </head>
 <body class="@isset($tenant) has-bottom-nav @endisset">
 <div class="app-shell">
