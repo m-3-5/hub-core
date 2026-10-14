@@ -136,3 +136,16 @@ Criterio di fine: schermate prima/dopo a 390 px e 1280 px per dashboard, scheda 
 - Email di contatto vuota nell'annuncio bilocale di Sonia.
 - Affiliazione Amazon (codice Partner) se si vuole guadagnare dai link ai libri.
 
+### Aggiunte della sera del 15/10 (online, ultimo commit 535a4b6)
+- **Condivisione social:** sezione a sé, discreta e con icone piccole dei social (WhatsApp, Facebook, X, Telegram, copia link, «Condividi» di sistema da telefono) in fondo a annunci, prodotti e servizi (`layouts/partials/share-bar.blade.php`, parametri `shareSection`/`shareLabel`/`shareDark`); più compatta su promo, archivi e bacheca.
+- **Icone fluttuanti discrete su tutte le pagine pubbliche** (`public/js/floating-share.js`, iniettato dal middleware `InjectFloatingShare`): compaiono dopo ~2,5 s di pausa, si aprono avvicinando il mouse, si nascondono per la sessione; non compaiono in admin/app/ordini/noindex.
+- **Anteprime social complete** (og:url, og:type, og:image con dimensioni, twitter:card, immagine di riserva `images/og-hub-core.png`) su annunci, promo (`Promo::shareImageUrl()`), prodotti, bacheca, sito generato. Dopo il deploy: «Scrape Again» in Facebook Sharing Debugger per le pagine già condivise.
+- **SEO e ricerca automatiche:** JSON-LD per tipo di annuncio (Product/Book/Service/RealEstateListing), ricerca interna `/cerca` (noindex) con OpenSearch `/opensearch.xml` e SearchAction nella home, segnalazione automatica a IndexNow a ogni pubblicazione/modifica (`App\Services\IndexNow`, eventi in `AppServiceProvider`), sitemap rigenerata subito (`Cache::forget('sitemap.xml')`), comando `hub:indexnow` già esistente per l'invio completo.
+- **Annunci:** email di contatto di Sonia impostata anche sul bilocale (mai mostrata al pubblico).
+
+### Per la prossima sessione (in ordine)
+1. **Rivedere tutta la grafica** (card più piccole su desktop, più ordine e chiarezza, tema scuro admin): piano nel §10.
+2. **Beauty:** collegare i pagamenti protetti (Connect, dati veri) e fare il test reale da 0,50 € con rimborso.
+3. Foto vere al posto delle grafiche per Sonia/Hazar; costi Connect; commercialista (PDF pronto); frasi «Ora siamo a Fabrizio» nella landing.
+4. Nota operativa: il deploy da Plesk va fatto con **Laravel → Deployment → Deploy**, poi Artisan `optimize:clear` e `route:cache`; l'agente non può lanciare comandi Artisan che modificano dati di produzione (li lancia l'utente).
+
