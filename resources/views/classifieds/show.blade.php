@@ -128,7 +128,6 @@
                 <p class="zone" style="font-size:.82rem;margin:0 0 6px">L'acquisto avviene sul sito del venditore: non passa da questo sito. Il link può essere un link di affiliazione.</p>
             @endif
             <div class="desc">{!! \App\Support\Linkify::html($ad->description) !!}</div>
-            @include('layouts.partials.share-bar', ['shareTitle' => $ad->title, 'shareUrl' => $ad->publicUrl()])
             <p class="zone" style="margin-top:14px;font-size:.85rem">Pubblicato {{ optional($ad->published_at)->format('d/m/Y') }} · {{ $tenant->name }}</p>
         </div>
     </div>
@@ -183,6 +182,8 @@
         </div>
     </div>
 </div>
+
+@include('layouts.partials.share-bar', ['shareTitle' => $ad->title, 'shareUrl' => $ad->publicUrl(), 'shareSection' => true, 'shareLabel' => 'Condividi questo annuncio'])
 
 @if (! empty($protectedBuy))
     <div class="buybar"><b>{{ $ad->priceLabel() }}</b><a href="#acquista">🛡️ Compra ora</a></div>

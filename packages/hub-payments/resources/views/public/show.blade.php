@@ -140,7 +140,7 @@
             @else
                 <p class="trust-note">Pagamento sicuro tramite Stripe · {{ $tenant->name }}</p>
             @endif
-            @include('layouts.partials.share-bar', ['shareTitle' => $service->title.' — '.$tenant->name, 'shareUrl' => url()->current()])
+
         </div>
     </div>
 
@@ -148,5 +148,8 @@
         <a class="back-link" href="{{ route('services.public.archive', $tenant) }}#{{ $isProduct ? 'prodotti' : 'servizi' }}">← {{ $isProduct ? 'Tutti i prodotti' : 'Tutti i servizi' }} di {{ $tenant->name }}</a>
     @endunless
 </div>
+@unless (!empty($embedMode))
+    @include('layouts.partials.share-bar', ['shareTitle' => $service->title.' — '.$tenant->name, 'shareUrl' => url()->current(), 'shareSection' => true, 'shareLabel' => $isProduct ? 'Condividi questo prodotto' : 'Condividi questo servizio'])
+@endunless
 </body>
 </html>

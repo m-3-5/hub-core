@@ -5,22 +5,24 @@
     $u = urlencode($shareUrl);
     $t = urlencode($shareTitle);
 @endphp
-<div class="share-row" aria-label="Condividi">
+<div class="share-row {{ ($shareSection ?? false) ? 'share-section' : '' }}" aria-label="Condividi">
     <style>
-        .share-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0 4px; align-items: center; }
+        .share-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 4px; align-items: center; }
+        .share-row.share-section { max-width: 1000px; margin: 30px auto 22px; padding: 14px 16px 0; border-top: 1px solid #e3e3ec; justify-content: center; gap: 8px; }
+        .share-row.share-section .share-label { font-size: .74rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #9a9aab; margin-right: 6px; }
         .share-row .share-label { font-size: .85rem; font-weight: 700; color: {{ ($shareDark ?? false) ? 'rgba(255,255,255,.9)' : '#6b6b7b' }}; margin-right: 2px; }
-        .share-row .sb { width: 46px; height: 46px; border-radius: 50%; border: 0; display: inline-flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; text-decoration: none; padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,.12); transition: transform .12s; }
-        .share-row .sb:hover { transform: translateY(-2px); }
-        .share-row .sb svg { width: 24px; height: 24px; fill: currentColor; display: block; }
+        .share-row .sb { width: 36px; height: 36px; border-radius: 50%; border: 0; display: inline-flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; text-decoration: none; padding: 0; opacity: .9; transition: transform .12s, opacity .12s; }
+        .share-row .sb:hover { transform: translateY(-2px); opacity: 1; }
+        .share-row .sb svg { width: 18px; height: 18px; fill: currentColor; display: block; }
         .share-row .sb.wa { background: #25D366; }
         .share-row .sb.fb { background: #1877F2; }
         .share-row .sb.xx { background: #000; }
         .share-row .sb.tg { background: #229ED9; }
         .share-row .sb.nat { background: {{ $shareColor }}; }
-        .share-row .sb.cp { background: #fff; color: #333; border: 1.5px solid #d9d9e3; box-shadow: none; }
+        .share-row .sb.cp { background: #fff; color: #555; border: 1.5px solid #d9d9e3; }
         .share-row .sb.ok { background: #16a34a; color: #fff; border-color: #16a34a; }
     </style>
-    <span class="share-label">Condividi</span>
+    <span class="share-label">{{ $shareLabel ?? 'Condividi' }}</span>
     <button type="button" class="sb nat" data-native-share data-title="{{ $shareTitle }}" data-url="{{ $shareUrl }}" aria-label="Condividi" title="Condividi" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 16.1c-.8 0-1.5.3-2 .8l-7.1-4.2a3.3 3.3 0 0 0 0-1.4l7-4.1c.6.5 1.3.8 2.1.8a3 3 0 1 0-3-3c0 .2 0 .5.1.7L8 9.8a3 3 0 1 0 0 4.4l7.2 4.2a2.8 2.8 0 0 0-.1.6 2.9 2.9 0 1 0 2.9-2.9z"/></svg>
     </button>
