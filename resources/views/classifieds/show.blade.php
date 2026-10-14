@@ -48,6 +48,20 @@
         .ok { background: #e8f5e9; color: #1b5e20; padding: 12px; border-radius: 10px; }
         .err { color: #c62828; font-size: .85rem; margin: -6px 0 8px; }
         .sticky { position: sticky; top: 16px; }
+        .buybar { display: none; }
+        /* Cellulare: aspetto da app, con barra fissa «prezzo + Compra» in basso. */
+        @media (max-width: 800px) {
+            body { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+            .nav { padding: 12px 16px; }
+            .layout { padding: 0 12px; gap: 12px; }
+            .sticky { position: static; }
+            .form input, .form textarea { font-size: 16px; }
+            .form button, .cta { min-height: 52px; font-size: 1.02rem; }
+            #acquista { scroll-margin-top: 12px; }
+            .buybar { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: #fff; border-top: 1px solid var(--line); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 24px rgba(0,0,0,.06); }
+            .buybar b { font-size: 1.35rem; color: var(--primary-dark); }
+            .buybar a { background: var(--primary); color: #fff; text-decoration: none; font-weight: 800; border-radius: 14px; padding: 0 22px; min-height: 50px; display: inline-flex; align-items: center; }
+        }
     </style>
     @isset($jsonLd)
     <script type="application/ld+json">{!! $jsonLd !!}</script>
@@ -94,7 +108,7 @@
 
     <div class="sticky">
         @if (! empty($protectedBuy))
-            <div class="panel" style="margin-bottom:16px;border-color:#c7d2fe;background:#f5f7ff">
+            <div class="panel" id="acquista" style="margin-bottom:16px;border-color:#c7d2fe;background:#f5f7ff">
                 <h2 style="font-size:1.1rem;margin-bottom:6px">🛡️ Compra con pagamento protetto</h2>
                 <p style="font-size:.9rem;color:var(--muted);margin-bottom:10px">Paghi online {{ $ad->priceLabel() }}: i soldi restano custoditi da Hub Core e l'inserzionista li riceve solo dopo la consegna (tua conferma, o dopo {{ \M35\HubPayments\Support\ProtectedCheckout::holdDays() }} giorni se non segnali problemi).
                 @if ($tenant->type === 'privato')Il venditore è un <strong>privato</strong>: non valgono garanzia legale e recesso da consumatore, ma il pagamento è protetto e, se non ricevi l'oggetto, ti rimborsiamo.@endif</p>
@@ -142,6 +156,10 @@
         </div>
     </div>
 </div>
+
+@if (! empty($protectedBuy))
+    <div class="buybar"><b>{{ $ad->priceLabel() }}</b><a href="#acquista">🛡️ Compra ora</a></div>
+@endif
 
 <script>
 document.querySelectorAll('.thumbs button').forEach(function (b) {

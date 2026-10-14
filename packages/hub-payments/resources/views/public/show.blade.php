@@ -54,6 +54,23 @@
         .btn-whatsapp { background: #25D366; color: #fff; text-decoration: none; padding: 16px 24px; border-radius: 999px; font-weight: 600; display: inline-block; }
         .trust-note { margin-top: 20px; font-size: .85rem; color: var(--muted); }
         .back-link { display: inline-block; margin-top: 40px; color: var(--primary-dark); text-decoration: none; font-size: .9rem; }
+        /* Cellulare: aspetto da app. Immagine a tutta larghezza, acquisto in una barra fissa in basso con tasto grande. */
+        @media (max-width: 800px) {
+            body { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
+            .wrap { padding: 0 0 24px; }
+            .breadcrumb { padding: 14px 16px 0; margin-bottom: 10px; }
+            .layout { gap: 0; }
+            .layout > div:last-child { padding: 16px; }
+            .media { border-radius: 0; box-shadow: none; }
+            h1 { font-size: 1.7rem; }
+            .price { font-size: 1.6rem; margin-bottom: 12px; }
+            .cta-group { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: #fff; border-top: 1px solid #eee; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 24px rgba(0,0,0,.06); gap: 8px; }
+            .cta-group form { width: 100%; gap: 8px; }
+            .cta-group .btn-primary { width: 100%; text-align: center; min-height: 54px; padding: 16px; font-size: 1.05rem; }
+            .btn-whatsapp { display: none; }
+            .trust-note { margin-top: 16px; }
+            .back-link { margin: 24px 16px 0; }
+        }
     </style>
     <script type="application/ld+json">
     {!! json_encode([
