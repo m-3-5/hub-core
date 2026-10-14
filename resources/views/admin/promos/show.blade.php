@@ -24,6 +24,10 @@
             <span style="display:inline-block;margin-top:10px;padding:6px 12px;border-radius:999px;font-size:13px;font-weight:600;background:{{ $statusColor }}20;color:{{ $statusColor }}">
                 {{ $statusLabel }}
             </span>
+            @if ($promo->importedFromLabel())
+                <span style="font-size:13px;color:#1877F2;margin-left:8px;font-weight:600">· {{ $promo->importedFromLabel() }}</span>
+                @if ($promo->sourceUrl())<a href="{{ $promo->sourceUrl() }}" target="_blank" rel="noopener" style="font-size:13px;margin-left:6px">Vedi il post originale ↗</a>@endif
+            @endif
             @if ($promo->always_active)
                 <span style="font-size:13px;color:#888;margin-left:8px">· Sempre attiva</span>
             @elseif ($promo->ends_at)
@@ -44,7 +48,7 @@
             @elseif ($promo->isDraft())
                 <form method="POST" action="{{ route('admin.promos.publish', [$tenant, $promo]) }}">
                     @csrf
-                    <button type="submit" class="btn">Pubblica su {{ $tenant->name }}</button>
+                    <button type="submit" class="btn">{{ $promo->isImported() ? 'Approva e pubblica' : 'Pubblica su '.$tenant->name }}</button>
                 </form>
             @elseif ($tenant->hasAutoSiteSync())
                 <form method="POST" action="{{ route('admin.promos.publish', [$tenant, $promo]) }}">

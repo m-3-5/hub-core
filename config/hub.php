@@ -13,6 +13,11 @@ return [
   */
     'bridge_secret' => env('HUB_BRIDGE_SECRET'),
 
+    // Bozze di promo create da post esterni (Facebook…): da quali host si scarica la foto (https, suffisso del dominio).
+    'promo_import' => [
+        'image_hosts' => ['fbcdn.net', 'cdninstagram.com', 'facebook.com'],
+    ],
+
     'default_password' => env('HUB_DEFAULT_PASSWORD', 'HubCore2026!'),
 
     // Immagini promo via Gemini (richiede billing). Se false: volantino + SVG tematici.

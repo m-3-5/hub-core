@@ -204,6 +204,47 @@ class Promo extends Model
         return $this->status === 'draft';
     }
 
+    /** Bozza arrivata da un post esterno (Facebook…), in attesa di approvazione. */
+    public function isImported(): bool
+    {
+        return ($this->ai_metadata['promo_source'] ?? null) === 'imported';
+    }
+
+    public function importedFromLabel(): ?string
+    {
+        if (! $this->isImported()) {
+            return null;
+        }
+
+        return match ($this->ai_metadata['imported_from'] ?? null) {
+            'facebook' => 'da Facebook',
+            'instagram' => 'da Instagram',
+            default => 'da un post',
+        };
+    }
+
+    public function sourceUrl(): ?string
+    {
+        $url = $this->ai_metadata['source_url'] ?? null;
+
+        return is_string($url) && str_starts_with($url, 'https://') ? $url : null;
+    }
+
+    /**
+     * Pubblica la promo. Una bozza importata senza scadenza vale un mese dall'approvazione,
+     * come le promo create a mano nella creazione guidata.
+     */
+    public function markPublished(): void
+    {
+        $attributes = ['status' => 'published', 'published_at' => now()];
+
+        if ($this->isImported() && ! $this->always_active && ! $this->ends_at) {
+            $attributes['ends_at'] = now()->addMonth()->endOfDay();
+        }
+
+        $this->update($attributes);
+    }
+
     public function flyerSvgPath(): ?string
     {
         $metaPath = $this->ai_metadata['flyer_svg_path'] ?? null;

@@ -33,9 +33,12 @@ class PromoController extends Controller
     {
         $active = $tenant->promos()->published()->active()->latest('published_at')->get();
         $expired = $tenant->promos()->expired()->latest('ends_at')->get();
-        $drafts = $tenant->promos()->where('status', 'draft')->latest()->get();
+        $allDrafts = $tenant->promos()->where('status', 'draft')->latest()->get();
 
-        return view('admin.promos.index', compact('tenant', 'active', 'expired', 'drafts'));
+        // Bozze arrivate da un post esterno (Facebook…): vanno approvate dal titolare.
+        [$toApprove, $drafts] = $allDrafts->partition(fn (Promo $p) => $p->isImported());
+
+        return view('admin.promos.index', compact('tenant', 'active', 'expired', 'drafts', 'toApprove'));
     }
 
     public function create(Tenant $tenant, TenantBrandManager $brand): View
@@ -560,10 +563,7 @@ class PromoController extends Controller
         }
 
         if ($promo->isDraft()) {
-            $promo->update([
-                'status' => 'published',
-                'published_at' => now(),
-            ]);
+            $promo->markPublished();
         }
 
         $webhook->promoPublished($tenant, $promo->fresh());
