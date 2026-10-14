@@ -101,7 +101,7 @@
                     @if (! empty($ad->features[$key]))<span><strong>{{ $ad->features[$key] }}</strong> {{ $label }}</span>@endif
                 @endforeach
             </div>
-            <div class="desc">{{ $ad->description }}</div>
+            <div class="desc">{!! \App\Support\Linkify::html($ad->description) !!}</div>
             <p class="zone" style="margin-top:14px;font-size:.85rem">Pubblicato {{ optional($ad->published_at)->format('d/m/Y') }} · {{ $tenant->name }}</p>
         </div>
     </div>

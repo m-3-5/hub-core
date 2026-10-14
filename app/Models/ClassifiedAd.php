@@ -17,6 +17,8 @@ class ClassifiedAd extends Model
         'vendita' => 'Vendita immobili',
         // Oggetti e beni usati o nuovi: l'unica categoria acquistabile online con il pagamento protetto.
         'oggetti' => 'Oggetti in vendita',
+        // Servizi offerti da persone e professionisti: traduzioni, lezioni, ripetizioni… (nessun pagamento protetto).
+        'servizi' => 'Servizi e lezioni',
     ];
 
     public const PRICE_UNITS = [
@@ -24,6 +26,8 @@ class ClassifiedAd extends Model
         'mese' => 'al mese',
         'settimana' => 'a settimana',
         'notte' => 'a notte',
+        'ora' => 'all\'ora',
+        'pagina' => 'a pagina',
     ];
 
     public const FEATURE_LABELS = [
