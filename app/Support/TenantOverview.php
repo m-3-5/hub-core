@@ -77,6 +77,7 @@ class TenantOverview
             $tenant->subscription_status === 'active' => ['label' => 'Abbonamento attivo', 'tone' => 'ok'],
             $tenant->onTrial() => ['label' => 'In prova · '.$tenant->trialDaysRemaining().' gg', 'tone' => 'info'],
             $tenant->trialExpired() => ['label' => 'Prova scaduta', 'tone' => 'warn'],
+            $tenant->subscription_status === 'trialing' => ['label' => 'In prova', 'tone' => 'info'],
             $tenant->subscription_status === 'pending_payment' => ['label' => 'Da attivare', 'tone' => 'warn'],
             $tenant->subscription_status === 'past_due' => ['label' => 'Pagamento in ritardo', 'tone' => 'warn'],
             $tenant->subscription_status === 'canceled' => ['label' => 'Annullato', 'tone' => 'off'],
