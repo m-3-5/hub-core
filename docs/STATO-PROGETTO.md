@@ -85,3 +85,21 @@ Oggi il server usa chiavi Stripe **di prova** (sandbox). Per incassare soldi ver
 7. Pulizia: eliminare il prodotto/ordine «Prova carrello (da eliminare)» di Beauty.
 
 **Da verificare prima del live (costi Connect):** con «separate charges and transfers» la piattaforma (M 3.5) paga a Stripe, oltre alla commissione di incasso che già scaliamo al venditore, i costi di Connect (account attivo/mese e bonifici). Controllare i prezzi Connect del proprio account live e decidere se scalarli al venditore o assorbirli; il testo delle condizioni (§4) promette che i costi delle vendite sono a carico del venditore.
+
+## 9. Passaggio al live — stato del 15/10 (sera)
+**Stripe è LIVE sul sito.** Fatto:
+- Chiave `sk_live_…` dedicata («hub-core inm35.it», creata il 15/10 nell'account M 3.5) e segreto del webhook live `hub-core-billing-live` salvati nel `.env` di Plesk; cache pulita. Verifica con `php artisan hub:stripe-check` (chiave LIVE accettata, account M 3.5, incassi e bonifici abilitati).
+- Dati di prova azzerati con `hub:reset-connect --all` (era solo Beauty) e `hub:reset-billing --all --apply` (era solo Piramide 35). Verificato: nessun dato Stripe di prova rimasto.
+- Grafica da app anche nell'admin, footer con i dati di Piramide 35 (config/company.php), PDF delle condizioni in `docs/condizioni-pagamenti-protetti.pdf`.
+- Beauty: vendite dirette sul proprio conto Stripe (chiave live propria) **già collegate e non toccate**.
+
+**Da fare (domani):**
+1. Collegare i pagamenti protetti di Beauty (Connect, dati veri: documento e IBAN) con «Collega i pagamenti protetti» da `/admin/tenants/beauty-of-image/services`.
+2. Portare il prodotto «Prova carrello (da eliminare)» da 1,00 € a 0,50 € e fare il test reale: acquisto con carta, «Ho ricevuto tutto», trasferimento, poi rimborso. Controllare email e consegna del webhook in Stripe (il webhook live non ha più errori 401 se il segreto è giusto).
+3. Eliminare il prodotto di prova di Beauty e l'ordine #5.
+4. Decidere sui costi Connect a carico della piattaforma (conti attivi/mese e bonifici): vedi nota nel §8.
+5. Il commercialista leggerà le condizioni quando ci sarà (PDF pronto).
+6. Dubbio aperto: nel corpo della landing siti web compaiono ancora «Ora siamo a Fabrizio» / «Vieni a trovarci a Fabrizio» (la sede legale è a Senise, non in Calabria): da decidere se riscrivere.
+7. Bloccato dal classificatore di sicurezza: l'agente non può lanciare comandi che modificano dati di produzione via Artisan; li lancia l'utente da Plesk → Laravel → Artisan.
+8. Chiave Stripe «Hub Core» del 25 luglio (mai usata): da eliminare o ruotare nella pagina Chiavi API, se non serve.
+
