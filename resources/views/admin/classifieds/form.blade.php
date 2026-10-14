@@ -61,7 +61,7 @@
             </div>
         </div>
 
-        <div style="margin-bottom:16px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:12px 14px">
+        <div id="protected-box" style="margin-bottom:16px;background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:12px 14px">
             <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-weight:600">
                 <input type="checkbox" name="protected_sale" value="1" @checked(old('protected_sale', $ad->protected_sale)) style="margin-top:4px;width:18px;height:18px;flex:none">
                 <span>🛡️ Vendi con pagamento protetto <span style="font-weight:400;color:#4b5563;display:block;font-size:.9rem">Solo per «Oggetti in vendita» a prezzo fisso. Chi compra paga online, i soldi restano custoditi da Hub Core e li ricevi dopo la consegna (conferma o 7 giorni). Devi prima collegare i pagamenti protetti dalla pagina Annunci.</span></span>
@@ -70,9 +70,26 @@
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px;margin-bottom:16px">
             @foreach (\App\Models\ClassifiedAd::FEATURE_LABELS as $key => $label)
-                <div>
+                <div data-feature="{{ $key }}">
                     <label for="f_{{ $key }}">{{ $label }}</label>
                     <input id="f_{{ $key }}" name="features[{{ $key }}]" type="number" min="0" style="{{ $field }}" value="{{ $feature($key) }}">
+                </div>
+            @endforeach
+            @foreach (\App\Models\ClassifiedAd::TEXT_FEATURES as $key => $meta)
+                <div data-feature="{{ $key }}">
+                    <label for="f_{{ $key }}">{{ $meta['label'] }}</label>
+                    <select id="f_{{ $key }}" name="features[{{ $key }}]" style="{{ $field }}">
+                        <option value="">—</option>
+                        @foreach ($meta['options'] as $optKey => $optLabel)
+                            <option value="{{ $optKey }}" @selected((string) $feature($key) === (string) $optKey)>{{ $optLabel }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endforeach
+            @foreach (\App\Models\ClassifiedAd::INPUT_FEATURES as $key => $meta)
+                <div data-feature="{{ $key }}" style="{{ $meta['type'] === 'url' ? 'grid-column:1 / -1' : '' }}">
+                    <label for="f_{{ $key }}">{{ $meta['label'] }}</label>
+                    <input id="f_{{ $key }}" name="features[{{ $key }}]" type="{{ $meta['type'] }}" maxlength="{{ $meta['max'] }}" style="{{ $field }}" value="{{ $feature($key) }}" placeholder="{{ $meta['placeholder'] }}">
                 </div>
             @endforeach
         </div>
@@ -139,4 +156,34 @@
         </form>
     @endif
 </div>
+
+<script>
+(function () {
+    var META = @json(\App\Models\ClassifiedAd::CATEGORY_META);
+    var sel = document.getElementById('category');
+    var unit = document.getElementById('price_unit');
+    var desc = document.getElementById('description');
+    var box = document.getElementById('protected-box');
+
+    function apply(initial) {
+        var m = META[sel.value] || {fields: [], units: [''], hint: ''};
+        document.querySelectorAll('[data-feature]').forEach(function (w) {
+            var on = m.fields.indexOf(w.getAttribute('data-feature')) !== -1;
+            w.hidden = !on;
+            w.querySelectorAll('input,select').forEach(function (i) { i.disabled = !on; });
+        });
+        var current = unit.value;
+        Array.prototype.forEach.call(unit.options, function (o) {
+            var ok = m.units.indexOf(o.value) !== -1 || (initial && o.value === current);
+            o.hidden = !ok; o.disabled = !ok;
+        });
+        if (unit.selectedOptions[0] && unit.selectedOptions[0].disabled) { unit.value = ''; }
+        if (box) { box.hidden = sel.value !== 'oggetti'; }
+        if (desc && m.hint) { desc.placeholder = m.hint; }
+    }
+
+    sel.addEventListener('change', function () { apply(false); });
+    apply(true);
+})();
+</script>
 @endsection

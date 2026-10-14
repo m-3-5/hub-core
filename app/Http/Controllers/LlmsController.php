@@ -51,7 +51,7 @@ class LlmsController extends Controller
             '- Presentazione e registrazione: '.url('/'),
             '- Prezzi: '.route('pricing.show'),
             '- Promozioni attive di tutte le attività: '.route('promo.hub-archive'),
-            '- Annunci immobili: '.route('classifieds.board'),
+            '- Annunci (immobili, oggetti in vendita, servizi e lezioni): '.route('classifieds.board'),
         ]);
 
         if ($group = config('landing.facebook_group.url')) {

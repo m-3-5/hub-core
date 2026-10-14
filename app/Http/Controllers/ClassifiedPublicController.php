@@ -25,6 +25,15 @@ class ClassifiedPublicController extends Controller
             $query->where('tenant_id', $tenant->id);
         }
 
+        $search = trim((string) $request->query('q'));
+        if ($search !== '') {
+            $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $search).'%';
+            $query->where(fn ($q) => $q->where('zone', 'like', $like)->orWhere('title', 'like', $like));
+        }
+
+        // Quanti annunci per categoria (con la stessa bacheca e ricerca, senza il filtro categoria).
+        $counts = (clone $query)->reorder()->selectRaw('category, count(*) as c')->groupBy('category')->pluck('c', 'category')->all();
+
         $category = $request->query('categoria');
         if ($category && array_key_exists($category, ClassifiedAd::CATEGORIES)) {
             $query->where('category', $category);
@@ -32,17 +41,14 @@ class ClassifiedPublicController extends Controller
             $category = null;
         }
 
-        $search = trim((string) $request->query('q'));
-        if ($search !== '') {
-            $like = '%'.str_replace(['%', '_'], ['\\%', '\\_'], $search).'%';
-            $query->where(fn ($q) => $q->where('zone', 'like', $like)->orWhere('title', 'like', $like));
-        }
-
         return view('classifieds.board', [
             'tenant' => $tenant,
             'ads' => $query->paginate(18)->withQueryString(),
             'category' => $category,
             'search' => $search,
+            'counts' => $counts,
+            'total' => array_sum($counts),
+            'qs' => $search !== '' ? ['q' => $search] : [],
         ]);
     }
 

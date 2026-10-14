@@ -95,7 +95,7 @@ class SeoSchema
     {
         $url = $tenant ? route('classifieds.tenant-board', $tenant) : route('classifieds.board');
 
-        return self::json([self::itemList($tenant ? 'Annunci — '.$tenant->name : 'Annunci immobili', $url, $ads->map(fn (ClassifiedAd $ad) => [
+        return self::json([self::itemList($tenant ? 'Annunci — '.$tenant->name : 'Annunci: immobili, oggetti, servizi e lezioni', $url, $ads->map(fn (ClassifiedAd $ad) => [
             'url' => $ad->publicUrl(),
             'name' => $ad->title,
             'image' => $ad->imageUrls()[0] ?? null,

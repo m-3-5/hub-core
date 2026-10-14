@@ -14,7 +14,7 @@
             <div class="fab-bar"><a href="{{ route('admin.classifieds.create', $tenant) }}" class="btn">+ Nuovo annuncio</a></div>
         </div>
     </div>
-    <p style="color:#666;margin:0 0 20px">Affitti, case vacanza, immobili e oggetti in vendita. Tocca ✎ per modificare, ✕ per eliminare.</p>
+    <p style="color:#666;margin:0 0 20px">Immobili, oggetti in vendita, servizi e lezioni. Tocca ✎ per modificare, ✕ per eliminare.</p>
 
     @if (\M35\HubPayments\Services\StripeConnectService::isAvailable())
         @include('hub-payments::admin.services._connect-card', ['tenant' => $tenant])

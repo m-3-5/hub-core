@@ -132,7 +132,7 @@ class ClassifiedAdController extends Controller
             'protected_sale' => ['nullable', 'boolean'],
             'description' => ['required', 'string', 'max:5000'],
             'features' => ['nullable', 'array'],
-            'features.*' => ['nullable', 'integer', 'min:0', 'max:100000'],
+            'features.*' => ['nullable', 'string', 'max:500'],
             'contact_name' => ['nullable', 'string', 'max:120'],
             'contact_phone' => ['nullable', 'string', 'max:30'],
             'contact_email' => ['nullable', 'email', 'max:190'],
@@ -142,10 +142,35 @@ class ClassifiedAdController extends Controller
             'videos.*' => ['file', 'mimetypes:video/mp4,video/quicktime,video/webm', 'max:40960'],
         ]);
 
-        $validated['features'] = collect($validated['features'] ?? [])
-            ->only(array_keys(ClassifiedAd::FEATURE_LABELS))
-            ->filter(fn ($v) => $v !== null && $v !== '')
-            ->all();
+        // Ogni categoria ha i suoi campi: si tengono solo quelli suoi, numeri interi o scelte ammesse.
+        $allowed = ClassifiedAd::CATEGORY_META[$validated['category']]['fields'] ?? [];
+        $features = [];
+
+        foreach ($validated['features'] ?? [] as $key => $value) {
+            if (! in_array($key, $allowed, true) || $value === null || $value === '') {
+                continue;
+            }
+
+            if (isset(ClassifiedAd::FEATURE_LABELS[$key])) {
+                if (ctype_digit((string) $value) && (int) $value <= 100000) {
+                    $features[$key] = (int) $value;
+                }
+            } elseif (isset(ClassifiedAd::TEXT_FEATURES[$key]['options'][$value])) {
+                $features[$key] = $value;
+            } elseif (isset(ClassifiedAd::INPUT_FEATURES[$key])) {
+                $value = trim((string) $value);
+
+                if (ClassifiedAd::INPUT_FEATURES[$key]['type'] === 'url') {
+                    if (filter_var($value, FILTER_VALIDATE_URL) && preg_match('~^https?://~i', $value)) {
+                        $features[$key] = mb_substr($value, 0, 500);
+                    }
+                } elseif ($value !== '') {
+                    $features[$key] = mb_substr($value, 0, ClassifiedAd::INPUT_FEATURES[$key]['max']);
+                }
+            }
+        }
+
+        $validated['features'] = $features;
         $validated['price_unit'] = ($validated['price_unit'] ?? '') ?: null;
         // Il pagamento protetto vale solo per gli oggetti a prezzo fisso.
         $validated['protected_sale'] = $request->boolean('protected_sale')

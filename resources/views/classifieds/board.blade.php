@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @php($brand = $tenant?->primary_color ?: '#4f46e5')
-    <title>{{ $tenant ? 'Annunci — '.$tenant->name : 'Annunci immobili' }}</title>
+    <title>{{ $tenant ? 'Annunci — '.$tenant->name : 'Annunci: immobili, oggetti, servizi e lezioni' }}</title>
     @include('layouts.partials.favicon')
-    <meta name="description" content="Affitti, case vacanza e vendita immobili{{ $tenant ? ' di '.$tenant->name : '' }}.">
+    <meta name="description" content="Affitti, case vacanza, immobili, oggetti in vendita, servizi e lezioni{{ $tenant ? ' di '.$tenant->name : '' }}.">
     <link rel="canonical" href="{{ $tenant ? route('classifieds.tenant-board', $tenant) : route('classifieds.board') }}">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ $tenant ? 'Annunci — '.$tenant->name : 'Annunci immobili' }}">
-    <meta property="og:description" content="Affitti, case vacanza e vendita immobili{{ $tenant ? ' di '.$tenant->name : '' }}.">
+    <meta property="og:title" content="{{ $tenant ? 'Annunci — '.$tenant->name : 'Annunci: immobili, oggetti, servizi e lezioni' }}">
+    <meta property="og:description" content="Affitti, case vacanza, immobili, oggetti in vendita, servizi e lezioni{{ $tenant ? ' di '.$tenant->name : '' }}.">
     <meta property="og:url" content="{{ $tenant ? route('classifieds.tenant-board', $tenant) : route('classifieds.board') }}">
     <meta name="theme-color" content="{{ $brand }}">
     <style>
@@ -22,6 +22,12 @@
         .top h1 { font-size: 1.7rem; }
         .top p { opacity: .9; margin-top: 4px; }
         .wrap { max-width: 1100px; margin: -22px auto 40px; padding: 0 16px; }
+        .cats { display: flex; gap: 10px; overflow-x: auto; padding: 14px 2px 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .cats::-webkit-scrollbar { display: none; }
+        .cat { flex: none; display: flex; align-items: center; gap: 8px; background: #fff; border: 2px solid var(--line); border-radius: 16px; padding: 10px 14px; font-weight: 700; font-size: .92rem; white-space: nowrap; }
+        .cat .i { font-size: 1.3rem; }
+        .cat small { background: #f1f1f6; border-radius: 999px; padding: 1px 8px; font-weight: 700; color: var(--muted); }
+        .cat.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, #fff); }
         .filters { background: #fff; border-radius: 14px; padding: 14px; display: flex; gap: 10px; flex-wrap: wrap; box-shadow: 0 6px 20px rgba(0,0,0,.08); }
         .filters input, .filters select { padding: 11px 12px; border: 1px solid var(--line); border-radius: 10px; font: inherit; flex: 1; min-width: 150px; }
         .filters button { background: var(--primary); color: #fff; border: 0; border-radius: 10px; padding: 11px 22px; font: inherit; font-weight: 700; cursor: pointer; }
@@ -45,13 +51,20 @@
 </head>
 <body>
 <div class="top">
-    <h1>{{ $tenant ? $tenant->name : 'Annunci immobili' }}</h1>
-    <p>Affitti, case vacanza e vendita immobili</p>
+    <h1>{{ $tenant ? $tenant->name : 'Annunci' }}</h1>
+    <p>Immobili, oggetti in vendita, servizi e lezioni</p>
 </div>
 
 <div class="wrap">
-    <form class="filters" method="GET">
-        <input type="search" name="q" value="{{ $search }}" placeholder="Cerca zona o parola chiave (es. Garda, Sirmione)">
+    <nav class="cats" aria-label="Categorie">
+        <a class="cat {{ $category === null ? 'on' : '' }}" href="{{ request()->url() }}{{ $qs ? '?'.http_build_query($qs) : '' }}"><span class="i">🧭</span> Tutti <small>{{ $total }}</small></a>
+        @foreach (\App\Models\ClassifiedAd::CATEGORIES as $key => $label)
+            <a class="cat {{ $category === $key ? 'on' : '' }}" href="{{ request()->url() }}?{{ http_build_query($qs + ['categoria' => $key]) }}"><span class="i">{{ \App\Models\ClassifiedAd::iconFor($key) }}</span> {{ $label }} <small>{{ $counts[$key] ?? 0 }}</small></a>
+        @endforeach
+    </nav>
+
+    <form class="filters" method="GET" style="margin-top:12px">
+        <input type="search" name="q" value="{{ $search }}" placeholder="Cerca per parola chiave o zona">
         <select name="categoria">
             <option value="">Tutte le categorie</option>
             @foreach (\App\Models\ClassifiedAd::CATEGORIES as $key => $label)
@@ -68,7 +81,7 @@
             @foreach ($ads as $ad)
                 <a class="card" href="{{ $ad->publicUrl() }}">
                     <div class="cover" style="{{ $ad->coverUrl() ? "background-image:url('".$ad->coverUrl()."')" : '' }}">
-                        @unless ($ad->coverUrl())🏠@endunless
+                        @unless ($ad->coverUrl()){{ $ad->categoryIcon() }}@endunless
                         <span class="badge">{{ $ad->categoryLabel() }}</span>
                     </div>
                     <div class="body">
@@ -76,8 +89,8 @@
                         <div class="title">{{ $ad->title }}</div>
                         <div class="meta">📍 {{ $ad->zone }}</div>
                         <div class="meta">
-                            @foreach (\App\Models\ClassifiedAd::FEATURE_LABELS as $key => $label)
-                                @if (! empty($ad->features[$key])){{ $ad->features[$key] }} {{ strtolower($label) }} &nbsp;@endif
+                            @foreach ($ad->featureChips() as $chip)
+                                {{ $chip }} &nbsp;
                             @endforeach
                         </div>
                         @unless ($tenant)<div class="meta">{{ $ad->tenant->name }}</div>@endunless

@@ -73,7 +73,7 @@
 <div class="layout">
     <div>
         <div class="panel">
-            <div class="gallery-main" id="main" style="{{ $images ? "background-image:url('".$images[0]."')" : '' }}">@unless ($images)🏠@endunless</div>
+            <div class="gallery-main" id="main" style="{{ $images ? "background-image:url('".$images[0]."')" : '' }}">@unless ($images){{ $ad->categoryIcon() }}@endunless</div>
             @if (count($images) > 1)
                 <div class="thumbs">
                     @foreach ($images as $i => $url)
@@ -97,10 +97,16 @@
             <div class="zone">📍 {{ $ad->zone }}</div>
             @if ($ad->priceLabel())<div class="price">{{ $ad->priceLabel() }}</div>@endif
             <div class="features">
-                @foreach (\App\Models\ClassifiedAd::FEATURE_LABELS as $key => $label)
-                    @if (! empty($ad->features[$key]))<span><strong>{{ $ad->features[$key] }}</strong> {{ $label }}</span>@endif
+                @foreach ($ad->featureChips() as $chip)
+                    <span>{{ $chip }}</span>
                 @endforeach
             </div>
+            @if ($ad->buyUrl())
+                <p style="margin:14px 0 6px">
+                    <a class="cta" href="{{ $ad->buyUrl() }}" target="_blank" rel="sponsored nofollow noopener" style="display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 22px;border-radius:14px;background:var(--primary);color:#fff;font-weight:800;text-decoration:none">{{ $ad->buyLabel() }} ↗</a>
+                </p>
+                <p class="zone" style="font-size:.82rem;margin:0 0 6px">L'acquisto avviene sul sito del venditore: non passa da questo sito. Il link può essere un link di affiliazione.</p>
+            @endif
             <div class="desc">{!! \App\Support\Linkify::html($ad->description) !!}</div>
             <p class="zone" style="margin-top:14px;font-size:.85rem">Pubblicato {{ optional($ad->published_at)->format('d/m/Y') }} · {{ $tenant->name }}</p>
         </div>
