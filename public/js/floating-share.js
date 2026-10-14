@@ -143,8 +143,15 @@
         window.addEventListener(ev, activity, { passive: true });
     });
 
-    // Il mouse: ogni movimento «lontano» è attività; avvicinandosi al widget lo si apre e lo si tiene visibile.
+    // Il mouse: ogni movimento reale e «lontano» è attività; avvicinandosi al widget lo si apre e lo si tiene visibile.
+    // I mousemove sintetici (stesse coordinate, o spostamenti minimi dopo scroll/layout) non contano.
+    var lastX = null, lastY = null, travelled = 0;
     window.addEventListener('mousemove', function (e) {
+        if (lastX === null) { lastX = e.clientX; lastY = e.clientY; return; }
+        travelled += Math.abs(e.clientX - lastX) + Math.abs(e.clientY - lastY);
+        lastX = e.clientX; lastY = e.clientY;
+        if (travelled < 24) { return; }
+        travelled = 0;
         var r = root.getBoundingClientRect();
         var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
         var d = Math.hypot(e.clientX - cx, Math.max(0, Math.abs(e.clientY - cy) - r.height / 2));
