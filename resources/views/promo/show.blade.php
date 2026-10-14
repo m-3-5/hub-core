@@ -25,7 +25,7 @@
         $shareLinks = $shareLinks ?? \App\Support\PromoShareLinks::for($promo);
         $isExpiredPromo = $isExpiredPromo ?? $promo->isExpired();
         $expiryLabel = $promo->expiryLabel();
-        $brandFontKey = $tenant->settings['brand']['font'] ?? \App\Support\BrandFonts::default();
+        $brandFontKey = \App\Support\BrandFonts::keyForTenant($tenant);
         $brandFont = \App\Support\BrandFonts::get($brandFontKey);
     @endphp
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -294,6 +294,7 @@
                     </div>
                 @endif
                 <div class="share-bar" aria-label="Condividi promo">
+                    <button type="button" class="share-btn" data-native-share data-title="{{ $promo->seo_title ?? $promo->title }}" data-url="{{ $shareLinks['copy'] }}" hidden>Condividi</button>
                     <a class="share-btn" href="{{ $shareLinks['whatsapp'] }}" target="_blank" rel="noopener">WhatsApp</a>
                     <a class="share-btn" href="{{ $shareLinks['facebook'] }}" target="_blank" rel="noopener">Facebook</a>
                     <a class="share-btn" href="{{ $shareLinks['twitter'] }}" target="_blank" rel="noopener">X</a>
@@ -302,8 +303,8 @@
             </div>
             @if ($flyerUrl)
                 <div class="flyer-card">
-                    <img src="{{ $flyerUrl }}" alt="Volantino {{ $promo->title }}">
-                    <p>Volantino originale · consulta tutti i dettagli</p>
+                    <img src="{{ $flyerUrl }}" alt="{{ $promo->title }}">
+                    <p>Consulta tutti i dettagli</p>
                 </div>
             @endif
         </div>
@@ -446,15 +447,35 @@
     </div>
 </div>
 <script>
+function legacyCopy(url) {
+    var t = document.createElement('textarea');
+    t.value = url; t.setAttribute('readonly', ''); t.style.position = 'fixed'; t.style.opacity = '0';
+    document.body.appendChild(t); t.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    t.remove();
+    return ok;
+}
 document.querySelectorAll('[data-copy]').forEach(function (btn) {
     btn.addEventListener('click', function () {
         var url = btn.getAttribute('data-copy');
-        if (navigator.clipboard && url) {
-            navigator.clipboard.writeText(url).then(function () {
-                btn.textContent = 'Link copiato!';
-                setTimeout(function () { btn.textContent = 'Copia link'; }, 2000);
-            });
+        var done = function () {
+            btn.textContent = 'Link copiato!';
+            setTimeout(function () { btn.textContent = 'Copia link'; }, 2000);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(done, function () { if (legacyCopy(url)) done(); });
+        } else if (legacyCopy(url)) {
+            done();
         }
+    });
+});
+// Da telefono: la finestra di condivisione del sistema (WhatsApp, Instagram, Telegram, messaggi…).
+document.querySelectorAll('[data-native-share]').forEach(function (btn) {
+    if (!navigator.share) { return; }
+    btn.hidden = false;
+    btn.addEventListener('click', function () {
+        navigator.share({ title: btn.getAttribute('data-title'), url: btn.getAttribute('data-url') }).catch(function () {});
     });
 });
 </script>

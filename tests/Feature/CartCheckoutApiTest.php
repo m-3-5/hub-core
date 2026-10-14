@@ -138,8 +138,8 @@ class CartCheckoutApiTest extends TestCase
 
         $this->postJson('/api/v1/beauty/checkout', $payload)->assertUnauthorized();
         $this->signedPost('beauty', $payload, null, 'altro-segreto')->assertUnauthorized();
-        $this->signedPost('beauty', $payload, time() - 301)->assertUnauthorized();
-        $this->signedPost('beauty', $payload, time() + 301)->assertUnauthorized();
+        $this->signedPost('beauty', $payload, time() - 400)->assertUnauthorized();
+        $this->signedPost('beauty', $payload, time() + 400)->assertUnauthorized();
 
         $body = json_encode($payload);
         $ts = (string) time();

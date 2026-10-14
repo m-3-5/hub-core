@@ -79,9 +79,7 @@ class TenantBrandManager
 
     public function font(Tenant $tenant): string
     {
-        $font = $tenant->settings['brand']['font'] ?? null;
-
-        return is_string($font) && isset(BrandFonts::PRESETS[$font]) ? $font : BrandFonts::default();
+        return BrandFonts::keyForTenant($tenant);
     }
 
     public function storeFont(Tenant $tenant, string $font): void

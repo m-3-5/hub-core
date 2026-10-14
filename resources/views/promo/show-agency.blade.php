@@ -19,7 +19,7 @@
     <link rel="canonical" href="{{ $promo->publicUrl() }}">
     <meta name="theme-color" content="{{ $tenant->primary_color }}">
     @php
-        $brandFontKey = $tenant->settings['brand']['font'] ?? \App\Support\BrandFonts::default();
+        $brandFontKey = \App\Support\BrandFonts::keyForTenant($tenant);
         $brandFont = \App\Support\BrandFonts::get($brandFontKey);
         $tagline = $tenant->settings['tagline'] ?? null;
         $flyer = $promo->variantUrl('video') ?? $promo->variantUrl('flyer') ?? $promo->imageUrl();

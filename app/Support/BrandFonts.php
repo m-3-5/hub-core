@@ -61,6 +61,24 @@ class BrandFonts
         return 'elegante';
     }
 
+    /**
+     * Carattere di un'attività: la scelta salvata, altrimenti un predefinito.
+     * Le attività create prima del 15/10/2026 e senza scelta restano su «Elegante» (com'erano); le nuove partono da
+     * «Moderno», neutro e adatto a qualsiasi settore (non solo a beauty e benessere).
+     */
+    public static function keyForTenant(\App\Models\Tenant $tenant): string
+    {
+        $saved = $tenant->settings['brand']['font'] ?? null;
+
+        if (is_string($saved) && isset(self::PRESETS[$saved])) {
+            return $saved;
+        }
+
+        $legacy = $tenant->created_at && $tenant->created_at->lt(\Illuminate\Support\Carbon::create(2026, 10, 15));
+
+        return $legacy ? self::default() : 'moderno';
+    }
+
     /** @return array{label: string, description: string, display: string, body: string, google_fonts: string} */
     public static function get(string $key): array
     {

@@ -9,6 +9,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Tenant extends Model
 {
+    /** @var array<string, mixed> */
+    protected $attributes = [
+        'primary_color' => '#4f46e5',
+    ];
+
     protected $fillable = [
         'name',
         'type',

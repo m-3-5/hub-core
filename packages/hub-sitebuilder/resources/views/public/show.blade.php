@@ -9,7 +9,7 @@
         $services = $answers['services'] ?? [];
         $ctaLabel = $answers['cta_label'] ?? 'Contattaci';
         $extra = $answers['extra'] ?? null;
-        $brandFontKey = $tenant->settings['brand']['font'] ?? \App\Support\BrandFonts::default();
+        $brandFontKey = \App\Support\BrandFonts::keyForTenant($tenant);
         $brandFont = \App\Support\BrandFonts::get($brandFontKey);
         $heroVisual = $site->hero_video_path
             ? \Illuminate\Support\Facades\Storage::disk('public')->url($site->hero_video_path)
