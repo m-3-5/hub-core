@@ -40,7 +40,6 @@
     <li>Se il cliente segnala un problema il pagamento si ferma finché non è risolto; il venditore e il team Hub Core vengono avvisati subito per email.</li>
     <li><strong>Cosa ricevi:</strong> l'importo pagato meno la commissione effettiva di Stripe sul pagamento e l'eventuale commissione Hub Core, calcolati al momento del rilascio sui valori reali di Stripe (non sulla stima). L'importo è accreditato sul tuo conto Stripe collegato e Stripe lo bonifica al tuo IBAN con i suoi tempi (di solito pochi giorni lavorativi).</li>
     <li><strong>Commissione Hub Core:</strong> può essere prevista sulle vendite fatte tramite inm35.it, a carico dell'attività e <em>senza cambiare il prezzo pagato dal cliente</em>. Al momento è <strong>0 €</strong>: se cambiasse, lo comunicheremo prima.</li>
-    <li>Il venditore riceve l'importo pagato dal cliente <strong>meno</strong> la commissione effettiva di Stripe e l'eventuale commissione Hub Core. Nel pannello vedi sempre il netto di ogni vendita.</li>
 </ul>
 
 <h2>4. Chi sopporta i costi (da leggere con attenzione)</h2>
@@ -48,10 +47,9 @@
 <ul>
     <li><strong>Commissioni di Stripe</strong> su ogni pagamento (voce 2), anche quando la tariffa applicata è diversa da quella indicativa.</li>
     <li><strong>Rimborsi:</strong> se un cliente ha diritto al rimborso (merce non consegnata o non conforme, annullamento, recesso o altro motivo), gli rimborsiamo l'intero importo pagato. La commissione di Stripe di norma non viene restituita: resta a tuo carico, e il rimborso viene scalato dai tuoi incassi.</li>
-    <li><strong>Contestazioni con la carta (chargeback):</strong> l'importo contestato e il costo che Stripe applica a ogni contestazione sono a tuo carico. Ti chiederemo i documenti per difenderti (prova di consegna, comunicazioni con il cliente).</li>
+    <li><strong>Contestazioni con la carta (chargeback):</strong> se la banca del cliente apre una contestazione il rilascio si ferma automaticamente; se la perdi, l'importo contestato e il costo che Stripe applica a ogni contestazione sono a tuo carico. Ti chiederemo i documenti per difenderti (prova di consegna, comunicazioni con il cliente).</li>
     <li><strong>Recupero delle somme:</strong> se un rimborso o una contestazione arriva dopo che i soldi ti sono già stati accreditati, autorizzi Hub Core a recuperarli annullando il trasferimento, trattenendoli dai tuoi incassi successivi e, se non bastano, a chiederti di restituirli entro 15 giorni. Fino al saldo possiamo sospendere i pagamenti protetti.</li>
     <li><strong>Segnalazioni e blocchi:</strong> se un cliente segnala un problema, il pagamento resta fermo finché non è risolto. Ti impegni a collaborare e a rispondere al cliente e al team Hub Core in modo tempestivo (entro 3 giorni lavorativi). Se la segnalazione è fondata e non viene risolta, il cliente viene rimborsato e il rimborso è a tuo carico.</li>
-    <li><strong>Contestazioni con la carta (chargeback):</strong> se la banca del cliente apre una contestazione, il rilascio si ferma automaticamente. Se la perdi, l'importo e il costo della contestazione sono a tuo carico (vedi sopra).</li>
     <li><strong>Obblighi di consegna:</strong> consegni o eroghi quanto venduto nei tempi indicati nella tua pagina, e rispetti garanzia legale, diritto di recesso e informazioni al consumatore. Premere «Ho ricevuto tutto» o il passare dei giorni non ti esonera da questi obblighi.</li>
     <li><strong>Uso corretto:</strong> puoi usare i pagamenti protetti solo per vendere beni e servizi leciti, tuoi, descritti in modo veritiero. Possiamo sospendere i pagamenti protetti e trattenere le somme in caso di sospetta frode o uso scorretto.</li>
     <li><strong>Nessuna sorpresa per il cliente:</strong> il prezzo che vede il cliente è quello che hai impostato; non gli aggiungiamo commissioni.</li>
