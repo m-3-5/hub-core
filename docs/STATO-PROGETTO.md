@@ -76,10 +76,12 @@ Applicare la regola del §7 a: home admin (`resources/views/admin/dashboard.blad
 
 ### B. Passaggio al live dei pagamenti protetti (da fare insieme, con login dell'utente)
 Oggi il server usa chiavi Stripe **di prova** (sandbox). Per incassare soldi veri:
-1. **Prima:** commercialista/legale legge condizioni venditore e compratore (§4 e privati).
+1. **Prima:** commercialista/legale legge condizioni venditore e compratore (§4 e privati). L'utente lo farà quando avrà un commercialista; PDF pronto in `docs/condizioni-pagamenti-protetti.pdf` (si rigenera dalle viste `guides.economic-terms` e `guides.buyer-terms`).
 2. Stripe **live**: Connect già configurato (profilo piattaforma inviato l'11/10 sull'account M 3.5); verificare in Connect → Impostazioni che gli account Express siano ammessi e controllare le tariffe reali (aggiornare `HUB_STRIPE_FEE_PERCENT` / `HUB_STRIPE_FEE_FIXED_CENTS` se diverse da 1,5% + 0,25 €).
 3. Webhook live `hub-core-billing-live` (→ `https://inm35.it/stripe/billing/webhook`): aggiungere gli eventi `checkout.session.completed`, `charge.dispute.created`, `charge.refunded`, `customer.subscription.updated/deleted` e copiarne il segreto.
 4. `.env` su Plesk (lo incolla l'utente, non l'agente): `HUB_STRIPE_SECRET_KEY=sk_live_…` e `HUB_STRIPE_WEBHOOK_SECRET=whsec_LIVE` (si possono tenere più segreti separati da virgola); poi `optimize:clear` + `route:cache`.
-5. **I collegamenti creati in sandbox non valgono più**: Beauty e ogni venditore devono ricollegarsi con dati veri. Serve un piccolo comando per azzerare `tenants.settings.connect` (da scrivere: es. `hub:reset-connect {slug}`), perché gli `acct_…` di prova non esistono in live.
+5. **I collegamenti creati in sandbox non valgono più**: Beauty e ogni venditore devono ricollegarsi con dati veri. ✅ Comando pronto: `php artisan hub:reset-connect {slug}` (o `--all`, `--dry-run`, `--force`): azzera `tenants.settings.connect` (le condizioni accettate restano) e si rifiuta se ci sono pagamenti ancora trattenuti/bloccati. Serve perché gli `acct_…` di prova non esistono in live.
 6. Prova reale a basso importo: 1 € con carta vera dell'utente su un prodotto di prova → controllare ordine, email, «Ho ricevuto tutto», trasferimento e commissione reale; poi rimborso.
 7. Pulizia: eliminare il prodotto/ordine «Prova carrello (da eliminare)» di Beauty.
+
+**Da verificare prima del live (costi Connect):** con «separate charges and transfers» la piattaforma (M 3.5) paga a Stripe, oltre alla commissione di incasso che già scaliamo al venditore, i costi di Connect (account attivo/mese e bonifici). Controllare i prezzi Connect del proprio account live e decidere se scalarli al venditore o assorbirli; il testo delle condizioni (§4) promette che i costi delle vendite sono a carico del venditore.
