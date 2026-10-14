@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Services\TenantBrandManager;
 use App\Support\HubModules;
+use App\Support\TenantOverview;
 use Illuminate\View\View;
 use M35\HubPayments\Models\PayableService;
 
@@ -39,9 +40,11 @@ class AppController extends Controller
         $brandHasLogo = $brand->hasLogo($tenant);
         $newCustomerTicketsCount = $tenant->customerTickets()->where('status', 'new')->count();
 
+        $overview = TenantOverview::summaries(collect([$tenant]))[$tenant->id];
+
         return view('app.home', compact(
             'tenant', 'user', 'hubModules', 'recentPromos', 'archivedPromos', 'expiredCount', 'recentServices',
-            'brandHasColor', 'brandHasLogo', 'newCustomerTicketsCount',
+            'brandHasColor', 'brandHasLogo', 'newCustomerTicketsCount', 'overview',
         ));
     }
 }

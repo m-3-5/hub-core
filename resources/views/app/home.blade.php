@@ -34,6 +34,11 @@
     </div>
 </div>
 
+<div style="margin-bottom:22px">
+    <h2 style="margin:0 0 10px;font-size:1.05rem">Il tuo lavoro in breve</h2>
+    @include('admin.partials.tenant-kpis', ['tenant' => $tenant, 's' => $overview])
+</div>
+
 <div class="module-grid">
     @foreach ($ownModules as $module)
         @if ($module['active'] && $module['url'])

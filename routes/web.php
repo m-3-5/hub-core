@@ -139,6 +139,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['auth', 'tenant.access'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/tenants/{tenant}', [DashboardController::class, 'show'])->name('tenants.show');
         Route::delete('/tenants/{tenant}', [DashboardController::class, 'destroy'])->name('tenants.destroy');
 
         // Creazione guidata a schermo intero (promo, prodotti, servizi).
