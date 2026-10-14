@@ -67,3 +67,18 @@
 
 ## 7. Regola di grafica (decisione dell'utente, 15/10)
 Le pagine per chi naviga da cellulare devono essere **essenziali e da vera app**: barra in alto con nome e stato, un'unica schermata di stato con icona grande, azioni in una **barra fissa in basso** con tasti da almeno 48 px, gutter da 16 px, nessun scroll orizzontale, supporto «safe area» di iPhone e tema scuro. Già applicata a: pagina ordine del compratore (`/ordine/{codice}`), pagina annuncio (barra «prezzo + Compra»), pagina prodotto/servizio (barra d'acquisto fissa), guide e condizioni (layout `guides.layout`). Da estendere alle altre pagine pubbliche e admin quando si toccano.
+
+## 8. Prossimi passi (piano concordato il 15/10)
+
+### A. Grafica da app anche nelle pagine admin
+Applicare la regola del §7 a: home admin (`resources/views/admin/dashboard.blade.php`, `layouts/admin.blade.php`), app tenant (`layouts/app.blade.php`), ordini, servizi/prodotti, annunci, pagamenti protetti (`/admin/protected-orders`), scheda «Pagamenti protetti» e «Come vuoi ricevere i soldi?». Linee guida: barra in alto compatta, voci principali come **card/tessere grandi con icona**, azioni primarie in barra fissa in basso, tabelle trasformate in **liste a card** su cellulare, tasti ≥ 48 px, safe area iPhone. Verificare a 390 px (iframe) e mantenere i test verdi (le stringhe controllate dai test non vanno rimosse).
+
+### B. Passaggio al live dei pagamenti protetti (da fare insieme, con login dell'utente)
+Oggi il server usa chiavi Stripe **di prova** (sandbox). Per incassare soldi veri:
+1. **Prima:** commercialista/legale legge condizioni venditore e compratore (§4 e privati).
+2. Stripe **live**: Connect già configurato (profilo piattaforma inviato l'11/10 sull'account M 3.5); verificare in Connect → Impostazioni che gli account Express siano ammessi e controllare le tariffe reali (aggiornare `HUB_STRIPE_FEE_PERCENT` / `HUB_STRIPE_FEE_FIXED_CENTS` se diverse da 1,5% + 0,25 €).
+3. Webhook live `hub-core-billing-live` (→ `https://inm35.it/stripe/billing/webhook`): aggiungere gli eventi `checkout.session.completed`, `charge.dispute.created`, `charge.refunded`, `customer.subscription.updated/deleted` e copiarne il segreto.
+4. `.env` su Plesk (lo incolla l'utente, non l'agente): `HUB_STRIPE_SECRET_KEY=sk_live_…` e `HUB_STRIPE_WEBHOOK_SECRET=whsec_LIVE` (si possono tenere più segreti separati da virgola); poi `optimize:clear` + `route:cache`.
+5. **I collegamenti creati in sandbox non valgono più**: Beauty e ogni venditore devono ricollegarsi con dati veri. Serve un piccolo comando per azzerare `tenants.settings.connect` (da scrivere: es. `hub:reset-connect {slug}`), perché gli `acct_…` di prova non esistono in live.
+6. Prova reale a basso importo: 1 € con carta vera dell'utente su un prodotto di prova → controllare ordine, email, «Ho ricevuto tutto», trasferimento e commissione reale; poi rimborso.
+7. Pulizia: eliminare il prodotto/ordine «Prova carrello (da eliminare)» di Beauty.
