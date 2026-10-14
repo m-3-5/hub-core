@@ -70,7 +70,8 @@ Le pagine per chi naviga da cellulare devono essere **essenziali e da vera app**
 
 ## 8. Prossimi passi (piano concordato il 15/10)
 
-### A. Grafica da app anche nelle pagine admin
+### A. Grafica da app anche nelle pagine admin — ✅ fatto il 15/10 (commit d6a3a81, online; rifinitura c8654d5 da deployare)
+Implementata in `layouts/partials/app-mobile.blade.php` (classi `.chips`, `.fab-bar`, `.tiles`, `.rtable`), inclusa dai layout admin e app; verificata a 390 px su dashboard, servizi, ordini, annunci, pagamenti protetti. Tema scuro nell'admin non fatto (colori inline). Testo originale del piano:
 Applicare la regola del §7 a: home admin (`resources/views/admin/dashboard.blade.php`, `layouts/admin.blade.php`), app tenant (`layouts/app.blade.php`), ordini, servizi/prodotti, annunci, pagamenti protetti (`/admin/protected-orders`), scheda «Pagamenti protetti» e «Come vuoi ricevere i soldi?». Linee guida: barra in alto compatta, voci principali come **card/tessere grandi con icona**, azioni primarie in barra fissa in basso, tabelle trasformate in **liste a card** su cellulare, tasti ≥ 48 px, safe area iPhone. Verificare a 390 px (iframe) e mantenere i test verdi (le stringhe controllate dai test non vanno rimosse).
 
 ### B. Passaggio al live dei pagamenti protetti (da fare insieme, con login dell'utente)
