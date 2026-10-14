@@ -14,10 +14,11 @@
                 <p style="margin:0;color:#444">Il cliente paga tramite Hub Core e i soldi ti arrivano <strong>dopo la consegna</strong>: tu sei sicuro di essere pagato, il cliente è sicuro di ricevere quello che ha comprato.</p>
             @endif
             @php $feeEx = \M35\HubPayments\Support\StripeFees::example(); @endphp
-            <div style="margin:12px 0 0;background:#fff;border:1px solid #e0e7ff;border-radius:12px;padding:12px 14px;font-size:.88rem;color:#374151">
-                <strong>💶 Trattenute di Stripe</strong> — su ogni pagamento con carta Stripe trattiene una commissione, indicativamente <strong>{{ \M35\HubPayments\Support\StripeFees::rateLabel() }}</strong> (di più per carte extra-UE). È un costo di Stripe, non nostro: viene sottratta dall'incasso e ti mostriamo sempre quanto ricevi.
+            <details style="margin:12px 0 0;background:#fff;border:1px solid #e0e7ff;border-radius:12px;padding:12px 14px;font-size:.88rem;color:#374151">
+                <summary style="cursor:pointer;font-weight:700;min-height:24px"><strong>💶 Trattenute di Stripe</strong> · circa {{ \M35\HubPayments\Support\StripeFees::rateLabel() }} <span style="color:#6366f1;font-weight:600">(dettagli)</span></summary>
+                <div style="margin-top:8px">Su ogni pagamento con carta Stripe trattiene una commissione, indicativamente <strong>{{ \M35\HubPayments\Support\StripeFees::rateLabel() }}</strong> (di più per carte extra-UE). È un costo di Stripe, non nostro: viene sottratta dall'incasso e ti mostriamo sempre quanto ricevi.</div>
                 <div style="margin-top:6px;color:#4b5563">Esempio: vendita da {{ $feeEx['amount'] }} € → trattenuta circa {{ $feeEx['fee'] }} € → ricevi circa <strong>{{ $feeEx['net'] }} €</strong>. Per i bonifici verso il tuo conto possono esserci piccoli costi di Stripe, che vedi nella tua pagina Stripe. Le tariffe possono essere queste o diverse: vedi le <a href="{{ route('terms.economic') }}" target="_blank">condizioni economiche</a>.</div>
-            </div>
+            </details>
             <p style="margin:8px 0 0;color:#666;font-size:.88rem">Sul tuo sito puoi continuare a vendere anche direttamente, con le tue chiavi Stripe qui sotto. I pagamenti protetti valgono per le vendite fatte tramite inm35.it.</p>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;min-width:200px">
