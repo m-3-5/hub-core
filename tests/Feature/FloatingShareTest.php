@@ -21,6 +21,18 @@ class FloatingShareTest extends TestCase
         }
     }
 
+    public function test_share_buttons_sit_in_their_own_section_at_the_bottom_of_the_page(): void
+    {
+        $tenant = Tenant::create(['name' => 'Sonia', 'slug' => 'sonia', 'type' => 'privato', 'plan' => 'demo', 'subscription_status' => 'free']);
+
+        $this->get(route('classifieds.tenant-board', $tenant))->assertOk()
+            ->assertSeeInOrder(['class="cats"', 'class="filters"', 'share-row share-section'], false);
+        $this->get(route('promo.archive', $tenant))->assertOk()
+            ->assertSeeInOrder(['Archivio', 'share-row share-section'], false);
+        $this->get(route('welcome'))->assertOk()
+            ->assertSeeInOrder(['share-row share-section', 'Vedi i prezzi'], false);
+    }
+
     public function test_private_noindex_admin_and_non_html_responses_are_left_alone(): void
     {
         $this->get(route('admin.login'))->assertOk()->assertDontSee('floating-share.js', false);

@@ -316,7 +316,7 @@
     </div>
 </section>
 
-<div style="max-width:760px;margin:24px auto;padding:0 20px;text-align:center">@include('layouts.partials.share-bar', ['shareTitle' => $promo->title, 'shareUrl' => $promo->publicUrl()])</div>
+@include('layouts.partials.share-bar', ['shareTitle' => $promo->title, 'shareUrl' => $promo->publicUrl(), 'shareSection' => true, 'shareLabel' => 'Condividi questa promozione'])
 <footer>{{ $tenant->name }}{{ $tenant->address ? ' — '.$tenant->address : '' }}</footer>
 </body>
 </html>

@@ -394,6 +394,7 @@
     </div>
 </section>
 
+@include('layouts.partials.share-bar', ['shareTitle' => 'Hub Core — piattaforma multiservizi per aziende e privati', 'shareUrl' => route('welcome'), 'shareSection' => true, 'shareLabel' => 'Condividi Hub Core'])
 
 <footer>
     Hub Core — piattaforma multiservizi per aziende e privati<br>

@@ -515,6 +515,8 @@
     </section>
 </main>
 
+@include('layouts.partials.share-bar', ['shareTitle' => 'Siti web e app per le attività — M 3.5 S.R.L.', 'shareUrl' => route('landing.web'), 'shareSection' => true, 'shareLabel' => 'Condividi questa pagina'])
+
 <footer>
     <div class="wrap">
         <strong>M 3.5 S.R.L.</strong> · siti web e app per le attività di {{ $city }} e della Sibaritide<br>

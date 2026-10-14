@@ -51,7 +51,6 @@
 <div class="wrap">
     <h1>Promozioni — {{ $tenant->name }}</h1>
     <p class="lead">Offerte attive e archivio promozioni passate.</p>
-    @include('layouts.partials.share-bar', ['shareTitle' => 'Promozioni — '.$tenant->name, 'shareUrl' => route('promo.archive', $tenant)])
 
     <h2>Promo attive ({{ $active->count() }})</h2>
     @if ($active->isEmpty())
@@ -75,5 +74,6 @@
         </div>
     @endif
 </div>
+@include('layouts.partials.share-bar', ['shareTitle' => 'Promozioni — '.$tenant->name, 'shareUrl' => route('promo.archive', $tenant), 'shareSection' => true, 'shareLabel' => 'Condividi le promozioni'])
 </body>
 </html>

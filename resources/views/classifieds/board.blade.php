@@ -60,8 +60,6 @@
     <h1>{{ $tenant ? $tenant->name : 'Annunci' }}</h1>
     <p>Immobili, oggetti in vendita, servizi e lezioni</p>
 </div>
-<div style="max-width:1100px;margin:14px auto 0;padding:0 16px">@include('layouts.partials.share-bar', ['shareTitle' => $boardTitle, 'shareUrl' => request()->url()])</div>
-
 <div class="wrap">
     <nav class="cats" aria-label="Categorie">
         <a class="cat {{ $category === null ? 'on' : '' }}" href="{{ request()->url() }}{{ $qs ? '?'.http_build_query($qs) : '' }}"><span class="i">🧭</span> Tutti <small>{{ $total }}</small></a>
@@ -108,5 +106,6 @@
         <div class="pager">{{ $ads->links() }}</div>
     @endif
 </div>
+@include('layouts.partials.share-bar', ['shareTitle' => $boardTitle, 'shareUrl' => request()->url(), 'shareSection' => true, 'shareLabel' => 'Condividi questa pagina'])
 </body>
 </html>

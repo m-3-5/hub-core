@@ -56,6 +56,7 @@
 </header>
 <main class="wrap">
     @yield('content')
+    @include('layouts.partials.share-bar', ['shareTitle' => trim($__env->yieldContent('top', 'Guide')).' — Hub Core', 'shareUrl' => url()->current(), 'shareSection' => true, 'shareLabel' => 'Condividi questa guida'])
     <p class="small" style="margin-top:28px;text-align:center">@include('layouts.partials.company-footer')</p>
 </main>
 <div class="dock">

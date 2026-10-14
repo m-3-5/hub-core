@@ -283,7 +283,6 @@
                         @endforeach
                     </div>
                 @endif
-                @include('layouts.partials.share-bar', ['shareTitle' => $promo->seo_title ?? $promo->title, 'shareUrl' => $shareLinks['copy'], 'shareDark' => true])
             </div>
             @if ($flyerUrl)
                 <div class="flyer-card">
@@ -402,6 +401,8 @@
             @include('promo.partials.contact-form')
         </div>
     </section>
+
+    @include('layouts.partials.share-bar', ['shareTitle' => $promo->seo_title ?? $promo->title, 'shareUrl' => $shareLinks['copy'], 'shareSection' => true, 'shareLabel' => 'Condividi questa promozione'])
 
     @php
         $promoLinks = $landingLinks;

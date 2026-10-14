@@ -111,7 +111,7 @@
     </div>
 </section>
 
-<div style="max-width:760px;margin:0 auto;padding:0 20px;text-align:center">@include('layouts.partials.share-bar', ['shareTitle' => $tenant->name, 'shareUrl' => route('site.public.show', $tenant)])</div>
+@include('layouts.partials.share-bar', ['shareTitle' => $tenant->name, 'shareUrl' => route('site.public.show', $tenant), 'shareSection' => true, 'shareLabel' => 'Condividi questo sito'])
 <footer>{{ $tenant->name }} · sito creato con <a href="{{ url('/') }}">Max</a></footer>
 </body>
 </html>

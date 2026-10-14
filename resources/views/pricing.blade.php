@@ -211,6 +211,8 @@
     <details><summary>Sono un privato: pago qualcosa?</summary><p>No, i privati usano Hub Core sempre gratis. Le funzioni extra oltre la quota mensile si pagano solo se le usi.</p></details>
 </div>
 
+@include('layouts.partials.share-bar', ['shareTitle' => 'Prezzi — Hub Core', 'shareUrl' => route('pricing.show'), 'shareSection' => true, 'shareLabel' => 'Condividi questa pagina'])
+
 <footer>
     <a href="{{ route('welcome') }}">🏠 Home</a> · <a href="{{ route('landing.web') }}">Siti web e app</a> · domande? chiedi a Max qui in basso a destra
     @include('layouts.partials.company-footer')

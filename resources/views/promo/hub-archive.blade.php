@@ -47,7 +47,6 @@
 <div class="wrap">
     <h1>Tutte le promozioni</h1>
     <p class="lead">Le offerte attive di tutte le attività su Hub Core, in un unico posto.</p>
-    @include('layouts.partials.share-bar', ['shareTitle' => 'Tutte le promozioni', 'shareUrl' => route('promo.hub-archive')])
 
     @if ($promos->isEmpty())
         <p class="empty">Nessuna promozione attiva al momento.</p>
@@ -59,5 +58,6 @@
         </div>
     @endif
 </div>
+@include('layouts.partials.share-bar', ['shareTitle' => 'Tutte le promozioni', 'shareUrl' => route('promo.hub-archive'), 'shareSection' => true, 'shareLabel' => 'Condividi le promozioni'])
 </body>
 </html>

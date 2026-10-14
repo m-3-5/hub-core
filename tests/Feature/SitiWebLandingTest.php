@@ -96,7 +96,7 @@ class SitiWebLandingTest extends TestCase
 
     public function test_direct_contact_buttons_only_appear_when_a_number_is_configured(): void
     {
-        $this->get('/siti-web-corigliano-rossano')->assertDontSee('wa.me', false)->assertDontSee('tel:', false);
+        $this->get('/siti-web-corigliano-rossano')->assertDontSee('btn btn-wa', false)->assertDontSee('tel:', false);
 
         config(['landing.whatsapp' => '393401234567', 'landing.phone' => '+39 0983 123456']);
         $this->get('/siti-web-corigliano-rossano')->assertSee('https://wa.me/393401234567', false)->assertSee('tel:+390983123456', false);
