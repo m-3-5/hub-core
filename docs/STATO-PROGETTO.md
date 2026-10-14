@@ -103,3 +103,36 @@ Oggi il server usa chiavi Stripe **di prova** (sandbox). Per incassare soldi ver
 7. Bloccato dal classificatore di sicurezza: l'agente non può lanciare comandi che modificano dati di produzione via Artisan; li lancia l'utente da Plesk → Laravel → Artisan.
 8. Chiave Stripe «Hub Core» del 25 luglio (mai usata): da eliminare o ruotare nella pagina Chiavi API, se non serve.
 
+## 10. Stato del 15/10 (sera) e prossimo lavoro
+
+### Fatto oggi (tutto online, ultimo commit a0ac03e)
+- **Grafica da app nell'admin** (`layouts/partials/app-mobile.blade.php`: `.chips`, `.fab-bar`, `.tiles`, `.rtable`, `.ccard`, `.kpis`, `.rowcards`).
+- **Dashboard super admin a card cliente** + **scheda cliente** (`/admin/tenants/{slug}`, `admin.tenants.show`) con indicatori, anteprime e ordini; striscia «Il tuo lavoro in breve» nella home di ogni attività (`App\Support\TenantOverview`).
+- **Footer con i dati di Piramide 35** (`config/company.php`, partial `layouts.partials.company-footer`): progetto a brevetto di Antonio Massimo Castronuovo, M 3.5 S.R.L., P.IVA 01999520768, sede legale Senise (PZ) — non in Calabria.
+- **Stripe LIVE** attivo sul sito (chiave dedicata + segreto webhook nel `.env`); comandi `hub:stripe-check`, `hub:reset-connect`, `hub:reset-billing`. Dati di prova azzerati.
+- **Pagina pubblica promo neutra** (non più testi da centro estetico), SEO aggiornato alla modifica, colore e carattere predefiniti neutri per le nuove attività (indaco, «Moderno»), pulsante «Condividi» nativo.
+- **Portale annunci a categorie distinte** (`ClassifiedAd::CATEGORY_META`): Affitto, Case vacanza, Vendita immobili, Oggetti in vendita, Servizi e lezioni, **Libri** (autore + link d'acquisto esterno Amazon, `rel="sponsored nofollow"`). Ogni categoria ha campi, icona e unità di prezzo propri; bacheca con tessere categoria e conteggi; link cliccabili sicuri nelle descrizioni (`App\Support\Linkify`).
+- **Messaggi degli annunci** inoltrati all'email di contatto dell'annuncio (mai mostrata) e non agli indirizzi ospite `@guest.hub-core.local`.
+- **Pulizia:** eliminati i clienti di prova (Azienda/Ente/Privato Test QA) e il doppione Hazar.
+- **Contenuti pubblicati:** Sonia (annuncio bilocale, annuncio e promo «Lezioni scolastiche di Economia e Commercio»), Hazar (traduzioni FR/EN/AR a 18 €/pagina, due libri con link Amazon).
+
+### NUOVO LAVORO DA FARE: rivedere tutta la grafica (richiesta dell'utente, 15/10)
+L'utente: «le card vanno bene ma devono essere **più piccole lato desktop**, e il tutto deve essere **molto più comprensibile e ordinato**».
+Piano:
+1. **Card più compatte su desktop:** ridurre dimensioni e spaziature di `.ccard`, `.tile`, `.kpi`, `.rc`, `.mcard`/`.mgrid`, `.svc-card`, tessere di `layouts/app` (`.module-tile`); più colonne e meno altezza; il layout da telefono resta com'è (verificare a 390 px e a 1280 px).
+2. **Gerarchia chiara in ogni pagina admin:** un titolo, una frase, poi le azioni principali; sezioni con titoli coerenti e spaziature uguali; stop a pagine con troppe schede di spiegazione (es. scheda «Pagamenti protetti» e «Trattenute di Stripe»: tenerle compatte e comprimibili).
+3. **Linguaggio semplice e coerente:** stesse parole per le stesse cose (Promo / Servizi / Prodotti / Annunci / Ordini / Messaggi), icone sempre uguali, stati con le stesse etichette e colori (Attivo, Bozza, In prova, Scaduto).
+4. **Ordine di lettura:** prima «cosa devo fare adesso» (messaggi nuovi, ordini da gestire, pagamenti bloccati), poi i numeri, poi l'elenco.
+5. **Tema scuro** dell'admin (oggi non c'è: colori inline da portare a variabili).
+6. Controllare anche le pagine pubbliche (bacheca annunci, promo, ordine) con la stessa regola.
+Criterio di fine: schermate prima/dopo a 390 px e 1280 px per dashboard, scheda cliente, home attività, servizi/prodotti, annunci, ordini, pagamenti protetti; test verdi; deploy.
+
+### Ancora aperto
+- **Domani:** collegare i pagamenti protetti di Beauty (Connect con dati veri) e test reale da 0,50 € con rimborso; pulizia del prodotto/ordine di prova.
+- Costi Connect a carico piattaforma vs venditore (nota §8/§9).
+- Commercialista per le condizioni (PDF pronto in `docs/condizioni-pagamenti-protetti.pdf`).
+- Frasi «Ora siamo a Fabrizio» nella landing siti web: da decidere se riscrivere (sede legale a Senise).
+- Foto vere per le promo/annunci di Sonia e Hazar al posto delle grafiche.
+- Email di contatto vuota nell'annuncio bilocale di Sonia.
+- Affiliazione Amazon (codice Partner) se si vuole guadagnare dai link ai libri.
+
