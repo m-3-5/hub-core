@@ -115,20 +115,31 @@ class ClassifiedPublicController extends Controller
             'status' => 'new',
         ]);
 
-        $recipients = $tenant->users;
+        // Utenti dell'attività con un indirizzo vero (gli account ospite hanno un indirizzo segnaposto che rimbalza).
+        $recipients = $tenant->users->reject(fn ($u) => ! $u->email || str_ends_with(strtolower($u->email), '@guest.hub-core.local'));
 
-        if ($recipients->isNotEmpty()) {
-            try {
-                Notification::send($recipients, new ClassifiedContactRequestNotification(
-                    $classifiedAd,
-                    $validated['name'],
-                    $validated['email'] ?? null,
-                    $validated['phone'] ?? null,
-                    $validated['message'],
-                ));
-            } catch (Throwable $e) {
-                // Il messaggio è già salvato tra i "Messaggi clienti": non far fallire la richiesta.
+        $notification = new ClassifiedContactRequestNotification(
+            $classifiedAd,
+            $validated['name'],
+            $validated['email'] ?? null,
+            $validated['phone'] ?? null,
+            $validated['message'],
+        );
+
+        try {
+            if ($recipients->isNotEmpty()) {
+                Notification::send($recipients, $notification);
             }
+
+            // Email di contatto dell'annuncio: usata solo da Hub per inoltrare i messaggi, mai mostrata al pubblico.
+            $contact = strtolower(trim((string) $classifiedAd->contact_email));
+            $alreadyNotified = $recipients->contains(fn ($u) => strtolower($u->email) === $contact);
+
+            if ($contact !== '' && filter_var($contact, FILTER_VALIDATE_EMAIL) && ! $alreadyNotified) {
+                Notification::route('mail', $contact)->notify($notification);
+            }
+        } catch (Throwable $e) {
+            // Il messaggio è già salvato tra i "Messaggi clienti": non far fallire la richiesta.
         }
 
         return back()->with('contact_success', true);

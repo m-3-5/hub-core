@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\ClassifiedAd;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Notifications\ClassifiedContactRequestNotification;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -76,5 +78,26 @@ class ClassifiedsPortalCategoriesTest extends TestCase
 
         $this->get(route('classifieds.board'))->assertOk()
             ->assertSee('Libri')->assertSee('📚')->assertDontSee('Annunci immobili');
+    }
+
+    public function test_messages_reach_the_ad_contact_email_without_showing_it_and_skip_guest_placeholder_addresses(): void
+    {
+        Notification::fake();
+
+        $tenant = Tenant::create(['name' => 'Hazar', 'slug' => 'hazar', 'type' => 'privato', 'plan' => 'demo', 'subscription_status' => 'free']);
+        $guest = User::factory()->create(['email' => 'guest-abc@guest.hub-core.local']);
+        $guest->tenants()->attach($tenant);
+
+        $ad = $tenant->classifiedAds()->create([
+            'slug' => 'traduzioni', 'category' => 'servizi', 'title' => 'Traduzioni', 'zone' => 'Online', 'description' => 'Testo',
+            'contact_email' => 'hazar@example.com', 'status' => 'published', 'published_at' => now(),
+        ]);
+
+        $this->get($ad->publicUrl())->assertOk()->assertDontSee('hazar@example.com');
+
+        $this->post(route('classifieds.contact', [$tenant, $ad]), ['name' => 'Luca', 'email' => 'luca@example.com', 'message' => 'Mi serve una traduzione.'])->assertRedirect();
+
+        Notification::assertSentOnDemand(ClassifiedContactRequestNotification::class, fn ($n, $channels, $notifiable) => $notifiable->routes['mail'] === 'hazar@example.com');
+        Notification::assertNotSentTo($guest, ClassifiedContactRequestNotification::class);
     }
 }
