@@ -42,7 +42,7 @@
             --font-accent: {!! $brandFont['accent'] !!};
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: var(--font-body), system-ui, sans-serif; color: var(--text); background: #fdf8fb; line-height: 1.65; }
+        body { font-family: var(--font-body), system-ui, sans-serif; color: var(--text); background: color-mix(in srgb, var(--primary) 4%, #fff); line-height: 1.65; }
         .promo-hero {
             position: relative;
             min-height: 88vh;
@@ -118,7 +118,7 @@
         .section .intro { color: var(--muted); max-width: 65ch; margin-bottom: 32px; font-size: 1.05rem; }
         .offers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
         .offer-card {
-            background: #fdf8fb; border-radius: 20px; padding: 28px 24px;
+            background: color-mix(in srgb, var(--primary) 4%, #fff); border-radius: 20px; padding: 28px 24px;
             border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
             position: relative; overflow: hidden;
         }
@@ -146,7 +146,7 @@
         .offer-card p { color: var(--muted); font-size: .98rem; }
         .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-top: 8px; }
         .step {
-            padding: 24px; background: #fdf8fb; border-radius: 16px;
+            padding: 24px; background: color-mix(in srgb, var(--primary) 4%, #fff); border-radius: 16px;
             border-left: 4px solid var(--primary);
         }
         .step strong { display: block; color: var(--primary); margin-bottom: 8px; font-size: 1.05rem; }
