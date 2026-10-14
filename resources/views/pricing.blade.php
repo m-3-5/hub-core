@@ -213,6 +213,7 @@
 
 <footer>
     <a href="{{ route('welcome') }}">🏠 Home</a> · <a href="{{ route('landing.web') }}">Siti web e app</a> · domande? chiedi a Max qui in basso a destra
+    @include('layouts.partials.company-footer')
 </footer>
 
 <div class="dock">

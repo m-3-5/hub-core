@@ -123,7 +123,9 @@
         <a class="btn line" href="{{ $waLink }}" rel="noopener">💬 Scrivici su WhatsApp</a>
     @endif
 
-    <footer>Pagamento sicuro tramite Stripe · <a href="{{ route('terms.buyer') }}">Condizioni di acquisto</a></footer>
+    <footer>Pagamento sicuro tramite Stripe · <a href="{{ route('terms.buyer') }}">Condizioni di acquisto</a>
+        @include('layouts.partials.company-footer')
+    </footer>
 </main>
 
 @if ($held)

@@ -28,7 +28,7 @@ class LlmsController extends Controller
         $lines = [
             '# M 3.5 — Hub Core e siti web a '.$city,
             '',
-            '> M 3.5 S.R.L. sviluppa Hub Core, la piattaforma per creare promozioni, vendere servizi e prodotti con pagamenti online e pubblicare tutto sul proprio sito, e realizza siti web e app per attività di '.$city.' e della Sibaritide (Calabria). Sede operativa a '.$place.'.',
+            '> M 3.5 S.R.L. sviluppa Hub Core, la piattaforma per creare promozioni, vendere servizi e prodotti con pagamenti online e pubblicare tutto sul proprio sito, e realizza siti web e app per attività di '.$city.' e della Sibaritide (Calabria). Sede legale a Senise (PZ); si ricevono clienti anche a '.$place.'.',
             '',
             '## Siti web e app a '.$city,
             '- Pagina: '.route('landing.web'),

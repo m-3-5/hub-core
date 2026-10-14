@@ -405,6 +405,7 @@
     @endif
     ·
     <a href="{{ route('promo.hub-archive') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Guarda tutte le promozioni attive →</a>
+    @include('layouts.partials.company-footer')
 </footer>
 
 @include('partials.max-public-chat')

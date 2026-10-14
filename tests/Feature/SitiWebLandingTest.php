@@ -76,7 +76,10 @@ class SitiWebLandingTest extends TestCase
         $offers = $data['@graph'][0]['hasOfferCatalog']['itemListElement'];
         $this->assertSame(['290', '590', '990'], array_column($offers, 'price'));
         $this->assertSame('EUR', $offers[0]['priceCurrency']);
-        $this->assertSame('Corigliano-Rossano', $data['@graph'][0]['address']['addressLocality']);
+        // La sede legale non è in Calabria: l'indirizzo è quello di Senise, la zona servita include Corigliano-Rossano.
+        $this->assertSame('Senise', $data['@graph'][0]['address']['addressLocality']);
+        $this->assertSame('PZ', $data['@graph'][0]['address']['addressRegion']);
+        $this->assertContains('Corigliano-Rossano', array_column($data['@graph'][0]['areaServed'], 'name'));
         $this->assertStringNotContainsString('<?php', $html);
     }
 

@@ -36,7 +36,7 @@
                 'name' => 'M 3.5 — Siti web e app',
                 'url' => $url,
                 'description' => 'Realizzazione di siti web vetrina, siti aziendali e app su misura per attività di '.$city.' e della Sibaritide.',
-                'address' => ['@type' => 'PostalAddress', 'addressLocality' => $city, 'addressRegion' => 'CS', 'addressCountry' => 'IT'],
+                'address' => ['@type' => 'PostalAddress', 'streetAddress' => config('company.seat.street'), 'postalCode' => config('company.seat.zip'), 'addressLocality' => config('company.seat.city'), 'addressRegion' => config('company.seat.province'), 'addressCountry' => 'IT'],
                 'areaServed' => collect($zones)->map(fn ($z) => ['@type' => 'Place', 'name' => $z])->values()->all(),
                 'priceRange' => '€'.$minPrice.' - €'.$plans->max('price'),
                 'telephone' => $phone,
@@ -517,9 +517,10 @@
 
 <footer>
     <div class="wrap">
-        M 3.5 S.R.L. · {{ $place }}, {{ $city }} (CS)<br>
+        <strong>M 3.5 S.R.L.</strong> · siti web e app per le attività di {{ $city }} e della Sibaritide<br>
         @if (config('landing.facebook_group.url'))<a href="{{ config('landing.facebook_group.url') }}" target="_blank" rel="noopener">Gruppo Facebook</a> · @endif
         <a href="{{ route('welcome') }}">Hub Core</a> · <a href="{{ route('pricing.show') }}">Prezzi Hub</a> · <a href="{{ route('promo.hub-archive') }}">Promozioni</a>
+        @include('layouts.partials.company-footer')
     </div>
 </footer>
 

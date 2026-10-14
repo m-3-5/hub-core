@@ -56,6 +56,7 @@
 </header>
 <main class="wrap">
     @yield('content')
+    <p class="small" style="margin-top:28px;text-align:center">@include('layouts.partials.company-footer')</p>
 </main>
 <div class="dock">
     <a class="b" href="@yield('back_url', route('guides.index'))" id="g-back2">← Indietro</a>
