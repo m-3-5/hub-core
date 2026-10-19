@@ -143,8 +143,17 @@ Criterio di fine: schermate prima/dopo a 390 px e 1280 px per dashboard, scheda 
 - **SEO e ricerca automatiche:** JSON-LD per tipo di annuncio (Product/Book/Service/RealEstateListing), ricerca interna `/cerca` (noindex) con OpenSearch `/opensearch.xml` e SearchAction nella home, segnalazione automatica a IndexNow a ogni pubblicazione/modifica (`App\Services\IndexNow`, eventi in `AppServiceProvider`), sitemap rigenerata subito (`Cache::forget('sitemap.xml')`), comando `hub:indexnow` già esistente per l'invio completo.
 - **Annunci:** email di contatto di Sonia impostata anche sul bilocale (mai mostrata al pubblico).
 
+## 11. Grafica condivisa (19/10/2026)
+Richiesta: «tutto sotto occhio subito, foto tagliate bene e uguali nelle card, grafica da app». Non esisteva un template pronto adatto a Blade (cambiarlo avrebbe significato riscrivere ogni pagina): costruito uno stile unico.
+- **`public/css/hub-ui.css`**, incluso per ultimo da `layouts/partials/ui.blade.php` in tutte le pagine complete (aggiungerlo a ogni nuova pagina con `@include('layouts.partials.ui')` prima di `</head>`).
+- **Foto delle card sempre 4:3, ritagliate al centro (`object-fit: cover`)**: card promo pubbliche, schede admin (`.mcard`), righe scorrevoli (`.rc`, `.service-scroll-*`), annunci. Per una nuova card: contenitore con classe `ui-media` + `<img>`.
+- **Menu sempre visibile** (`layouts/partials/bottom-nav.blade.php`): barra laterale con tutte le sezioni su computer, barra in basso con le 5 principali su telefono, per l'attività (Home, Promo, Servizi, Prodotti, Preventivi, Annunci, Ordini, Messaggi con contatore, Profilo, Abbonamento) e per l'amministratore (Clienti, Ticket, Richieste sito, Pagamenti protetti, Commissioni, Attività, Feedback). Barra in alto delle pagine pubbliche (`layouts/partials/public-nav.blade.php`): Promo, Annunci, Siti web, Prezzi, Guide, Cerca, Accedi.
+- Colore di marca dell'admin: viola `#6366f1` (via il rosa di Beauty). Test: `tests/Feature/HubUiTest.php`.
+- **Anteprima locale senza Herd/MySQL**: sqlite + `php -S 127.0.0.1:8010 -t public` con le variabili `DB_CONNECTION=sqlite`, `DB_DATABASE=...`, `SESSION_DRIVER=file`, `CACHE_STORE=file`; dati dimostrativi con foto di proporzioni diverse (script fuori dal repo).
+- **Ancora da fare:** tema scuro dell'admin (colori inline da portare a variabili), ritocco pagina per pagina (wizard, profilo, fatturazione, pagina promo pubblica) e scheda cliente con meno blocchi.
+
 ### Per la prossima sessione (in ordine)
-1. **Rivedere tutta la grafica** (card più piccole su desktop, più ordine e chiarezza, tema scuro admin): piano nel §10.
+1. **Rifinire la grafica** pagina per pagina (§11) dopo averla vista online.
 2. **Beauty:** collegare i pagamenti protetti (Connect, dati veri) e fare il test reale da 0,50 € con rimborso.
 3. Foto vere al posto delle grafiche per Sonia/Hazar; costi Connect; commercialista (PDF pronto); frasi «Ora siamo a Fabrizio» nella landing.
 4. Nota operativa: il deploy da Plesk va fatto con **Laravel → Deployment → Deploy**, poi Artisan `optimize:clear` e `route:cache`; l'agente non può lanciare comandi Artisan che modificano dati di produzione (li lancia l'utente).
