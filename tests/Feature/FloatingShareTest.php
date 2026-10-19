@@ -30,7 +30,7 @@ class FloatingShareTest extends TestCase
         $this->get(route('promo.archive', $tenant))->assertOk()
             ->assertSeeInOrder(['Archivio', 'share-row share-section'], false);
         $this->get(route('welcome'))->assertOk()
-            ->assertSeeInOrder(['share-row share-section', 'Vedi i prezzi'], false);
+            ->assertSeeInOrder(['share-row share-section', 'ui-foot'], false);
     }
 
     public function test_private_noindex_admin_and_non_html_responses_are_left_alone(): void

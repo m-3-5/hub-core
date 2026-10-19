@@ -215,10 +215,7 @@
 
 @include('layouts.partials.share-bar', ['shareTitle' => 'Prezzi — Hub Core', 'shareUrl' => route('pricing.show'), 'shareSection' => true, 'shareLabel' => 'Condividi questa pagina'])
 
-<footer>
-    <a href="{{ route('welcome') }}">🏠 Home</a> · <a href="{{ route('landing.web') }}">Siti web e app</a> · domande? chiedi a Max qui in basso a destra
-    @include('layouts.partials.company-footer')
-</footer>
+@include('layouts.partials.app-footer')
 
 <div class="dock">
     <a class="back" href="{{ route('welcome') }}" id="back-dock">← Indietro</a>

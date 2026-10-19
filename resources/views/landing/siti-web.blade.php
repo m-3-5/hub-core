@@ -519,14 +519,7 @@
 
 @include('layouts.partials.share-bar', ['shareTitle' => 'Siti web e app per le attività — M 3.5 S.R.L.', 'shareUrl' => route('landing.web'), 'shareSection' => true, 'shareLabel' => 'Condividi questa pagina'])
 
-<footer>
-    <div class="wrap">
-        <strong>M 3.5 S.R.L.</strong> · siti web e app per le attività di {{ $city }} e della Sibaritide<br>
-        @if (config('landing.facebook_group.url'))<a href="{{ config('landing.facebook_group.url') }}" target="_blank" rel="noopener">Gruppo Facebook</a> · @endif
-        <a href="{{ route('welcome') }}">Hub Core</a> · <a href="{{ route('pricing.show') }}">Prezzi Hub</a> · <a href="{{ route('promo.hub-archive') }}">Promozioni</a>
-        @include('layouts.partials.company-footer')
-    </div>
-</footer>
+@include('layouts.partials.app-footer')
 
 <div class="sticky" id="stickyBar">
     @if ($whatsapp)<a class="btn btn-wa" href="https://wa.me/{{ $whatsapp }}?text={{ rawurlencode('Ciao! Vorrei un preventivo per un sito web.') }}" target="_blank" rel="noopener">WhatsApp</a>

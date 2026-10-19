@@ -290,21 +290,7 @@
 
 @include('layouts.partials.share-bar', ['shareTitle' => 'Hub Core — piattaforma multiservizi per aziende e privati', 'shareUrl' => route('welcome'), 'shareSection' => true, 'shareLabel' => 'Condividi Hub Core'])
 
-<footer>
-    Hub Core — piattaforma multiservizi per aziende e privati<br>
-    <a href="{{ route('pricing.show') }}">Vedi i prezzi</a>
-    ·
-    <a href="{{ route('landing.web') }}">Siti web e app a Corigliano-Rossano</a>
-    @if (config('landing.facebook_group.url'))
-    ·
-    <a href="{{ config('landing.facebook_group.url') }}" target="_blank" rel="noopener">{{ config('landing.facebook_group.name') }}</a>
-    @endif
-    ·
-    <a href="{{ route('promo.hub-archive') }}">Guarda tutte le promozioni attive →</a>
-    ·
-    <a href="{{ route('search') }}">Cerca</a>
-    @include('layouts.partials.company-footer')
-</footer>
+@include('layouts.partials.app-footer')
 
 @include('partials.max-public-chat')
 </body>

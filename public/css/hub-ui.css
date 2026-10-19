@@ -244,6 +244,32 @@ body .ui-media__ph { color: #8b93b8; }
     .kpis { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* ───────── Footer unico (corto, da app) ───────── */
+body footer.ui-foot { max-width: 1120px; margin: 36px auto 0; padding: 0 16px calc(24px + env(safe-area-inset-bottom)); background: none; color: var(--ui-muted); text-align: left; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: .88rem; line-height: 1.5; }
+.ui-foot__top { display: flex; align-items: center; gap: 14px 22px; flex-wrap: wrap; background: #fff; border: 1px solid var(--ui-line); border-radius: 22px; padding: 14px 16px; box-shadow: var(--ui-shadow); }
+.ui-foot__brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ui-ink); margin-right: auto; }
+.ui-foot__brand b { display: block; font-size: .98rem; line-height: 1.15; }
+.ui-foot__brand small { display: block; color: var(--ui-muted); font-size: .72rem; }
+.ui-foot__links { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 340px; min-width: 0; justify-content: center; }
+.ui-foot__links a { padding: 7px 12px; border-radius: 999px; color: var(--ui-ink); text-decoration: none; font-weight: 700; font-size: .85rem; background: var(--ui-soft); }
+.ui-foot__links a:hover { background: color-mix(in srgb, var(--ui-brand) 16%, #fff); color: var(--ui-brand-dark); }
+.ui-foot__cta { background: var(--ui-brand); color: #fff; text-decoration: none; font-weight: 800; padding: 10px 20px; border-radius: 14px; }
+.ui-foot__legal { margin-top: 12px; text-align: center; font-size: .76rem; }
+.co-foot { display: block; }
+.co-foot a { color: inherit; font-weight: 700; }
+.co-foot__more { display: inline-block; margin-top: 4px; }
+.co-foot__more summary { cursor: pointer; font-weight: 800; color: var(--ui-brand-dark); list-style: none; display: inline; }
+.co-foot__more summary::-webkit-details-marker { display: none; }
+.co-foot__more[open] { display: block; }
+.co-foot__more > span { display: block; margin-top: 6px; line-height: 1.7; }
+@media (max-width: 700px) {
+    .ui-foot__top { flex-direction: column; align-items: stretch; text-align: center; padding: 14px; }
+    .ui-foot__brand { margin: 0 auto; }
+    .ui-foot__links { justify-content: center; }
+    .ui-foot__cta { text-align: center; }
+    .ui-foot__legal { padding-bottom: 72px; }
+}
+
 /* ───────── Barra in alto delle pagine pubbliche ───────── */
 .ui-pub {
     position: sticky; top: 0; z-index: 60;

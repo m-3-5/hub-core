@@ -89,6 +89,6 @@
     @endif
 </main>
 
-<footer>@include('layouts.partials.company-footer')</footer>
+@include('layouts.partials.app-footer')
 </body>
 </html>
