@@ -89,6 +89,12 @@ class StripeBillingWebhookController extends Controller
             'subscription_status' => 'active',
         ])->save();
 
+        if (in_array($session['metadata']['tier'] ?? null, ['silver', 'premium'], true)) {
+            $settings = $tenant->settings ?? [];
+            $settings['tier'] = $session['metadata']['tier'];
+            $tenant->forceFill(['settings' => $settings])->save();
+        }
+
         if (($session['metadata']['launch_offer'] ?? null) === '1') {
             $this->completeLaunchOfferActivation($tenant, $session);
         }

@@ -25,6 +25,14 @@ class SiteStartOfferTest extends TestCase
     {
         parent::setUp();
 
+        // I test verificano il calcolo e le pagine con cifre fisse: i prezzi veri di listino si cambiano in config/landing.php.
+        $prices = ['vetrina' => [490, 290], 'aziendale' => [890, 590], 'professionale' => [1490, 990]];
+        config([
+            'landing.plans' => collect(config('landing.plans'))->map(fn ($p) => array_merge($p, ['price_regular' => $prices[$p['key']][0], 'price_offer' => $prices[$p['key']][1]]))->all(),
+            'landing.start.trial_days' => 15,
+            'landing.start.months' => 10,
+        ]);
+
         // Valore finto composto a runtime: i letterali "whsec_..." fanno scattare lo scanner dei segreti di GitHub.
         $this->whsec = 'whsec'.'_'.str_repeat('b', 32);
 

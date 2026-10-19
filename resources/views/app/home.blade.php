@@ -83,9 +83,15 @@
         <div class="ah-soon">
             @foreach ($soonModules as $module)
                 @php [$ic, $col] = $meta[$module['key']] ?? ['promo', '#94a3b8']; @endphp
-                <button type="button" class="ah-soon__i" data-request-module="{{ $module['label'] }}">
-                    <span class="ah-ic" style="--c: #94a3b8">@include('layouts.partials.icon', ['name' => $ic, 'size' => 18])</span>{{ $module['label'] }}
-                </button>
+                @if (! empty($module['badge']))
+                    <a class="ah-soon__i" href="{{ route('admin.billing.show', $tenant) }}" style="text-decoration:none">
+                        <span class="ah-ic" style="--c: #f59e0b">@include('layouts.partials.icon', ['name' => $ic, 'size' => 18])</span>{{ $module['label'] }} <em>{{ $module['badge'] }}</em>
+                    </a>
+                @else
+                    <button type="button" class="ah-soon__i" data-request-module="{{ $module['label'] }}">
+                        <span class="ah-ic" style="--c: #94a3b8">@include('layouts.partials.icon', ['name' => $ic, 'size' => 18])</span>{{ $module['label'] }}
+                    </button>
+                @endif
             @endforeach
         </div>
     @endif

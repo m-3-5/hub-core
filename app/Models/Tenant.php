@@ -69,6 +69,21 @@ class Tenant extends Model
         return $this->subscription_status === 'free';
     }
 
+    /** Livello dell'abbonamento pagato: silver (predefinito) o premium. */
+    public function tier(): string
+    {
+        $tier = $this->settings['tier'] ?? 'silver';
+
+        return in_array($tier, ['silver', 'premium'], true) ? $tier : 'silver';
+    }
+
+    /** Funzioni Premium (es. sito web con Max): chi paga Premium, e chiunque sia ancora in prova o seguito da noi. */
+    public function hasPremiumFeatures(): bool
+    {
+        return $this->tier() === 'premium'
+            || in_array($this->subscription_status, ['trialing', 'pending_payment', 'free'], true);
+    }
+
     public function trialExpired(): bool
     {
         return $this->subscription_status === 'trialing'

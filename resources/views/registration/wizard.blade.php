@@ -13,7 +13,7 @@
 <body>
 @php
     $offer = (int) config('services.hub_billing.launch_offer_price_eur', 1);
-    $monthly = (int) config('services.hub_billing.monthly_price_eur', 29);
+    $monthly = (int) config('services.hub_billing.monthly_price_eur', 9);
 @endphp
 <div class="wz">
     <div class="wz-top">
@@ -191,7 +191,7 @@
         $('sub-review').textContent = 'Ti mando un\'email: un clic e il tuo spazio è attivo.';
         $('note-offer').textContent = state.type === 'privato'
             ? 'Per i privati Hub Core è sempre gratis.'
-            : `La prima settimana è gratis, senza carta. Dopo, per continuare, basta ${OFFER} € (offerta di lancio, copre anche il primo modulo); il canone da ${MONTHLY} €/mese parte solo dopo altri giorni di prova. Se non attivi, non succede niente.`;
+            : `La prova è gratis, senza carta. Dopo, per continuare, basta ${OFFER} € (offerta di lancio, tutti i moduli inclusi); il canone da ${MONTHLY} €/mese parte solo dopo altri mesi di prova. Se non attivi, non succede niente.`;
     }
 
     function next() {

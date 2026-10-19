@@ -30,6 +30,7 @@ class FreeWeekOfferTest extends TestCase
             'services.hub_billing.free_days' => 7,
             'services.hub_billing.launch_offer_price_eur' => 1,
             'services.hub_billing.monthly_price_eur' => 29,
+            'services.hub_billing.trial_days' => 30,
         ]);
     }
 
@@ -157,7 +158,7 @@ class FreeWeekOfferTest extends TestCase
         [$tenant, $user] = $this->trialingTenant();
 
         $this->actingAs($user)->get(route('app.home', $tenant))->assertOk()
-            ->assertSee('La settimana gratuita di Salone Anna è finita')
+            ->assertSee('La prova gratuita di Salone Anna è finita')
             ->assertSee('attiva con 1 € per continuare');
     }
 
@@ -168,7 +169,7 @@ class FreeWeekOfferTest extends TestCase
         $this->assertStringContainsString('← Indietro', $html);
         $this->assertStringContainsString('id="back-top"', $html);
         $this->assertStringContainsString('id="back-dock"', $html);
-        $this->assertStringContainsString('1 · Prima settimana gratis', $html);
+        $this->assertStringContainsString('1 · 7 giorni gratis', $html);
         $this->assertStringContainsString('2 · Poi solo 1 €', $html);
         $this->assertStringContainsString('3 · Altri 30 giorni di prova', $html);
         $this->assertStringContainsString(route('registration.create'), $html);

@@ -18,6 +18,7 @@ class BillingController extends Controller
             'tenant' => $tenant,
             'monthlyPrice' => config('services.hub_billing.monthly_price_eur'),
             'annualPrice' => config('services.hub_billing.annual_price_eur'),
+            'tiers' => config('services.hub_billing.tiers'),
             'configured' => (bool) config('services.hub_billing.secret_key'),
             'modules' => $this->modulesWithStatus($tenant),
         ]);
@@ -70,8 +71,9 @@ class BillingController extends Controller
     }
 
     /** Offerta di lancio per chi ha finito la prima settimana (o la anticipa): 1 € ora, poi prova e canone. */
-    public function launchCheckout(Tenant $tenant): RedirectResponse
+    public function launchCheckout(Request $request, Tenant $tenant): RedirectResponse
     {
+        $tier = $request->validate(['tier' => ['nullable', 'in:silver,premium']])['tier'] ?? $tenant->tier();
         $secretKey = config('services.hub_billing.secret_key');
 
         if (! $secretKey) {
@@ -82,7 +84,7 @@ class BillingController extends Controller
 
         try {
             $session = (new HubBillingService($secretKey))
-                ->createLaunchOfferCheckoutSession($tenant, $tenant->settings['first_module'] ?? 'promo', existingAccount: true);
+                ->createLaunchOfferCheckoutSession($tenant, $tenant->settings['first_module'] ?? 'promo', existingAccount: true, tier: $tier);
         } catch (RuntimeException $e) {
             return back()->withErrors(['billing' => $e->getMessage()]);
         }
@@ -94,6 +96,7 @@ class BillingController extends Controller
     {
         $validated = $request->validate([
             'interval' => ['required', 'in:month,year'],
+            'tier' => ['nullable', 'in:silver,premium'],
         ]);
 
         $secretKey = config('services.hub_billing.secret_key');
@@ -103,7 +106,7 @@ class BillingController extends Controller
         }
 
         try {
-            $session = (new HubBillingService($secretKey))->createCheckoutSession($tenant, $validated['interval']);
+            $session = (new HubBillingService($secretKey))->createCheckoutSession($tenant, $validated['interval'], $validated['tier'] ?? $tenant->tier());
         } catch (RuntimeException $e) {
             return back()->withErrors(['billing' => $e->getMessage()]);
         }

@@ -7,7 +7,7 @@
 return [
 
     // Ultimo giorno dell'offerta (incluso). Dopo questa data la pagina mostra i prezzi di listino, senza sconto né conto alla rovescia.
-    'offer_ends' => env('LANDING_OFFER_ENDS', '2026-11-10'),
+    'offer_ends' => env('LANDING_OFFER_ENDS', '2027-03-31'),
 
     // Nota sotto i prezzi.
     'price_note' => env('LANDING_PRICE_NOTE', 'Prezzi IVA esclusa. Preventivo gratuito e senza impegno.'),
@@ -30,8 +30,8 @@ return [
     'start' => [
         'enabled' => (bool) env('LANDING_START_ENABLED', true),
         'start_eur' => (int) env('LANDING_START_EUR', 1),
-        'trial_days' => (int) env('LANDING_START_TRIAL_DAYS', 15),
-        'months' => (int) env('LANDING_START_MONTHS', 10),
+        'trial_days' => (int) env('LANDING_START_TRIAL_DAYS', 30),
+        'months' => (int) env('LANDING_START_MONTHS', 12),
         // Frase mostrata sul checkout e sulla pagina: condizioni da confermare/adeguare.
         'terms' => env('LANDING_START_TERMS', 'Puoi annullare durante i giorni di prova: non pagherai altro oltre al primo euro.'),
     ],
@@ -44,8 +44,8 @@ return [
             'key' => 'vetrina',
             'name' => 'Vetrina',
             'tagline' => 'Per farti trovare online, subito.',
-            'price_regular' => 490,
-            'price_offer' => 290,
+            'price_regular' => 290,
+            'price_offer' => 190,
             'prefix' => '',
             'featured' => false,
             'features' => [
@@ -60,8 +60,8 @@ return [
             'key' => 'aziendale',
             'name' => 'Aziendale',
             'tagline' => 'Il sito ufficiale della tua azienda.',
-            'price_regular' => 890,
-            'price_offer' => 590,
+            'price_regular' => 590,
+            'price_offer' => 390,
             'prefix' => '',
             'featured' => true,
             'features' => [
@@ -76,8 +76,8 @@ return [
             'key' => 'professionale',
             'name' => 'Professionale su misura',
             'tagline' => 'Personalizzato in ogni dettaglio.',
-            'price_regular' => 1490,
-            'price_offer' => 990,
+            'price_regular' => 990,
+            'price_offer' => 690,
             'prefix' => 'da ',
             'featured' => false,
             'features' => [

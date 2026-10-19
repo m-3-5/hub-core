@@ -17,8 +17,9 @@
             <div class="card" style="background:#fafafa;padding:20px">
                 <h2 style="margin:0 0 10px;font-size:1.05rem">{{ $module['label'] }}</h2>
                 <table style="width:100%;font-size:.9rem;border-collapse:collapse">
-                    <tr><td style="padding:4px 0;color:#666">Attivazione una tantum</td><td style="text-align:right;font-weight:600">€{{ number_format($module['activation_cents']/100,2,',','.') }}</td></tr>
-                    <tr><td style="padding:4px 0;color:#666">Canone mensile</td><td style="text-align:right;font-weight:600">€{{ number_format($module['monthly_cents']/100,2,',','.') }}</td></tr>
+                    @if ($module['activation_cents'] > 0)<tr><td style="padding:4px 0;color:#666">Attivazione una tantum</td><td style="text-align:right;font-weight:600">€{{ number_format($module['activation_cents']/100,2,',','.') }}</td></tr>@endif
+                    @if ($module['monthly_cents'] > 0)<tr><td style="padding:4px 0;color:#666">Canone mensile</td><td style="text-align:right;font-weight:600">€{{ number_format($module['monthly_cents']/100,2,',','.') }}</td></tr>@endif
+                    <tr><td colspan="2" style="padding:4px 0;color:#2e7d32;font-weight:600">Compreso nel canone di Hub Core</td></tr>
                     <tr><td style="padding:4px 0;color:#666">Incluso al mese</td><td style="text-align:right;font-weight:600">{{ $module['included_per_month'] }}</td></tr>
                     <tr><td style="padding:4px 0;color:#666">Extra creato dallo staff M 3.5</td><td style="text-align:right;font-weight:600">€{{ number_format($module['extra_staff_cents']/100,2,',','.') }}</td></tr>
                     <tr><td style="padding:4px 0;color:#666">Extra creato dal cliente</td><td style="text-align:right;font-weight:600">€{{ number_format($module['extra_self_cents']/100,2,',','.') }}</td></tr>

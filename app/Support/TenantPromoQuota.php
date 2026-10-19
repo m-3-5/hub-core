@@ -23,7 +23,7 @@ class TenantPromoQuota
             return (int) config('module_pricing.promo.included_per_month', 1) + $bonus;
         }
 
-        return (int) ($tenant->settings['promo_included_quota'] ?? config('hub.promo_included_quota', 5)) + $bonus;
+        return (int) ($tenant->settings['promo_included_quota'] ?? config('services.hub_billing.tiers.'.$tenant->tier().'.promo_quota', config('hub.promo_included_quota', 20))) + $bonus;
     }
 
     public static function usedCount(Tenant $tenant): int

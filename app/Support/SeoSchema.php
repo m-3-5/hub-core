@@ -65,7 +65,7 @@ class SeoSchema
                 'description' => 'Crea promo, vendi servizi e prodotti con pagamenti online e pubblica tutto sul tuo sito, da smartphone.',
                 'offers' => [
                     '@type' => 'Offer',
-                    'price' => (string) config('services.hub_billing.monthly_price_eur', 29),
+                    'price' => (string) config('services.hub_billing.monthly_price_eur', 9),
                     'priceCurrency' => 'EUR',
                     'url' => route('pricing.show'),
                 ],

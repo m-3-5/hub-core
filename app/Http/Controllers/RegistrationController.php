@@ -106,7 +106,7 @@ class RegistrationController extends Controller
             // L'euro di lancio si chiede dopo la settimana (email + avviso nell'app, vedi hub:launch-offer-reminders).
             $tenant->update([
                 'subscription_status' => 'trialing',
-                'trial_ends_at' => now()->addDays(config('services.hub_billing.free_days', 7)),
+                'trial_ends_at' => now()->addDays(config('services.hub_billing.free_days', 30)),
                 // Solo chi si registra con la settimana gratuita riceve il promemoria dell'euro di lancio.
                 'settings' => array_merge($tenant->settings ?? [], ['free_week' => true]),
             ]);

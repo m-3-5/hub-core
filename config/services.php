@@ -69,15 +69,33 @@ return [
         'secret_key' => env('HUB_STRIPE_SECRET_KEY'),
         'api_base' => env('HUB_STRIPE_API_BASE', 'https://api.stripe.com'),
         'webhook_secret' => env('HUB_STRIPE_WEBHOOK_SECRET'),
-        // Prima settimana gratis, senza pagare nulla: dopo si chiede l'euro di lancio (poi trial_days di prova prima del canone).
-        'free_days' => (int) env('HUB_FREE_DAYS', 7),
-        'trial_days' => (int) env('HUB_TRIAL_DAYS', 30),
-        'monthly_price_eur' => (int) env('HUB_MONTHLY_PRICE_EUR', 29),
-        'annual_price_eur' => (int) env('HUB_ANNUAL_PRICE_EUR', 290),
-        // Offerta di lancio per i clienti azienda/ente: 1€ chiesto DOPO la prima settimana gratuita (free_days),
-        // copre anche l'attivazione del primo modulo scelto (Promo o Servizi). I privati
+        // Prova gratuita (free_days) senza carta; poi l'euro di lancio; poi trial_days di prova prima del canone: il primo canone parte dopo ~4 mesi.
+        'free_days' => (int) env('HUB_FREE_DAYS', 30),
+        'trial_days' => (int) env('HUB_TRIAL_DAYS', 90),
+        'monthly_price_eur' => (int) env('HUB_MONTHLY_PRICE_EUR', 9),
+        'annual_price_eur' => (int) env('HUB_ANNUAL_PRICE_EUR', 79),
+        // Offerta di lancio per i clienti azienda/ente: 1€ chiesto DOPO la prova gratuita (free_days),
+        // tutti i moduli inclusi nel canone, nessuna attivazione per modulo. I privati
         // restano sempre gratis (subscription_status=free), non toccati da questa offerta.
         'launch_offer_price_eur' => (int) env('HUB_LAUNCH_OFFER_PRICE_EUR', 1),
+        // Un solo abbonamento, due livelli. Silver = tutto il necessario; Premium = in più sito web con Max, quote molto più alte, assistenza prioritaria.
+        // Durante prova gratuita e lancio ogni cliente ha tutto (anche il sito web).
+        'tiers' => [
+            'silver' => [
+                'label' => 'Silver',
+                'monthly' => (int) env('HUB_MONTHLY_PRICE_EUR', 9),
+                'annual' => (int) env('HUB_ANNUAL_PRICE_EUR', 79),
+                'promo_quota' => (int) env('HUB_SILVER_PROMO_QUOTA', 20),
+                'services_quota' => (int) env('HUB_SILVER_SERVICES_QUOTA', 20),
+            ],
+            'premium' => [
+                'label' => 'Premium',
+                'monthly' => (int) env('HUB_PREMIUM_MONTHLY_EUR', 19),
+                'annual' => (int) env('HUB_PREMIUM_ANNUAL_EUR', 169),
+                'promo_quota' => (int) env('HUB_PREMIUM_PROMO_QUOTA', 100),
+                'services_quota' => (int) env('HUB_PREMIUM_SERVICES_QUOTA', 100),
+            ],
+        ],
     ],
 
 ];

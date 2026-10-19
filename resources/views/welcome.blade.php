@@ -159,7 +159,7 @@
                 <a class="wl-btn" href="{{ route('pricing.show') }}">Prezzi</a>
             </div>
             <ul class="wl-trust">
-                <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) {{ config('services.hub_billing.free_days', 7) }} giorni gratis</li>
+                <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) {{ config('services.hub_billing.free_days', 30) }} giorni gratis</li>
                 <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) Funziona da telefono</li>
                 <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) Disdici quando vuoi</li>
             </ul>
@@ -266,15 +266,15 @@
     <p>Niente sorprese: si comincia gratis.</p>
     <div class="wl-price">
         <div class="wl-plan"><b>Privato</b><strong>€0</strong> <small>per sempre</small></div>
-        <div class="wl-plan wl-plan--hot"><b>Azienda ed ente</b><strong>{{ config('services.hub_billing.free_days', 7) }} giorni gratis</strong><br><small>poi solo €{{ config('services.hub_billing.launch_offer_price_eur', 1) }} per partire</small></div>
-        <div class="wl-plan"><b>Poi</b><strong>€{{ config('services.hub_billing.monthly_price_eur', 29) }}</strong> <small>al mese · disdici quando vuoi</small></div>
+        <div class="wl-plan wl-plan--hot"><b>Azienda ed ente</b><strong>{{ config('services.hub_billing.free_days', 30) }} giorni gratis</strong><br><small>poi solo €{{ config('services.hub_billing.launch_offer_price_eur', 1) }} per partire</small></div>
+        <div class="wl-plan"><b>Poi: Silver o Premium</b><strong>da €{{ config('services.hub_billing.tiers.silver.monthly', 9) }}</strong> <small>al mese (Premium €{{ config('services.hub_billing.tiers.premium.monthly', 19) }}) · disdici quando vuoi</small></div>
     </div>
 </section>
 
 <section class="wl-cta" id="registrazione">
     <div class="wl-cta__in">
         <h2>Registrati su Hub Core</h2>
-        <p>Privato: sempre gratis. Azienda/Ente: <strong>{{ config('services.hub_billing.free_days', 7) }} giorni gratis</strong>, senza carta; dopo la prima settimana basta <strong>€{{ config('services.hub_billing.launch_offer_price_eur', 1) }}</strong> (copre anche l'attivazione del primo modulo). Poi €{{ config('services.hub_billing.monthly_price_eur', 29) }}/mese, disdici quando vuoi.</p>
+        <p>Privato: sempre gratis. Azienda/Ente: <strong>{{ config('services.hub_billing.free_days', 30) }} giorni gratis</strong>, senza carta; dopo la prova gratuita basta <strong>€{{ config('services.hub_billing.launch_offer_price_eur', 1) }}</strong> (tutti i moduli inclusi). Poi un solo abbonamento: Silver €{{ config('services.hub_billing.tiers.silver.monthly', 9) }}/mese o Premium €{{ config('services.hub_billing.tiers.premium.monthly', 19) }}/mese, disdici quando vuoi.</p>
         @error('registration')
             <p class="wl-err">{{ $message }}</p>
         @enderror

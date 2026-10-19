@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Prezzi — Hub Core</title>
     @include('layouts.partials.favicon')
-    <meta name="description" content="Prezzi di Hub Core: prima settimana gratis, poi {{ $hubBilling['launch_offer_price_eur'] }} € di lancio e il canone solo dopo la prova. Privati sempre gratis.">
+    <meta name="description" content="Prezzi di Hub Core: {{ $hubBilling['free_days'] }} giorni gratis, poi {{ $hubBilling['launch_offer_price_eur'] }} € di lancio e il primo canone solo dopo {{ $hubBilling['free_days'] + $hubBilling['trial_days'] }} giorni. Un solo abbonamento da {{ $hubBilling['monthly_price_eur'] }} €/mese (Silver) o {{ $hubBilling['tiers']['premium']['monthly'] }} €/mese (Premium). Privati sempre gratis.">
     <link rel="canonical" href="{{ route('pricing.show') }}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Prezzi — Hub Core">
-    <meta property="og:description" content="Prima settimana gratis, poi {{ $hubBilling['launch_offer_price_eur'] }} € di lancio. Privati sempre gratis.">
+    <meta property="og:description" content="{{ $hubBilling['free_days'] }} giorni gratis, poi {{ $hubBilling['launch_offer_price_eur'] }} € di lancio. Un solo abbonamento da {{ $hubBilling['monthly_price_eur'] }} €/mese (Silver) o {{ $hubBilling['tiers']['premium']['monthly'] }} €/mese (Premium). Privati sempre gratis.">
     <meta property="og:url" content="{{ route('pricing.show') }}">
     <meta property="og:image" content="{{ asset('images/og-hub-core.png') }}">
     <meta name="theme-color" content="#6366f1">
@@ -19,6 +19,7 @@
         $trial = (int) $hubBilling['trial_days'];
         $monthly = (int) $hubBilling['monthly_price_eur'];
         $annual = (int) $hubBilling['annual_price_eur'];
+        $tiers = $hubBilling['tiers'];
         $moduleImages = ['promo' => 'welcome-promo.png', 'servizi' => 'welcome-services.png'];
     @endphp
     <style>
@@ -111,7 +112,7 @@
     <a class="nav-btn" href="{{ route('welcome') }}" id="back-top" aria-label="Torna indietro">← Indietro</a>
     <h1>Prezzi</h1>
     <a class="nav-btn" href="{{ route('welcome') }}">🏠 Home</a>
-    <p class="sub">Prima settimana gratis. Nessuna carta per cominciare.</p>
+    <p class="sub">{{ $free }} giorni gratis. Nessuna carta per cominciare.</p>
 </header>
 
 <div class="wrap">
@@ -119,65 +120,54 @@
     <div class="journey">
         <div class="tap">
             <span class="ico">🆓</span>
-            <div><b>1 · Prima settimana gratis</b><span>Ti registri e usi tutto per <span class="big">{{ $free }} giorni</span>, senza carta e senza pagare nulla.</span></div>
+            <div><b>1 · {{ $free }} giorni gratis</b><span>Ti registri e usi tutto per <span class="big">{{ $free }} giorni</span>, senza carta e senza pagare nulla.</span></div>
         </div>
         <div class="tap">
             <span class="ico">🎉</span>
-            <div><b>2 · Poi solo {{ $launch }} €</b><span>Per continuare attivi l'<span class="big">offerta di lancio da {{ $launch }} €</span>: copre anche il primo modulo.</span></div>
+            <div><b>2 · Poi solo {{ $launch }} €</b><span>Per continuare attivi l'<span class="big">offerta di lancio da {{ $launch }} €</span>: ci sono dentro tutti i moduli.</span></div>
         </div>
         <div class="tap">
             <span class="ico">💳</span>
-            <div><b>3 · Altri {{ $trial }} giorni di prova</b><span>Solo dopo parte il canone da <span class="big">{{ $monthly }} €/mese</span>. Disdici quando vuoi.</span></div>
+            <div><b>3 · Altri {{ $trial }} giorni di prova</b><span>Il canone (da <span class="big">{{ $monthly }} €/mese</span>) parte solo dopo, cioè <span class="big">dopo {{ $free + $trial }} giorni dall'iscrizione</span>. Disdici quando vuoi.</span></div>
         </div>
     </div>
 
-    <div class="group-title">Scegli come usarlo</div>
+    <div class="group-title">Un solo abbonamento, due livelli</div>
     <div class="stack plans">
         <div class="plan">
             <h3>👤 Privato</h3>
             <div class="price">€0 <small>per sempre</small></div>
-            <ul><li>Annunci e affitti</li><li>Promo incluse ogni mese</li><li>Nessun canone</li></ul>
+            <ul><li>Annunci e affitti</li><li>{{ $modulePricing['promo']['included_per_month'] }} promo al mese</li><li>Nessun canone</li></ul>
             <a class="cta ghost" href="{{ route('registration.create') }}">Registrati gratis</a>
         </div>
         <div class="plan best">
             <span class="tag">Per iniziare</span>
-            <h3>🏢 Azienda · Mensile</h3>
-            <div class="price">€{{ $monthly }} <small>/mese</small></div>
-            <ul><li>{{ $free }} giorni gratis, poi {{ $launch }} € di lancio</li><li>Promo, servizi e prodotti con pagamento online</li><li>Tutto pubblicato sul tuo sito</li></ul>
+            <h3>🥈 Silver</h3>
+            <div class="price">€{{ $tiers['silver']['monthly'] }} <small>/mese · o €{{ $tiers['silver']['annual'] }}/anno</small></div>
+            <ul><li>Promo, servizi, prodotti, preventivi e annunci</li><li>Fino a {{ $tiers['silver']['promo_quota'] }} promo e {{ $tiers['silver']['services_quota'] }} servizi</li><li>Pagamenti protetti e pagina sul tuo sito</li></ul>
             <a class="cta" href="{{ route('registration.create') }}">Inizia gratis</a>
         </div>
         <div class="plan">
-            <h3>🏛️ Azienda · Annuale</h3>
-            <div class="price">€{{ $annual }} <small>/anno · ≈ €{{ number_format($annual / 12, 0) }}/mese</small></div>
-            <ul><li>Come il mensile, ma risparmi</li><li>Ideale se hai già deciso</li><li>Un solo pagamento l'anno</li></ul>
+            <h3>🥇 Premium</h3>
+            <div class="price">€{{ $tiers['premium']['monthly'] }} <small>/mese · o €{{ $tiers['premium']['annual'] }}/anno</small></div>
+            <ul><li>Tutto Silver, più il <b>sito web con Max</b></li><li>Fino a {{ $tiers['premium']['promo_quota'] }} promo e {{ $tiers['premium']['services_quota'] }} servizi</li><li>Assistenza prioritaria</li></ul>
             <a class="cta ghost" href="{{ route('registration.create') }}">Inizia gratis</a>
         </div>
     </div>
+    <p class="iva" style="margin-top:8px">Annuale: risparmi circa {{ number_format(100 - ($tiers['silver']['annual'] / ($tiers['silver']['monthly'] * 12)) * 100, 0) }}%. Nessuna attivazione e nessun costo per singolo modulo.</p>
 
-    <div class="group-title">Moduli attivi</div>
+    <div class="group-title">Extra facoltativi (solo se ti servono)</div>
     <div class="stack modules">
-        @foreach ($modulePricing as $key => $module)
-            @continue($key === 'iva_percent')
-            <div class="module">
-                @if (isset($moduleImages[$key]))
-                    <div class="img"><img src="{{ asset('images/welcome/'.$moduleImages[$key]) }}" alt="{{ $module['label'] }}" loading="lazy"></div>
-                @endif
-                <div class="body">
-                    <h3>{{ $module['label'] }}</h3>
-                    <div class="stats">
-                        <div class="stat"><div class="n">€{{ $module['activation_cents']/100 }}</div><div class="l">Attivazione (coperta dall'offerta)</div></div>
-                        <div class="stat"><div class="n">€{{ $module['monthly_cents']/100 }}<span style="font-size:.6em">/mese</span></div><div class="l">Canone</div></div>
-                        <div class="stat"><div class="n">{{ $module['included_per_month'] }}</div><div class="l">Incluse al mese</div></div>
-                        <div class="stat"><div class="n">€{{ $module['extra_self_cents']/100 }} · €{{ $module['extra_staff_cents']/100 }}</div><div class="l">Extra: fai tu · facciamo noi</div></div>
-                    </div>
+        <div class="module">
+            <div class="body">
+                <div class="stats">
+                    <div class="stat"><div class="n">€{{ $modulePricing['promo']['extra_self_cents']/100 }} · €{{ $modulePricing['promo']['extra_staff_cents']/100 }}</div><div class="l">Promo in più: fai tu · facciamo noi</div></div>
+                    <div class="stat"><div class="n">€{{ $modulePricing['servizi']['extra_self_cents']/100 }} · €{{ $modulePricing['servizi']['extra_staff_cents']/100 }}</div><div class="l">Servizio in più: fai tu · facciamo noi</div></div>
+                    <div class="stat"><div class="n">€{{ number_format($aiFlyerPrice, 0) }}</div><div class="l">Volantino con IA su misura</div></div>
+                    <div class="stat"><div class="n">da €{{ collect(config('landing.plans'))->min('price_offer') }}</div><div class="l">Sito su misura (<a href="{{ route('landing.web') }}">vedi offerta</a>)</div></div>
                 </div>
             </div>
-        @endforeach
-    </div>
-
-    <div class="addon">
-        <span>✨ Volantino con IA su misura</span>
-        <b>€{{ number_format($aiFlyerPrice, 0) }}</b>
+        </div>
     </div>
 
     <p class="iva">Prezzi IVA esclusa (+{{ $modulePricing['iva_percent'] }}%)</p>
@@ -206,7 +196,7 @@
 
     <div class="group-title">Domande frequenti</div>
     <details><summary>Devo pagare per registrarmi?</summary><p>No. Ti registri e usi tutto gratis per {{ $free }} giorni, senza carta. Se non attivi nulla, non succede niente e non ti addebitiamo nulla.</p></details>
-    <details><summary>Cosa succede dopo la prima settimana?</summary><p>Ti chiediamo l'offerta di lancio da {{ $launch }} € per continuare. Ti avvisiamo con una email e nell'app: decidi tu quando.</p></details>
+    <details><summary>Cosa succede dopo i {{ $free }} giorni gratis?</summary><p>Ti chiediamo l'offerta di lancio da {{ $launch }} € per continuare. Ti avvisiamo con una email e nell'app: decidi tu quando.</p></details>
     <details><summary>Quando parte il canone da {{ $monthly }} €?</summary><p>Solo dopo altri {{ $trial }} giorni di prova dall'attivazione. Puoi disdire in qualsiasi momento.</p></details>
     <details><summary>Quanto mi trattiene Stripe quando vendo?</summary><p>Su ogni pagamento con carta Stripe applica una commissione, indicativamente {{ \M35\HubPayments\Support\StripeFees::rateLabel() }} (di più per carte extra-UE). È un costo di Stripe e viene sottratto dall'incasso: nel pannello vedi sempre quanto ricevi netto.</p></details>
     <details><summary>Posso vendere anche direttamente, senza Hub Core?</summary><p>Sì. Sul tuo sito puoi continuare a incassare con il tuo conto Stripe. I pagamenti protetti valgono per le vendite fatte tramite inm35.it, dove chi compra e chi vende sono tutelati.</p></details>

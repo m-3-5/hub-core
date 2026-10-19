@@ -16,12 +16,15 @@ class HubModules
             ->map(function (array $module) use ($tenant, $enabled, $tenantType) {
                 $builtAndEnabled = (bool) ($enabled[$module['key']] ?? $module['active']);
                 $fitsType = in_array($tenantType, $module['for_types'] ?? ['azienda', 'privato', 'ente'], true);
-                $active = $builtAndEnabled && $fitsType;
+                // Il sito web con Max è un'esclusiva Premium (in prova c'è per tutti).
+                $locked = $module['key'] === 'website' && $fitsType && ! $tenant->hasPremiumFeatures();
+                $active = $builtAndEnabled && $fitsType && ! $locked;
 
                 return [
                     ...$module,
                     'active' => $active,
                     'fits_type' => $fitsType,
+                    'badge' => $locked ? 'Premium' : null,
                     'url' => $active ? $this->urlFor($module['key'], $tenant) : null,
                 ];
             })

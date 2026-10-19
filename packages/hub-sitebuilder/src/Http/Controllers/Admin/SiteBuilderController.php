@@ -16,8 +16,12 @@ use M35\HubSitebuilder\Services\SiteOwners;
 
 class SiteBuilderController extends Controller
 {
-    public function show(Tenant $tenant): View
+    public function show(Tenant $tenant): View|RedirectResponse
     {
+        if ($locked = $this->premiumOnly($tenant)) {
+            return $locked;
+        }
+
         $site = $tenant->generatedSite;
 
         return view('hub-sitebuilder::admin.wizard', [
@@ -29,6 +33,10 @@ class SiteBuilderController extends Controller
 
     public function generate(Request $request, Tenant $tenant, SiteBuilderHeroGenerator $heroGenerator, SiteGuard $guard): RedirectResponse
     {
+        if ($locked = $this->premiumOnly($tenant)) {
+            return $locked;
+        }
+
         $validated = $request->validate(SiteContent::rules());
         $answers = SiteContent::answers($validated);
 
@@ -74,6 +82,16 @@ class SiteBuilderController extends Controller
         }
 
         return back()->with('success', 'Ti abbiamo scritto un nuovo link segreto per modificare il sito. Quello di prima non funziona più.');
+    }
+
+    /** Il sito con Max è incluso nel livello Premium (e durante la prova). */
+    private function premiumOnly(Tenant $tenant): ?RedirectResponse
+    {
+        if ($tenant->hasPremiumFeatures() || auth()->user()?->isSuperAdmin()) {
+            return null;
+        }
+
+        return redirect()->route('admin.billing.show', $tenant)->withErrors(['billing' => 'Il sito web con Max è incluso nel livello Premium: passa a Premium per usarlo.']);
     }
 
     private function sendEditLink(Tenant $tenant, $site): bool

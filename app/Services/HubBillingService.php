@@ -14,9 +14,9 @@ class HubBillingService
     /**
      * @return array{id: string, url: string}
      */
-    public function createCheckoutSession(Tenant $tenant, string $interval): array
+    public function createCheckoutSession(Tenant $tenant, string $interval, string $tier = 'silver'): array
     {
-        $priceId = $this->resolvePriceId($interval);
+        $priceId = $this->resolvePriceId($interval, $tier);
 
         $customerId = $tenant->stripe_customer_id ?? $this->createCustomer($tenant)['id'];
 
@@ -34,6 +34,7 @@ class HubBillingService
             'client_reference_id' => (string) $tenant->id,
             'metadata[tenant_id]' => (string) $tenant->id,
             'metadata[interval]' => $interval,
+            'metadata[tier]' => $tier,
             'subscription_data[metadata][tenant_id]' => (string) $tenant->id,
         ]);
     }
@@ -46,9 +47,9 @@ class HubBillingService
      *
      * @return array{id: string, url: string}
      */
-    public function createLaunchOfferCheckoutSession(Tenant $tenant, string $module, bool $existingAccount = false): array
+    public function createLaunchOfferCheckoutSession(Tenant $tenant, string $module, bool $existingAccount = false, string $tier = 'silver'): array
     {
-        $recurringPriceId = $this->resolvePriceId('month');
+        $recurringPriceId = $this->resolvePriceId('month', $tier);
         $launchPriceId = $this->resolveLaunchOfferPriceId();
 
         $customerId = $tenant->stripe_customer_id ?? $this->createCustomer($tenant)['id'];
@@ -64,7 +65,7 @@ class HubBillingService
             'line_items[0][quantity]' => 1,
             'line_items[1][price]' => $recurringPriceId,
             'line_items[1][quantity]' => 1,
-            'subscription_data[trial_period_days]' => (string) config('services.hub_billing.trial_days', 30),
+            'subscription_data[trial_period_days]' => (string) config('services.hub_billing.trial_days', 90),
             'subscription_data[metadata][tenant_id]' => (string) $tenant->id,
             // Cliente già dentro (paga dopo la prima settimana): torna alla sua pagina abbonamento, non alla home.
             'success_url' => $existingAccount ? route('admin.billing.show', $tenant).'?checkout=success' : route('welcome').'?checkout=success',
@@ -72,6 +73,7 @@ class HubBillingService
             'client_reference_id' => (string) $tenant->id,
             'metadata[tenant_id]' => (string) $tenant->id,
             'metadata[interval]' => 'month',
+            'metadata[tier]' => $tier,
             'metadata[first_module]' => $module,
             'metadata[launch_offer]' => '1',
             'metadata[existing_account]' => $existingAccount ? '1' : '0',
@@ -122,11 +124,11 @@ class HubBillingService
      * configurato (HUB_MONTHLY_PRICE_EUR / HUB_ANNUAL_PRICE_EUR) per l'intervallo dato —
      * nessun prodotto/prezzo da creare a mano su Stripe: basta cambiare l'importo in .env.
      */
-    private function resolvePriceId(string $interval): string
+    private function resolvePriceId(string $interval, string $tier = 'silver'): string
     {
-        $amountEur = $interval === 'year'
-            ? (int) config('services.hub_billing.annual_price_eur')
-            : (int) config('services.hub_billing.monthly_price_eur');
+        $tier = in_array($tier, ['silver', 'premium'], true) ? $tier : 'silver';
+        $key = $interval === 'year' ? 'annual' : 'monthly';
+        $amountEur = (int) config('services.hub_billing.tiers.'.$tier.'.'.$key);
 
         if ($amountEur <= 0) {
             throw new RuntimeException('Prezzo hub non configurato per l\'intervallo "'.$interval.'".');

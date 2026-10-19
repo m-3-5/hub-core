@@ -27,10 +27,10 @@ class TenantWelcomeNotification extends Notification
             'email' => $notifiable->getEmailForPasswordReset(),
         ], false));
 
-        $included = config('hub-payments.services_included_quota', 3);
-        $monthlyPrice = config('services.hub_billing.monthly_price_eur', 29);
-        $annualPrice = config('services.hub_billing.annual_price_eur', 290);
-        $trialDays = config('services.hub_billing.trial_days', 30);
+        $included = config('hub-payments.services_included_quota', 20);
+        $monthlyPrice = config('services.hub_billing.monthly_price_eur', 9);
+        $annualPrice = config('services.hub_billing.annual_price_eur', 79);
+        $trialDays = config('services.hub_billing.trial_days', 90);
         $trialEnds = $this->tenant->trial_ends_at?->format('d/m/Y');
 
         $mail = (new MailMessage)->greeting('Ciao, '.$notifiable->name.'!');
@@ -42,12 +42,12 @@ class TenantWelcomeNotification extends Notification
                 ->line('Il primo addebito pieno (**€'.$monthlyPrice.'/mese**) partirà tra **'.$trialDays.' giorni** — fino ad allora usi tutto normalmente.');
         } else {
             $launch = config('services.hub_billing.launch_offer_price_eur', 1);
-            $freeDays = config('services.hub_billing.free_days', 7);
+            $freeDays = config('services.hub_billing.free_days', 30);
 
-            $mail->subject('Benvenuto su Hub Core — la tua prima settimana è gratis')
+            $mail->subject('Benvenuto su Hub Core — la tua prova gratuita è partita')
                 ->line('Grazie per aver registrato **'.$this->tenant->name.'** su Hub Core.')
                 ->line('Hai subito a disposizione **'.$freeDays.' giorni gratis**'.($trialEnds ? ' (fino al **'.$trialEnds.'**)' : '').', con '.$included.' servizi a pagamento inclusi (link Stripe per i tuoi trattamenti/prodotti, pubblicabili sul tuo sito in automatico). Non paghi nulla ora e non serve la carta.')
-                ->line('Dopo la prima settimana, per continuare, ti chiediamo solo l\'offerta di lancio da **€'.$launch.'** (copre anche l\'attivazione del primo modulo). Poi altri '.config('services.hub_billing.trial_days', 30).' giorni di prova e solo dopo il canone: **€'.$monthlyPrice.'/mese** oppure **€'.$annualPrice.'/anno**. Disdici quando vuoi.');
+                ->line('Finita la prova gratuita, per continuare, ti chiediamo solo l\'offerta di lancio da **€'.$launch.'** (tutti i moduli inclusi, nessuna attivazione da sommare). Poi altri '.config('services.hub_billing.trial_days', 90).' giorni di prova e solo dopo il canone: **€'.$monthlyPrice.'/mese** oppure **€'.$annualPrice.'/anno**. Disdici quando vuoi.');
         }
 
         return $mail

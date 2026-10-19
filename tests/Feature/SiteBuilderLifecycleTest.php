@@ -30,7 +30,7 @@ class SiteBuilderLifecycleTest extends TestCase
     /** @return array{0: Tenant, 1: User} */
     private function owner(array $tenant = [], string $email = 'anna@example.com'): array
     {
-        $t = Tenant::create(array_merge(['name' => 'Salone Anna', 'slug' => 'salone-anna', 'type' => 'azienda', 'plan' => 'demo', 'guest_verified_at' => now(), 'subscription_status' => 'active'], $tenant));
+        $t = Tenant::create(array_merge(['name' => 'Salone Anna', 'slug' => 'salone-anna', 'type' => 'azienda', 'plan' => 'demo', 'guest_verified_at' => now(), 'subscription_status' => 'active', 'settings' => ['tier' => 'premium']], $tenant));
         $u = User::factory()->create(['email' => $email]);
         $u->tenants()->attach($t, ['role' => 'admin']);
 

@@ -161,6 +161,16 @@ Richiesta: «tutto sotto occhio subito, foto tagliate bene e uguali nelle card, 
 - **Dove siamo** (`config/presence.php`): punti di presenza nella landing siti web (Corigliano-Rossano/Fabrizio sede operativa, Castrovillari, Castiglione delle Stiviere, Senise sede legale) con pulsante Google Maps; la posizione su Google non si aggiorna da sola (servirebbe un'API a pagamento). **I siti dei clienti** compaiono solo se l'amministratore spunta «Mostra tra i clienti sul sito» nella scheda cliente (serve https e email confermata).
 - `hub:create-tenant` crea un cliente con il titolare (link per scegliere la password).
 
+## 13. Listino unico: un abbonamento, due livelli (19/10/2026)
+Richiesta: prezzi uniformi, più bassi, con lo sconto che dura più a lungo. Non si sommano più moduli: **un solo abbonamento, tutti i moduli inclusi**.
+- **Privato** gratis sempre (2 promo al mese). **Azienda/ente**: **Silver 9 €/mese o 79 €/anno** (20 promo, 20 servizi, tutto il necessario) · **Premium 19 €/mese o 169 €/anno** (in più sito web con Max, 100 promo e 100 servizi, assistenza prioritaria). Config: `services.hub_billing.tiers` (env `HUB_MONTHLY_PRICE_EUR`/`HUB_ANNUAL_PRICE_EUR` per Silver, `HUB_PREMIUM_MONTHLY_EUR`/`HUB_PREMIUM_ANNUAL_EUR`, quote `HUB_SILVER_*_QUOTA`/`HUB_PREMIUM_*_QUOTA`).
+- **Tempo**: **30 giorni gratis** (senza carta) + **1 € di lancio** + **90 giorni di prova** = il primo canone parte dopo ~4 mesi (prima: 7 + 30 giorni; canone 29 €). In prova ognuno ha tutto, anche il sito web.
+- Il livello scelto va a Stripe (`metadata[tier]`), il webhook lo salva in `tenants.settings.tier`; `Tenant::tier()` e `hasPremiumFeatures()` (Premium pagato, oppure in prova/seguito da noi). Il sito web con Max è bloccato per chi è Silver (badge «Premium» in home, redirect all'abbonamento).
+- Moduli: nessuna attivazione né canone per modulo (`config/module_pricing.php` a 0). Extra facoltativi: promo in più 5 € (facciamo noi 25 €), servizio in più 2 € (10 €), volantino IA 9 €.
+- **Siti su misura (landing)**: Vetrina 190 € (listino 290), Aziendale 390 € (590), Professionale da 690 € (990); si parte con 1 €, 30 giorni di prova, 12 rate; offerta fino al **31/03/2027** (prima 10/11/2026).
+- **ATTENZIONE .env di produzione**: se contiene `HUB_MONTHLY_PRICE_EUR`, `HUB_ANNUAL_PRICE_EUR`, `HUB_TRIAL_DAYS`, `HUB_FREE_DAYS`, `PRICING_*`, `PROMO_*`, `LANDING_*` quei valori vincono sui nuovi predefiniti: tenerli solo se voluti.
+- Clienti già abbonati: Stripe mantiene il loro prezzo vecchio finché non cambiano piano.
+
 ### Per la prossima sessione (in ordine)
 1. **Rifinire la grafica** pagina per pagina (§11) dopo averla vista online.
 2. **Beauty:** collegare i pagamenti protetti (Connect, dati veri) e fare il test reale da 0,50 € con rimborso.

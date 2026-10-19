@@ -10,7 +10,7 @@ class TenantServiceQuota
     public static function includedLimit(Tenant $tenant): int
     {
         return (int) ($tenant->settings['services_included_quota']
-            ?? config('hub-payments.services_included_quota', 3));
+            ?? config('services.hub_billing.tiers.'.$tenant->tier().'.services_quota', config('hub-payments.services_included_quota', 20)));
     }
 
     public static function usedCount(Tenant $tenant): int

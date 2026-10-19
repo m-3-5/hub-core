@@ -219,7 +219,7 @@ body .promo-card__cta { margin-top: auto; align-self: flex-start; }
 .ah-soon { display: flex; flex-wrap: wrap; gap: 8px; }
 .ah-soon__i { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 999px; background: #fff; border: 1px dashed rgba(18,18,43,.18); color: var(--ui-muted); font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; }
 .ah-soon__i .ah-ic { width: 30px; height: 30px; border-radius: 10px; box-shadow: none; }
-.ah-soon__i em { font-style: normal; font-weight: 600; font-size: .74rem; opacity: .8; }
+.ah-soon__i em { font-style: normal; font-weight: 800; font-size: .72rem; opacity: .9; color: #b45309; }
 .ah-other { margin-top: 16px; }
 .ah-other summary { cursor: pointer; font-weight: 800; color: var(--ui-brand-dark); }
 .ah-other p { color: var(--ui-muted); font-size: .88rem; margin: 8px 0; }
