@@ -105,6 +105,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@include('layouts.partials.public-nav')
 
 <header class="top">
     <a class="nav-btn" href="{{ route('welcome') }}" id="back-top" aria-label="Torna indietro">← Indietro</a>

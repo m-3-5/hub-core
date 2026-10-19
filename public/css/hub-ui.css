@@ -172,6 +172,39 @@ body .promo-card__cta { margin-top: auto; align-self: flex-start; }
     body.has-shell { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
 }
 
+/* ───────── Barra in alto delle pagine pubbliche ───────── */
+.ui-pub {
+    position: sticky; top: 0; z-index: 60;
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 14px calc(7px);
+    background: rgba(255, 255, 255, .94);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--ui-line);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.ui-pub__brand { display: flex; align-items: center; gap: 8px; color: var(--ui-ink); text-decoration: none; font-weight: 800; flex: none; margin-right: 6px; }
+.ui-pub__logo { width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; display: grid; place-items: center; font-size: 1rem; }
+.ui-pub__links { display: flex; gap: 2px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.ui-pub__links::-webkit-scrollbar { display: none; }
+.ui-pub__links a { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 12px; color: var(--ui-ink); text-decoration: none; font-weight: 600; font-size: .92rem; white-space: nowrap; flex: none; }
+.ui-pub__links a:hover { background: var(--ui-soft); }
+.ui-pub__links a.is-active { background: color-mix(in srgb, var(--ui-brand) 12%, #fff); color: var(--ui-brand-dark); }
+.ui-pub__cta { flex: none; background: var(--ui-brand); color: #fff; text-decoration: none; font-weight: 700; font-size: .9rem; padding: 9px 16px; border-radius: 12px; }
+.ui-pub__cta:hover { background: var(--ui-brand-dark); }
+@media (max-width: 700px) {
+    .ui-pub { padding: 6px 8px; gap: 4px; }
+    .ui-pub__name, .ui-pub__opt { display: none !important; }
+    .ui-pub__brand { margin-right: 2px; }
+    .ui-pub__links { justify-content: space-between; }
+    .ui-pub__links a { flex-direction: column; gap: 1px; padding: 4px 7px; font-size: .64rem; font-weight: 700; }
+    .ui-pub__ico { font-size: 1.2rem; line-height: 1.1; }
+    .ui-pub__cta { padding: 8px 11px; font-size: .8rem; }
+}
+
+/* Intestazioni proprie delle pagine che restano sotto la barra pubblica quando si scorre */
+.ui-pub ~ header.top { top: 49px; }
+@media (max-width: 700px) { .ui-pub ~ header.top { top: 58px; } }
+
 /* Il vecchio menu in basso è sostituito da .ui-tabbar */
 .bottom-nav { display: none !important; }
 

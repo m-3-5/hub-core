@@ -50,6 +50,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@include('layouts.partials.public-nav')
 <header class="top">
     <a class="btn" href="@yield('back_url', route('guides.index'))" id="g-back">← Indietro</a>
     <b>@yield('top', 'Guide')</b>

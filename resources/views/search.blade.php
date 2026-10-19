@@ -32,6 +32,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@include('layouts.partials.public-nav')
 <header>
     <div class="wrap">
         <a href="{{ route('welcome') }}">← Hub Core</a>

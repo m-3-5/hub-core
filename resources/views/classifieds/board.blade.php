@@ -57,6 +57,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@unless ($tenant)@include('layouts.partials.public-nav')@endunless
 <div class="top">
     <h1>{{ $tenant ? $tenant->name : 'Annunci' }}</h1>
     <p>Immobili, oggetti in vendita, servizi e lezioni</p>

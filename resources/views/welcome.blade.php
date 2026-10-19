@@ -284,6 +284,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@include('layouts.partials.public-nav')
 @if (session('success'))
     <p style="background:#e8f5e9;color:#2e7d32;padding:14px 20px;text-align:center;font-weight:600">{{ session('success') }}</p>
 @endif

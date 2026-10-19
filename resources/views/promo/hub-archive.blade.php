@@ -45,6 +45,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@include('layouts.partials.public-nav')
 <div class="wrap">
     <h1>Tutte le promozioni</h1>
     <p class="lead">Le offerte attive di tutte le attività su Hub Core, in un unico posto.</p>

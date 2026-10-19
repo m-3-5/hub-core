@@ -220,6 +220,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@include('layouts.partials.public-nav')
 
 <header class="top">
     <div class="wrap">
