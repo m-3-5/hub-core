@@ -23,261 +23,114 @@
     <meta name="twitter:description" content="Promo, servizi, negozio, agenda, affitti e sito web in un'unica app.">
     <meta name="twitter:image" content="{{ asset('images/og-hub-core.png') }}">
     <style>
-        :root {
-            --accent: #6366f1;
-            --accent2: #ec4899;
-            --text: #0f172a;
-            --muted: #64748b;
-            --card-w: min(320px, 78vw);
-        }
+        :root { --accent: #6366f1; --accent2: #8b5cf6; --text: #12122b; --muted: #667085; --line: rgba(18,18,43,.09); }
         * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-            color: var(--text);
-            background: #fafbff;
-            overflow-x: hidden;
-        }
-        .hero {
-            display: grid;
-            place-items: center;
-            padding: 40px 20px 24px;
-            text-align: center;
-            background:
-                radial-gradient(circle at 18% 22%, #eef2ff, transparent 42%),
-                radial-gradient(circle at 82% 8%, #fce7f3, transparent 36%),
-                #fafbff;
-        }
-        .hero h1 {
-            font-size: clamp(2rem, 5vw, 3.4rem);
-            margin: 0 0 14px;
-            line-height: 1.08;
-            letter-spacing: -.02em;
-        }
-        .hero p {
-            color: var(--muted);
-            font-size: clamp(1rem, 2.2vw, 1.15rem);
-            max-width: 580px;
-            margin: 0 auto 30px;
-            line-height: 1.55;
-        }
-        .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-        .btn {
-            padding: 14px 26px;
-            border-radius: 14px;
-            font-weight: 700;
-            text-decoration: none;
-            font-size: 1rem;
-            transition: transform .15s ease, box-shadow .15s ease;
-        }
-        .btn:hover { transform: translateY(-2px); }
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            color: #fff;
-            box-shadow: 0 10px 30px rgba(99, 102, 241, .35);
-        }
-        .btn-secondary {
-            background: #fff;
-            color: var(--text);
-            border: 1px solid #e2e8f0;
-        }
-        .section-label {
-            text-align: center;
-            margin: 8px 0 20px;
-            font-size: .85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .12em;
-            color: var(--muted);
-        }
-        .carousel-outer {
-            position: relative;
-            padding: 10px 0 50px;
-            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-        }
-        .carousel-wrap {
-            overflow: hidden;
-            max-width: 100%;
-        }
-        .carousel-track {
-            display: flex;
-            gap: 22px;
-            width: max-content;
-            padding: 12px 24px 28px;
-            animation: scroll 42s linear infinite;
-        }
-        .carousel-wrap:hover .carousel-track { animation-play-state: paused; }
-        @media (prefers-reduced-motion: reduce) {
-            .carousel-track { animation: none; }
-        }
-        @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-        .flyer {
-            width: var(--card-w);
-            flex-shrink: 0;
-            border-radius: 28px;
-            overflow: hidden;
-            background: #fff;
-            box-shadow: 0 20px 50px rgba(15, 23, 42, .12);
-            transform-style: preserve-3d;
-            transition: transform .35s ease, box-shadow .35s ease;
-            position: relative;
-        }
-        .flyer:hover {
-            transform: perspective(900px) rotateY(-4deg) translateY(-6px) scale(1.02);
-            box-shadow: 0 28px 60px rgba(15, 23, 42, .18);
-            z-index: 2;
-        }
-        .flyer__img-wrap {
-            width: 100%;
-            aspect-ratio: 4 / 3;
-            overflow: hidden;
-            background: linear-gradient(160deg, #f1f5f9, #e2e8f0);
-        }
-        .flyer__img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center center;
-            display: block;
-        }
-        .flyer__body {
-            padding: 18px 18px 20px;
-            background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
-        }
-        .flyer__body h3 {
-            margin: 0 0 6px;
-            font-size: 1.15rem;
-        }
-        .flyer__body p {
-            margin: 0 0 16px;
-            color: var(--muted);
-            font-size: .9rem;
-            line-height: 1.45;
-            min-height: 2.9em;
-        }
-        .flyer__cta {
-            display: block;
-            text-align: center;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: .92rem;
-            text-decoration: none;
-            color: #fff;
-            box-shadow: 0 8px 20px rgba(0,0,0,.12);
-            transition: filter .15s ease, transform .15s ease;
-        }
-        .flyer__cta:hover { filter: brightness(1.06); transform: translateY(-1px); }
-        .register {
-            max-width: 720px;
-            margin: 0 auto 60px;
-            padding: 0 20px;
-            scroll-margin-top: 24px;
-        }
-        .register-card {
-            background: #fff;
-            border-radius: 28px;
-            padding: 36px 28px;
-            text-align: center;
-            box-shadow: 0 16px 48px rgba(15,23,42,.08);
-            border: 1px solid #eef2ff;
-        }
-        .register-card h2 { margin: 0 0 10px; font-size: 1.6rem; }
-        .register-card p { color: var(--muted); margin: 0 0 24px; line-height: 1.55; }
-        .register-types {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 14px;
-            margin-bottom: 24px;
-        }
-        .register-type {
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 18px 14px;
-        }
-        .register-type strong { display: block; margin-bottom: 4px; }
-        .register-type span { font-size: .88rem; color: var(--muted); }
-        footer {
-            text-align: center;
-            padding: 28px 20px 40px;
-            color: var(--muted);
-            font-size: .9rem;
-        }
-        @media (min-width: 1100px) {
-            :root { --card-w: 300px; }
-        }
-        .app-preview {
-            max-width: 720px;
-            margin: 0 auto 8px;
-            padding: 0 20px;
-        }
-        .app-preview-intro {
-            text-align: center;
-            max-width: 480px;
-            margin: 0 auto 20px;
-            color: var(--muted);
-            font-size: .92rem;
-        }
-        .app-preview-intro strong { color: var(--text); }
-        .app-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
-        }
-        .app-preview-tile {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-            color: inherit;
-            text-align: center;
-        }
-        .app-preview-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 18px;
-            display: grid;
-            place-items: center;
-            font-size: 1.6rem;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, .1);
-            transition: transform .15s ease;
-        }
-        .app-preview-tile:hover .app-preview-icon { transform: translateY(-3px); }
-        .app-preview-label { font-size: .74rem; font-weight: 700; line-height: 1.2; }
-        @media (min-width: 640px) {
-            .app-preview-grid { grid-template-columns: repeat(7, 1fr); }
-            .app-preview-icon { width: 68px; height: 68px; font-size: 1.9rem; }
-        }
+        body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; color: var(--text); background: #f6f7ff; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+        a { color: inherit; }
+        .wl-flash { margin: 0; padding: 12px 20px; text-align: center; font-weight: 600; }
+        .wl-flash--ok { background: #e8f5e9; color: #2e7d32; }
+        .wl-flash--warn { background: #fff3e0; color: #e65100; }
 
-        .how-it-works {
-            max-width: 720px;
-            margin: 36px auto 8px;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 18px;
-        }
-        @media (min-width: 720px) {
-            .how-it-works { grid-template-columns: repeat(3, 1fr); }
-        }
-        .how-step { display: flex; gap: 14px; align-items: flex-start; }
-        .how-step-num {
-            flex: 0 0 auto;
-            width: 30px; height: 30px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            color: #fff;
-            display: grid; place-items: center;
-            font-size: .85rem; font-weight: 700;
-        }
-        .how-step h3 { margin: 2px 0 4px; font-size: .95rem; }
-        .how-step p { margin: 0; color: var(--muted); font-size: .85rem; line-height: 1.45; }
+        /* ── Hero ── */
+        .wl-hero { position: relative; overflow: hidden; background: radial-gradient(60% 90% at 88% 0%, #c7d2fe 0, transparent 62%), radial-gradient(50% 70% at 0% 40%, #fbcfe8 0, transparent 60%), #f6f7ff; }
+        .wl-hero__in { max-width: 1120px; margin: 0 auto; padding: 56px 20px 40px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: center; }
+        .wl-chip { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px 6px 8px; font-size: .84rem; font-weight: 700; color: #4338ca; box-shadow: 0 4px 14px rgba(99,102,241,.12); }
+        .wl-chip i { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; display: grid; place-items: center; font-style: normal; }
+        .wl-hero h1 { font-size: clamp(2.3rem, 5.4vw, 4rem); line-height: 1.04; letter-spacing: -.035em; margin: 18px 0 16px; }
+        .wl-hero h1 em { font-style: normal; background: linear-gradient(120deg, var(--accent), #a855f7 60%, #ec4899); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .wl-hero p.lead { font-size: clamp(1.02rem, 2.2vw, 1.2rem); color: var(--muted); line-height: 1.55; max-width: 520px; margin: 0 0 26px; }
+        .wl-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+        .wl-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 26px; border-radius: 16px; font-weight: 800; font-size: 1.02rem; text-decoration: none; border: 1px solid var(--line); background: #fff; color: var(--text); transition: transform .15s, box-shadow .15s; }
+        .wl-btn:hover { transform: translateY(-2px); }
+        .wl-btn--main { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: 0; box-shadow: 0 12px 28px rgba(99,102,241,.38); }
+        .wl-trust { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 22px 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .9rem; font-weight: 600; }
+        .wl-trust li { display: flex; align-items: center; gap: 6px; }
+        .wl-trust svg { color: #16a34a; }
 
-        </style>
+        /* ── Telefono ── */
+        .wl-phone-wrap { display: grid; place-items: center; }
+        .wl-phone { width: 276px; border-radius: 42px; padding: 9px; background: #12122b; box-shadow: 0 40px 80px rgba(67,56,202,.35), 0 0 0 2px rgba(255,255,255,.4) inset; transform: rotate(2.5deg); }
+        .wl-screen { position: relative; border-radius: 34px; background: #f4f5fb; overflow: hidden; height: 540px; display: flex; flex-direction: column; }
+        .wl-screen__bar { display: flex; justify-content: space-between; padding: 12px 20px 0; font-size: .7rem; font-weight: 700; color: #12122b; }
+        .wl-app-top { display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px; }
+        .wl-av { width: 40px; height: 40px; border-radius: 14px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; display: grid; place-items: center; font-weight: 800; }
+        .wl-app-top b { display: block; font-size: .95rem; }
+        .wl-app-top small { color: var(--muted); font-size: .72rem; }
+        .wl-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 6px 16px 10px; }
+        .wl-kpi { background: #fff; border-radius: 14px; padding: 9px 10px; box-shadow: 0 2px 8px rgba(18,18,43,.05); }
+        .wl-kpi b { display: block; font-size: 1.15rem; line-height: 1.1; }
+        .wl-kpi span { font-size: .62rem; color: var(--muted); font-weight: 700; }
+        .wl-tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 4px 16px; }
+        .wl-tile { background: #fff; border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 8px rgba(18,18,43,.05); font-weight: 800; font-size: .82rem; }
+        .wl-ic { width: 38px; height: 38px; border-radius: 13px; display: grid; place-items: center; color: #fff; background: var(--c, var(--accent)); box-shadow: 0 6px 14px color-mix(in srgb, var(--c, var(--accent)) 40%, transparent); }
+        .wl-tabs { margin-top: auto; display: flex; justify-content: space-around; background: #fff; border-top: 1px solid var(--line); padding: 8px 6px 12px; color: #98a2b3; }
+        .wl-tabs span { display: grid; justify-items: center; gap: 2px; font-size: .56rem; font-weight: 700; }
+        .wl-tabs .on { color: var(--accent); }
+
+        /* ── Sezioni ── */
+        .wl-sec { max-width: 1120px; margin: 0 auto; padding: 44px 20px 0; }
+        .wl-sec h2 { font-size: clamp(1.5rem, 3.4vw, 2.1rem); letter-spacing: -.02em; margin: 0 0 6px; }
+        .wl-sec > p { margin: 0 0 22px; color: var(--muted); }
+        .wl-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+        .wl-head h2 { margin: 0; }
+        .wl-more { color: var(--accent); font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+
+        .wl-mods { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .wl-mod { display: flex; flex-direction: column; gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 18px; text-decoration: none; box-shadow: 0 1px 2px rgba(18,18,43,.04), 0 10px 26px rgba(18,18,43,.05); transition: transform .15s, box-shadow .15s; }
+        .wl-mod:hover { transform: translateY(-3px); box-shadow: 0 16px 36px rgba(18,18,43,.1); }
+        .wl-mod .wl-ic { width: 46px; height: 46px; border-radius: 15px; }
+        .wl-mod b { font-size: 1.04rem; }
+        .wl-mod span.t { color: var(--muted); font-size: .88rem; line-height: 1.45; }
+
+        .wl-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        .wl-card { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--line); border-radius: 20px; overflow: hidden; text-decoration: none; box-shadow: 0 1px 2px rgba(18,18,43,.04), 0 10px 26px rgba(18,18,43,.05); transition: transform .15s; }
+        .wl-card:hover { transform: translateY(-3px); }
+        .wl-card__b { padding: 12px 14px 14px; display: grid; gap: 3px; }
+        .wl-card__b small { color: var(--accent); font-weight: 800; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+        .wl-card__b b { font-size: .98rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.5em; }
+        .wl-card__b span { color: var(--muted); font-size: .84rem; }
+        .wl-tag { position: absolute; left: 10px; top: 10px; background: rgba(18,18,43,.7); color: #fff; font-size: .68rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; z-index: 1; }
+
+        .wl-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .wl-step { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 20px; display: flex; gap: 14px; }
+        .wl-step i { flex: none; width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; display: grid; place-items: center; font-style: normal; font-weight: 800; }
+        .wl-step h3 { margin: 2px 0 4px; font-size: 1.02rem; }
+        .wl-step p { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.45; }
+
+        .wl-price { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .wl-plan { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 20px; }
+        .wl-plan b { display: block; font-size: 1.05rem; margin-bottom: 4px; }
+        .wl-plan strong { font-size: 2rem; letter-spacing: -.03em; }
+        .wl-plan small { color: var(--muted); }
+        .wl-plan--hot { background: linear-gradient(145deg, #4f46e5, #8b5cf6); color: #fff; border: 0; box-shadow: 0 20px 40px rgba(79,70,229,.3); }
+        .wl-plan--hot small { color: rgba(255,255,255,.8); }
+
+        .wl-cta { max-width: 1120px; margin: 44px auto 0; padding: 0 20px; }
+        .wl-cta__in { border-radius: 28px; padding: 36px 24px; text-align: center; color: #fff; background: radial-gradient(60% 120% at 100% 0%, rgba(236,72,153,.55), transparent 60%), linear-gradient(135deg, #4338ca, #7c3aed); box-shadow: 0 24px 50px rgba(67,56,202,.3); }
+        .wl-cta__in h2 { margin: 0 0 8px; font-size: clamp(1.5rem, 3.4vw, 2.1rem); letter-spacing: -.02em; }
+        .wl-cta__in p { margin: 0 auto 20px; max-width: 560px; opacity: .92; line-height: 1.5; }
+        .wl-cta__in .wl-btn { border: 0; }
+        .wl-err { background: #fdecea; color: #c62828; padding: 12px 16px; border-radius: 12px; margin: 0 auto 16px; max-width: 560px; }
+
+        footer { text-align: center; color: var(--muted); font-size: .9rem; line-height: 1.9; padding: 32px 20px 40px; }
+        footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+        @media (max-width: 900px) {
+            .wl-hero__in { grid-template-columns: 1fr; padding-top: 28px; text-align: center; }
+            .wl-hero p.lead { margin-left: auto; margin-right: auto; }
+            .wl-btns, .wl-trust { justify-content: center; }
+            .wl-mods, .wl-cards { grid-template-columns: repeat(2, 1fr); }
+            .wl-steps, .wl-price { grid-template-columns: 1fr; }
+            .wl-phone { transform: none; }
+        }
+        @media (max-width: 520px) {
+            .wl-btns .wl-btn { flex: 1 1 40%; }
+            .wl-btns .wl-btn--main { flex-basis: 100%; }
+            .wl-mod { padding: 14px; }
+            .wl-mod span.t { display: none; }
+            .wl-card__b b { font-size: .9rem; }
+        }
+    </style>
     @isset($jsonLd)
     <script type="application/ld+json">{!! $jsonLd !!}</script>
     @endisset
@@ -286,112 +139,151 @@
 <body>
 @include('layouts.partials.public-nav')
 @if (session('success'))
-    <p style="background:#e8f5e9;color:#2e7d32;padding:14px 20px;text-align:center;font-weight:600">{{ session('success') }}</p>
+    <p class="wl-flash wl-flash--ok">{{ session('success') }}</p>
 @endif
 @if (request('checkout') === 'success')
-    <p style="background:#e8f5e9;color:#2e7d32;padding:14px 20px;text-align:center;font-weight:600">Pagamento ricevuto! Controlla la tua email per impostare la password e iniziare.</p>
+    <p class="wl-flash wl-flash--ok">Pagamento ricevuto! Controlla la tua email per impostare la password e iniziare.</p>
 @elseif (request('checkout') === 'cancelled')
-    <p style="background:#fff3e0;color:#e65100;padding:14px 20px;text-align:center;font-weight:600">Pagamento non completato — puoi registrarti di nuovo quando vuoi.</p>
+    <p class="wl-flash wl-flash--warn">Pagamento non completato — puoi registrarti di nuovo quando vuoi.</p>
 @endif
-<section class="hero">
-    <div>
-        <img src="{{ asset('images/logo-m35.png') }}" alt="M 3.5 S.R.L." width="120" height="104" style="display:block;margin:0 auto 14px;height:auto">
-        <h1>Tutto per la tua attività,<br>in un'unica app</h1>
-        <p>Promo, servizi, negozio, agenda, affitti e sito web. Per <strong>aziende</strong> e <strong>privati</strong> — semplice come le app del telefono.</p>
-        <div class="cta">
-            <a class="btn btn-primary" href="{{ route('admin.login') }}">Accedi</a>
-            <a class="btn btn-secondary" href="{{ route('registration.create') }}">Registrati</a>
-            <a class="btn btn-secondary" href="{{ route('pricing.show') }}">Prezzi</a>
+
+<section class="wl-hero">
+    <div class="wl-hero__in">
+        <div>
+            <span class="wl-chip"><i>@include('layouts.partials.icon', ['name' => 'check', 'size' => 13])</i> Provala gratis, senza carta</span>
+            <h1>Tutto per la tua attività, <em>in un'unica app</em></h1>
+            <p class="lead">Promo, servizi, negozio, annunci e sito web. Per <strong>aziende</strong>, <strong>privati</strong> ed <strong>enti</strong> — semplice come le app del telefono.</p>
+            <div class="wl-btns">
+                <a class="wl-btn wl-btn--main" href="{{ route('registration.create') }}">Registrati gratis @include('layouts.partials.icon', ['name' => 'arrow', 'size' => 18])</a>
+                <a class="wl-btn" href="{{ route('admin.login') }}">Accedi</a>
+                <a class="wl-btn" href="{{ route('pricing.show') }}">Prezzi</a>
+            </div>
+            <ul class="wl-trust">
+                <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) {{ config('services.hub_billing.free_days', 7) }} giorni gratis</li>
+                <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) Funziona da telefono</li>
+                <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) Disdici quando vuoi</li>
+            </ul>
+        </div>
+
+        <div class="wl-phone-wrap" aria-hidden="true">
+            <div class="wl-phone">
+                <div class="wl-screen">
+                    <div class="wl-screen__bar"><span>9:41</span><span>●●●</span></div>
+                    <div class="wl-app-top"><span class="wl-av">D</span><div><b>Demo Attività</b><small>Cosa vuoi fare oggi?</small></div></div>
+                    <div class="wl-kpis">
+                        <div class="wl-kpi"><b>5</b><span>Promo</span></div>
+                        <div class="wl-kpi"><b>12</b><span>Offerte</span></div>
+                        <div class="wl-kpi"><b>3</b><span>Messaggi</span></div>
+                    </div>
+                    <div class="wl-tiles">
+                        <div class="wl-tile"><span class="wl-ic" style="--c:#8b5cf6">@include('layouts.partials.icon', ['name' => 'promo', 'size' => 20])</span>Crea promo</div>
+                        <div class="wl-tile"><span class="wl-ic" style="--c:#ec4899">@include('layouts.partials.icon', ['name' => 'services', 'size' => 20])</span>Servizi</div>
+                        <div class="wl-tile"><span class="wl-ic" style="--c:#6366f1">@include('layouts.partials.icon', ['name' => 'products', 'size' => 20])</span>Prodotti</div>
+                        <div class="wl-tile"><span class="wl-ic" style="--c:#f59e0b">@include('layouts.partials.icon', ['name' => 'classifieds', 'size' => 20])</span>Annunci</div>
+                    </div>
+                    <div class="wl-tabs">
+                        <span class="on">@include('layouts.partials.icon', ['name' => 'home', 'size' => 20])Home</span>
+                        <span>@include('layouts.partials.icon', ['name' => 'promo', 'size' => 20])Promo</span>
+                        <span>@include('layouts.partials.icon', ['name' => 'services', 'size' => 20])Servizi</span>
+                        <span>@include('layouts.partials.icon', ['name' => 'messages', 'size' => 20])Messaggi</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
-<div class="app-preview">
-    <p class="app-preview-intro">Così sarà la tua home appena entri — <strong>tocca una voce per iniziare</strong>, il resto lo trovi qui sotto spiegato per bene.</p>
-    <div class="app-preview-grid">
-        @foreach ($slides as $slide)
-            <a class="app-preview-tile" href="{{ $slide['cta_url'] }}">
-                <div class="app-preview-icon" style="background: linear-gradient(145deg, color-mix(in srgb, {{ $slide['accent'] }} 20%, #fff), #fff)">{{ $slide['emoji'] }}</div>
-                <div class="app-preview-label">{{ $slide['title'] }}</div>
+@php
+    $modIcons = ['promo', 'services', 'products', 'calendar', 'home', 'globe', 'classifieds'];
+@endphp
+<section class="wl-sec" id="funzioni">
+    <h2>Tutto sotto mano</h2>
+    <p>Tocca una voce per iniziare: ogni attività vede solo ciò che le serve.</p>
+    <div class="wl-mods">
+        @foreach ($slides as $i => $slide)
+            <a class="wl-mod" href="{{ $slide['cta_url'] }}">
+                <span class="wl-ic" style="--c: {{ $slide['accent'] }}">@include('layouts.partials.icon', ['name' => $modIcons[$i] ?? 'promo', 'size' => 23])</span>
+                <b>{{ $slide['title'] }}</b>
+                <span class="t">{{ $slide['text'] }}</span>
             </a>
         @endforeach
     </div>
-</div>
+</section>
 
-<div class="how-it-works">
-    <div class="how-step">
-        <span class="how-step-num">1</span>
-        <div>
-            <h3>Scegli cosa ti serve</h3>
-            <p>Promo, servizi, negozio o affitti — attivi solo i moduli utili alla tua attività.</p>
-        </div>
+@if ($livePromos->isNotEmpty())
+<section class="wl-sec">
+    <div class="wl-head">
+        <h2>Promozioni attive adesso</h2>
+        <a class="wl-more" href="{{ route('promo.hub-archive') }}">Vedi tutte @include('layouts.partials.icon', ['name' => 'arrow', 'size' => 16])</a>
     </div>
-    <div class="how-step">
-        <span class="how-step-num">2</span>
-        <div>
-            <h3>Provalo gratis</h3>
-            <p>Demo completa da subito, nessuna carta richiesta per cominciare.</p>
-        </div>
+    <div class="wl-cards">
+        @foreach ($livePromos as $promo)
+            <a class="wl-card" href="{{ route('promo.show', [$promo->tenant, $promo]) }}">
+                <span class="ui-media"><img src="{{ $promo->imageUrl() }}" alt="{{ $promo->title }}" loading="lazy"></span>
+                <span class="wl-card__b"><small>{{ $promo->tenant->name }}</small><b>{{ $promo->title }}</b></span>
+            </a>
+        @endforeach
     </div>
-    <div class="how-step">
-        <span class="how-step-num">3</span>
-        <div>
-            <h3>Vai online quando sei pronto</h3>
-            <p>Le tue promo e i tuoi servizi compaiono subito sul tuo sito, senza toccare codice.</p>
-        </div>
-    </div>
-</div>
+</section>
+@endif
 
-<p class="section-label" id="funzioni">Sfoglia le possibilità</p>
-
-<div class="carousel-outer">
-    <div class="carousel-wrap">
-        <div class="carousel-track" aria-label="Anteprima funzioni Hub Core">
-            @foreach ($loopSlides as $slide)
-                <article class="flyer">
-                    <div class="flyer__img-wrap" style="background: linear-gradient(160deg, color-mix(in srgb, {{ $slide['accent'] }} 18%, #fff), color-mix(in srgb, {{ $slide['accent'] }} 8%, #f8fafc));">
-                        <img
-                            class="flyer__img"
-                            src="{{ $slide['image_url'] }}"
-                            alt="{{ $slide['title'] }} — Hub Core"
-                            loading="lazy"
-                            width="320"
-                            height="240"
-                        >
-                    </div>
-                    <div class="flyer__body">
-                        <h3>{{ $slide['title'] }}</h3>
-                        <p>{{ $slide['text'] }}</p>
-                        <a
-                            class="flyer__cta"
-                            href="{{ $slide['cta_url'] }}"
-                            style="background: linear-gradient(135deg, {{ $slide['accent'] }}, color-mix(in srgb, {{ $slide['accent'] }} 70%, #1e1b4b))"
-                        >{{ $slide['cta'] }}</a>
-                    </div>
-                </article>
-            @endforeach
-        </div>
+@if ($liveAds->isNotEmpty())
+<section class="wl-sec">
+    <div class="wl-head">
+        <h2>Ultimi annunci</h2>
+        <a class="wl-more" href="{{ route('classifieds.board') }}">Vedi tutti @include('layouts.partials.icon', ['name' => 'arrow', 'size' => 16])</a>
     </div>
-</div>
+    <div class="wl-cards">
+        @foreach ($liveAds as $ad)
+            <a class="wl-card" href="{{ $ad->publicUrl() }}">
+                <span class="ui-media">
+                    @if ($ad->coverUrl())<img src="{{ $ad->coverUrl() }}" alt="{{ $ad->title }}" loading="lazy">@else<span class="ui-media__ph">{{ $ad->categoryIcon() }}</span>@endif
+                    <span class="wl-tag">{{ $ad->categoryLabel() }}</span>
+                </span>
+                <span class="wl-card__b">
+                    @if ($ad->priceLabel())<small>{{ $ad->priceLabel() }}</small>@endif
+                    <b>{{ $ad->title }}</b>
+                    <span>{{ $ad->zone }}</span>
+                </span>
+            </a>
+        @endforeach
+    </div>
+</section>
+@endif
 
-<section class="register" id="registrazione">
-    <div class="register-card">
+<section class="wl-sec">
+    <h2>Come funziona</h2>
+    <p>Tre passi, dal telefono.</p>
+    <div class="wl-steps">
+        <div class="wl-step"><i>1</i><div><h3>Scegli cosa ti serve</h3><p>Promo, servizi, negozio o annunci: attivi solo ciò che usi.</p></div></div>
+        <div class="wl-step"><i>2</i><div><h3>Provalo gratis</h3><p>Demo completa da subito, nessuna carta per cominciare.</p></div></div>
+        <div class="wl-step"><i>3</i><div><h3>Vai online</h3><p>Promo e servizi compaiono subito sul tuo sito, senza toccare codice.</p></div></div>
+    </div>
+</section>
+
+<section class="wl-sec">
+    <h2>Prezzi semplici</h2>
+    <p>Niente sorprese: si comincia gratis.</p>
+    <div class="wl-price">
+        <div class="wl-plan"><b>Privato</b><strong>€0</strong> <small>per sempre</small></div>
+        <div class="wl-plan wl-plan--hot"><b>Azienda ed ente</b><strong>{{ config('services.hub_billing.free_days', 7) }} giorni gratis</strong><br><small>poi solo €{{ config('services.hub_billing.launch_offer_price_eur', 1) }} per partire</small></div>
+        <div class="wl-plan"><b>Poi</b><strong>€{{ config('services.hub_billing.monthly_price_eur', 29) }}</strong> <small>al mese · disdici quando vuoi</small></div>
+    </div>
+</section>
+
+<section class="wl-cta" id="registrazione">
+    <div class="wl-cta__in">
         <h2>Registrati su Hub Core</h2>
         <p>Privato: sempre gratis. Azienda/Ente: <strong>{{ config('services.hub_billing.free_days', 7) }} giorni gratis</strong>, senza carta; dopo la prima settimana basta <strong>€{{ config('services.hub_billing.launch_offer_price_eur', 1) }}</strong> (copre anche l'attivazione del primo modulo). Poi €{{ config('services.hub_billing.monthly_price_eur', 29) }}/mese, disdici quando vuoi.</p>
-
         @error('registration')
-            <p style="background:#fdecea;color:#c62828;padding:12px 16px;border-radius:12px;margin-bottom:20px">{{ $message }}</p>
+            <p class="wl-err">{{ $message }}</p>
         @enderror
-
         @error('guest')
-            <p style="background:#fdecea;color:#c62828;padding:12px 16px;border-radius:12px;margin-bottom:20px">{{ $message }}</p>
+            <p class="wl-err">{{ $message }}</p>
         @enderror
-        <div class="cta" style="margin-bottom:14px">
-            <a class="btn btn-primary" href="{{ route('registration.create') }}">Inizia la registrazione →</a>
-        </div>
-        <p style="color:#64748b;font-size:.9rem;margin:0 0 20px">Pochi passi, uno alla volta: tipo di account, nome, email. Ci vuole un minuto.</p>
-        <div class="cta">
-            <a class="btn btn-secondary" href="{{ route('admin.login') }}">Hai già un account? Accedi</a>
+        <div class="wl-btns" style="justify-content:center">
+            <a class="wl-btn" href="{{ route('registration.create') }}">Inizia la registrazione @include('layouts.partials.icon', ['name' => 'arrow', 'size' => 18])</a>
+            <a class="wl-btn" href="{{ route('admin.login') }}" style="background:rgba(255,255,255,.16);color:#fff">Hai già un account? Accedi</a>
         </div>
     </div>
 </section>
@@ -400,17 +292,17 @@
 
 <footer>
     Hub Core — piattaforma multiservizi per aziende e privati<br>
-    <a href="{{ route('pricing.show') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Vedi i prezzi</a>
+    <a href="{{ route('pricing.show') }}">Vedi i prezzi</a>
     ·
-    <a href="{{ route('landing.web') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Siti web e app a Corigliano-Rossano</a>
+    <a href="{{ route('landing.web') }}">Siti web e app a Corigliano-Rossano</a>
     @if (config('landing.facebook_group.url'))
     ·
-    <a href="{{ config('landing.facebook_group.url') }}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-weight:600">{{ config('landing.facebook_group.name') }}</a>
+    <a href="{{ config('landing.facebook_group.url') }}" target="_blank" rel="noopener">{{ config('landing.facebook_group.name') }}</a>
     @endif
     ·
-    <a href="{{ route('promo.hub-archive') }}" style="color:var(--accent);text-decoration:none;font-weight:600">Guarda tutte le promozioni attive →</a>
+    <a href="{{ route('promo.hub-archive') }}">Guarda tutte le promozioni attive →</a>
     ·
-    <a href="{{ route('search') }}" style="color:var(--accent);text-decoration:none;font-weight:600">🔍 Cerca</a>
+    <a href="{{ route('search') }}">Cerca</a>
     @include('layouts.partials.company-footer')
 </footer>
 

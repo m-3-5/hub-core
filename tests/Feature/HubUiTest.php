@@ -28,6 +28,18 @@ class HubUiTest extends TestCase
         $this->get(route('classifieds.board'))->assertOk()->assertSee('ui-pub', false);
     }
 
+    public function test_home_shows_live_promos_and_ads_with_the_same_photo_frame(): void
+    {
+        $tenant = $this->tenant();
+        $tenant->promos()->create(['title' => 'Offerta viva', 'slug' => 'offerta-viva', 'status' => 'published', 'image_path' => 'promos/demo/a.jpg', 'always_active' => true, 'offers' => [], 'published_at' => now()]);
+        $tenant->classifiedAds()->create(['slug' => 'bici', 'category' => 'oggetti', 'title' => 'Bici elettrica', 'zone' => 'Corigliano', 'price' => 500, 'description' => 'x', 'status' => 'published', 'published_at' => now()]);
+
+        $this->get(route('welcome'))->assertOk()
+            ->assertSee('Promozioni attive adesso')->assertSee('Offerta viva')
+            ->assertSee('Ultimi annunci')->assertSee('Bici elettrica')
+            ->assertSee('class="ui-media"', false);
+    }
+
     public function test_tenant_pages_do_not_get_the_platform_top_bar(): void
     {
         $tenant = $this->tenant();

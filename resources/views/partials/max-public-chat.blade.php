@@ -180,6 +180,7 @@
     let dismissed = false;
     try { dismissed = !!sessionStorage.getItem('pmaxDismissed'); } catch (e) {}
     const AUTO = @json($autoOpen ?? true);
-    if (!dismissed && AUTO) setTimeout(open, 1500); else $('pmax-dot').hidden = false;
+    // Si apre da sola solo su schermi larghi: su telefono e finestre strette coprirebbe la pagina.
+    if (!dismissed && AUTO && window.innerWidth >= 1200) setTimeout(open, 1500); else $('pmax-dot').hidden = false;
 })();
 </script>

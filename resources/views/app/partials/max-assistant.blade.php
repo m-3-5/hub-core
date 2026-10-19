@@ -239,7 +239,8 @@
         sessionStorage.setItem('maxDismissed', '1');
     });
 
-    if (!sessionStorage.getItem('maxDismissed')) {
+    // Si apre da solo solo su schermi larghi: altrimenti copre la home appena entri.
+    if (!sessionStorage.getItem('maxDismissed') && window.innerWidth >= 1200) {
         setTimeout(() => {
             panel.hidden = false;
             showStep('greeting');

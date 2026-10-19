@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClassifiedAd;
+use App\Models\Promo;
 use Illuminate\View\View;
 
 class WelcomeController extends Controller
@@ -19,9 +21,26 @@ class WelcomeController extends Controller
             return $slide;
         });
 
+        $livePromos = Promo::with('tenant')
+            ->published()
+            ->active()
+            ->whereHas('tenant')
+            ->whereNotNull('image_path')
+            ->latest('published_at')
+            ->limit(4)
+            ->get();
+
+        $liveAds = ClassifiedAd::with('tenant')
+            ->published()
+            ->whereHas('tenant')
+            ->latest('published_at')
+            ->limit(4)
+            ->get();
+
         return view('welcome', [
             'slides' => $slides,
-            'loopSlides' => $slides->concat($slides),
+            'livePromos' => $livePromos,
+            'liveAds' => $liveAds,
         ]);
     }
 }
