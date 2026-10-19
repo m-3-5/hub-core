@@ -18,6 +18,15 @@ return [
         'image_hosts' => ['fbcdn.net', 'cdninstagram.com', 'facebook.com'],
     ],
 
+    // Vita dei siti creati con Max: chi non paga o non li usa più riceve un avviso, poi il sito va nell'archivio dell'amministratore.
+    // Spento finché non si mette HUB_SITE_LIFECYCLE=true (il comando hub:sites-lifecycle senza --apply mostra solo cosa farebbe).
+    'site_lifecycle' => [
+        'enabled' => (bool) env('HUB_SITE_LIFECYCLE', false),
+        'inactive_days' => (int) env('HUB_SITE_INACTIVE_DAYS', 120),
+        'grace_days' => (int) env('HUB_SITE_GRACE_DAYS', 14),
+        'unverified_days' => (int) env('HUB_SITE_UNVERIFIED_DAYS', 30),
+    ],
+
     'default_password' => env('HUB_DEFAULT_PASSWORD', 'HubCore2026!'),
 
     // Immagini promo via Gemini (richiede billing). Se false: volantino + SVG tematici.
@@ -107,7 +116,7 @@ return [
             'label' => 'Crea sito',
             'description' => 'Sito web della tua attività',
             'emoji' => '🌐',
-            'active' => false,
+            'active' => true,
             'for_types' => ['azienda', 'ente'],
         ],
         'classifieds' => [

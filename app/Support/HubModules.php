@@ -37,6 +37,7 @@ class HubModules
             'products' => route('admin.products.index', $tenant),
             'quotes' => route('admin.quotes.index', $tenant),
             'classifieds' => route('admin.classifieds.index', $tenant),
+            'website' => route('admin.sitebuilder.show', $tenant),
             'billing' => route('admin.billing.show', $tenant),
             default => null,
         };

@@ -42,7 +42,28 @@ class LandingController extends Controller
 
         $plans = $this->plans($offerActive);
 
+        $points = collect(config('presence.points'))->map(function (array $p) {
+            $p['maps'] = 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($p['query']);
+
+            return $p;
+        });
+
+        // Clienti che hanno accettato di comparire (si decide dalla scheda cliente): logo, nome, città e link al loro sito.
+        $logos = app(\App\Services\TenantBrandManager::class);
+        $clients = \App\Models\Tenant::query()->whereNotNull('website')->whereNotNull('guest_verified_at')->orderBy('name')->get()
+            ->filter(fn ($t) => ($t->settings['directory']['show'] ?? false) === true && preg_match('#^https://#i', (string) $t->website))
+            ->map(fn ($t) => [
+                'name' => $t->name,
+                'city' => $t->settings['directory']['city'] ?? null,
+                'url' => $t->website,
+                'host' => preg_replace('#^https?://(www\.)?#i', '', rtrim((string) $t->website, '/')),
+                'logo' => $logos->logoUrl($t),
+                'color' => $t->primary_color ?: '#6366f1',
+            ])->values();
+
         return view('landing.siti-web', [
+            'points' => $points,
+            'clients' => $clients,
             'plans' => $plans,
             'startActive' => $offerActive && config('landing.start.enabled') && (bool) config('services.hub_billing.secret_key'),
             'start' => config('landing.start'),

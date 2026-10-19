@@ -143,6 +143,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/tenants/{tenant}', [DashboardController::class, 'show'])->name('tenants.show');
         Route::delete('/tenants/{tenant}', [DashboardController::class, 'destroy'])->name('tenants.destroy');
+        Route::post('/tenants/{tenant}/directory', [DashboardController::class, 'directory'])->name('tenants.directory');
 
         // Creazione guidata a schermo intero (promo, prodotti, servizi).
         Route::get('/tenants/{tenant}/new/{kind}', [WizardController::class, 'show'])->whereIn('kind', ['promo', 'product', 'service'])->name('wizard.show');

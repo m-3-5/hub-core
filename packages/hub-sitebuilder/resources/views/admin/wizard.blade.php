@@ -39,6 +39,17 @@
             <p style="margin:0 0 10px;color:#2e7d32;font-weight:600">Il tuo sito è pubblicato!</p>
             <a href="{{ route('site.public.show', $tenant) }}" target="_blank" class="btn btn-secondary">Vedi il sito →</a>
             <p style="margin:12px 0 0;font-size:13px;color:#666">Puoi rispondere di nuovo alle domande qui sotto per rigenerarlo quando vuoi.</p>
+            @if ($tenant->isGuestPending())
+                <p style="margin:10px 0 0;font-size:13px;color:#b45309">Il sito sarà visibile a tutti solo dopo la conferma della tua email.</p>
+            @endif
+            <div style="margin-top:14px;padding-top:12px;border-top:1px solid #cfe8d2">
+                <p style="margin:0 0 8px;font-size:13px;color:#444"><strong>Modificalo senza password:</strong> ti scriviamo un link segreto, solo per te, per cambiare i testi anche dal telefono.</p>
+                @if ($hasRealEmail)
+                    <form method="POST" action="{{ route('admin.sitebuilder.edit-link', $tenant) }}">@csrf<button type="submit" class="btn btn-secondary">Mandami il link per email</button></form>
+                @else
+                    <p style="margin:0;font-size:13px;color:#b45309">Serve una email vera del titolare: aggiungila dal Profilo. Il link arriva solo a quella.</p>
+                @endif
+            </div>
         </div>
     @endif
 

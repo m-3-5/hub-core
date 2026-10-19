@@ -60,7 +60,7 @@
                 'mainEntity' => [
                     ['@type' => 'Question', 'name' => 'Quanto costa un sito web a '.$city.'?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Si parte da '.$minPrice.' euro per un sito vetrina. Il sito aziendale e quello professionale su misura hanno prezzi diversi in base a pagine e funzioni: il preventivo è gratuito e senza impegno.']],
                     ['@type' => 'Question', 'name' => 'Il sito si vede bene da smartphone?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Sì, ogni sito nasce prima per lo smartphone e poi si adatta a tablet e computer.']],
-                    ['@type' => 'Question', 'name' => 'Lavorate anche fuori da '.$city.'?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Sì, lavoriamo in tutta la Sibaritide e anche a distanza. Se sei di zona puoi passare a trovarci a '.$place.'.']],
+                    ['@type' => 'Question', 'name' => 'Lavorate anche fuori da '.$city.'?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Sì, lavoriamo in tutta la Sibaritide e anche a distanza. Se sei di zona puoi passare a trovarci in uno dei nostri punti.']],
                     ['@type' => 'Question', 'name' => 'Posso modificare io testi e foto?', 'acceptedAnswer' => ['@type' => 'Answer', 'text' => 'Possiamo pensarci noi oppure darti un pannello semplice per farlo da solo, a seconda del pacchetto: lo decidiamo insieme nel preventivo.']],
                 ],
             ],
@@ -148,6 +148,19 @@
         .step p { margin: 0; color: var(--muted); }
 
         /* zone */
+        .pts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 22px; }
+        .pt { display: flex; flex-direction: column; gap: 4px; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 16px; text-decoration: none; color: inherit; transition: transform .15s; }
+        .pt:hover { transform: translateY(-2px); }
+        .pt.here { border-color: var(--brand); box-shadow: 0 8px 24px rgba(99,102,241,.18); }
+        .pt-role { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--brand-dark); }
+        .pt b { font-size: 1.1rem; } .pt b small { font-weight: 600; color: var(--muted); }
+        .pt-prov { color: var(--muted); font-size: .86rem; }
+        .cl-h { margin: 30px 0 0; font-size: 1.15rem; }
+        .cls { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-top: 12px; }
+        .cl { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; text-decoration: none; color: inherit; }
+        .cl-av { width: 44px; height: 44px; border-radius: 14px; color: #fff; display: grid; place-items: center; font-weight: 800; overflow: hidden; flex: none; }
+        .cl-av img { width: 100%; height: 100%; object-fit: cover; }
+        .cl b { display: block; } .cl small { color: var(--muted); }
         .zones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
         .zones span { background: #fff; border: 1px solid var(--line); border-radius: 99px; padding: 8px 14px; font-weight: 600; font-size: .94rem; }
         .zones span.here { background: var(--brand); border-color: var(--brand); color: #fff; }
@@ -235,9 +248,9 @@
 <main>
     <div class="hero">
         <div class="wrap">
-            <span class="pin">📍 Ora siamo a {{ $place }}, {{ $city }}</span>
+            <span class="pin">📍 Presenti a {{ $points->pluck('name')->take(3)->implode(' · ') }}</span>
             <h1>Il tuo <em>sito web</em> o la tua <em>app</em>, qui vicino a te.</h1>
-            <p>Realizziamo siti e app per negozi, professionisti e aziende di {{ $city }} e dintorni. Vieni a trovarci a {{ $place }} o scrivici: ti diciamo subito cosa serve e quanto costa.</p>
+            <p>Realizziamo siti e app per negozi, professionisti e aziende di {{ $city }} e dintorni. Vieni a trovarci in uno dei nostri punti o scrivici: ti diciamo subito cosa serve e quanto costa.</p>
             <div class="hero-cta">
                 @if ($startActive)
                     <a class="btn btn-brand" href="#parti">Parti con {{ $start['start_eur'] }} €</a>
@@ -335,7 +348,7 @@
             <span class="eyebrow">Come funziona</span>
             <h2>Semplice, senza giri di parole</h2>
             <div class="steps">
-                <div class="step"><b>Ci racconti la tua attività</b><p>Una telefonata, un messaggio o una visita a {{ $place }}: bastano pochi minuti.</p></div>
+                <div class="step"><b>Ci racconti la tua attività</b><p>Una telefonata, un messaggio o una visita in uno dei nostri punti: bastano pochi minuti.</p></div>
                 <div class="step"><b>Disegniamo il tuo sito</b><p>Ti mostriamo la grafica e la sistemiamo insieme finché ti convince.</p></div>
                 <div class="step"><b>Si va online</b><p>Ti aiutiamo con tutto e il sito è visibile da telefono e computer.</p></div>
             </div>
@@ -346,10 +359,39 @@
         <div class="wrap">
             <span class="eyebrow">Dove lavoriamo</span>
             <h2>A {{ $city }} e in tutta la zona</h2>
-            <p class="lead">Siamo a {{ $place }}: se sei di zona ci vediamo di persona, altrimenti ci sentiamo a distanza senza problemi.</p>
+            <p class="lead">Se sei di zona ci vediamo di persona, altrimenti ci sentiamo a distanza senza problemi.</p>
             <div class="zones">
                 @foreach ($zones as $zone)<span class="{{ $zone === $place ? 'here' : '' }}">{{ $zone === $place ? '📍 ' : '' }}{{ $zone }}</span>@endforeach
             </div>
+        </div>
+    </section>
+
+    <section id="dove-siamo">
+        <div class="wrap">
+            <span class="eyebrow">Dove siamo</span>
+            <h2>Presenti in più punti d'Italia</h2>
+            <p class="lead">Scegli il punto più vicino: ti apriamo la mappa di Google.</p>
+            <div class="pts">
+                @foreach ($points as $pt)
+                    <a class="pt {{ $pt['here'] ? 'here' : '' }}" href="{{ $pt['maps'] }}" target="_blank" rel="noopener">
+                        <span class="pt-role">{{ $pt['role'] }}</span>
+                        <b>{{ $pt['name'] }}@if ($pt['detail']) <small>· {{ $pt['detail'] }}</small>@endif</b>
+                        <span class="pt-prov">{{ $pt['province'] }} · Apri su Google Maps ↗</span>
+                    </a>
+                @endforeach
+            </div>
+
+            @if ($clients->isNotEmpty())
+                <h3 class="cl-h">I siti dei nostri clienti</h3>
+                <div class="cls">
+                    @foreach ($clients as $cl)
+                        <a class="cl" href="{{ $cl['url'] }}" target="_blank" rel="noopener">
+                            <span class="cl-av" style="background: {{ $cl['color'] }}">@if ($cl['logo'])<img src="{{ $cl['logo'] }}" alt="">@else{{ mb_strtoupper(mb_substr($cl['name'], 0, 1)) }}@endif</span>
+                            <span><b>{{ $cl['name'] }}</b><small>{{ $cl['city'] ? $cl['city'].' · ' : '' }}{{ $cl['host'] }} ↗</small></span>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </section>
 
@@ -360,7 +402,7 @@
             <div style="margin-top:18px">
                 <details><summary>Quanto costa un sito web a {{ $city }}?</summary><p>Si parte da {{ $minPrice }} € per il sito vetrina. Aziendale e professionale su misura dipendono da pagine e funzioni: il preventivo è gratuito e senza impegno.</p></details>
                 <details><summary>Il sito si vede bene da smartphone?</summary><p>Sì: ogni sito nasce prima per lo smartphone, poi si adatta a tablet e computer.</p></details>
-                <details><summary>Lavorate anche fuori da {{ $city }}?</summary><p>Sì, in tutta la Sibaritide e anche a distanza. Se sei di zona puoi passare a trovarci a {{ $place }}.</p></details>
+                <details><summary>Lavorate anche fuori da {{ $city }}?</summary><p>Sì, in tutta la Sibaritide e anche a distanza. Se sei di zona puoi passare a trovarci in uno dei nostri punti.</p></details>
                 <details><summary>Posso modificare io testi e foto?</summary><p>Possiamo pensarci noi oppure darti un pannello semplice per farlo da solo, a seconda del pacchetto. Lo decidiamo insieme nel preventivo.</p></details>
             </div>
         </div>

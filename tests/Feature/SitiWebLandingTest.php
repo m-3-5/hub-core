@@ -50,7 +50,7 @@ class SitiWebLandingTest extends TestCase
         $response = $this->get('/siti-web-corigliano-rossano')->assertOk();
 
         $response->assertSee('Siti web e app a Corigliano-Rossano', false)
-            ->assertSee('Ora siamo a Fabrizio')
+            ->assertSee('Presenti a Corigliano-Rossano · Castrovillari · Castiglione delle Stiviere')->assertSee('Dove siamo')->assertSee('google.com/maps/search', false)
             ->assertSee('Offerta di lancio fino al')
             ->assertSee('Vetrina')->assertSee('Aziendale')->assertSee('Professionale su misura')
             ->assertSee('290')->assertSee('590')->assertSee('990')       // prezzi in offerta

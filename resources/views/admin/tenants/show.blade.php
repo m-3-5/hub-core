@@ -41,6 +41,17 @@
         <a class="btn btn-secondary" href="{{ route('classifieds.tenant-board', $tenant) }}" target="_blank">Bacheca pubblica ↗</a>
     </div>
 
+    <details class="ah-other" style="margin-top:16px">
+        <summary>Vetrina sul sito e sito web</summary>
+        <form method="POST" action="{{ route('admin.tenants.directory', $tenant) }}" style="display:grid;gap:10px;margin-top:10px;max-width:460px">
+            @csrf
+            <label style="display:flex;gap:10px;align-items:center;font-weight:600"><input type="checkbox" name="show" value="1" @checked($tenant->settings['directory']['show'] ?? false)> Mostra tra i clienti sul sito (serve il sito web nel profilo)</label>
+            <label style="font-weight:600">Città da mostrare <input type="text" name="city" maxlength="80" value="{{ $tenant->settings['directory']['city'] ?? '' }}" placeholder="es. Castrovillari" style="width:100%;padding:10px;border:1px solid #d9dcf0;border-radius:10px"></label>
+            <label style="display:flex;gap:10px;align-items:center;font-weight:600"><input type="checkbox" name="keep_site" value="1" @checked($tenant->settings['keep_site'] ?? false)> Non rimuovere mai il suo sito creato con Max</label>
+            <button type="submit" class="btn" style="width:fit-content">Salva</button>
+        </form>
+    </details>
+
     <div class="section-title"><h2>In breve</h2></div>
     @include('admin.partials.tenant-kpis', ['tenant' => $tenant, 's' => $s])
 

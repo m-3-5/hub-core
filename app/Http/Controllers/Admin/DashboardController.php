@@ -45,6 +45,21 @@ class DashboardController extends Controller
         return view('admin.tenants.show', compact('tenant', 's', 'promos', 'offers', 'ads', 'orders', 'users'));
     }
 
+    /** Vetrina sul sito: mostrare il cliente tra i siti dei clienti e, se serve, non togliere mai il suo sito creato con Max. */
+    public function directory(\Illuminate\Http\Request $request, Tenant $tenant): RedirectResponse
+    {
+        abort_unless(auth()->user()?->isSuperAdmin(), 403);
+
+        $data = $request->validate(['city' => ['nullable', 'string', 'max:80']]);
+
+        $settings = $tenant->settings ?? [];
+        $settings['directory'] = ['show' => $request->boolean('show'), 'city' => trim((string) ($data['city'] ?? '')) ?: null];
+        $settings['keep_site'] = $request->boolean('keep_site');
+        $tenant->update(['settings' => $settings]);
+
+        return back()->with('success', 'Salvato.');
+    }
+
     public function destroy(Tenant $tenant): RedirectResponse
     {
         abort_unless(auth()->user()?->isSuperAdmin(), 403);

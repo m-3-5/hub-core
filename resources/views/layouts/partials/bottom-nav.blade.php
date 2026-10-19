@@ -19,6 +19,7 @@
         if (in_array('products', $uiActive, true)) $uiItems[] = ['Prodotti', 'products', route('admin.products.index', $uiTenant), request()->routeIs('admin.products.*')];
         if (in_array('quotes', $uiActive, true)) $uiItems[] = ['Preventivi', 'quotes', route('admin.quotes.index', $uiTenant), request()->routeIs('admin.quotes.*')];
         if (in_array('classifieds', $uiActive, true)) $uiItems[] = ['Annunci', 'classifieds', route('admin.classifieds.index', $uiTenant), request()->routeIs('admin.classifieds.*')];
+        if (in_array('website', $uiActive, true)) $uiItems[] = ['Sito web', 'globe', route('admin.sitebuilder.show', $uiTenant), request()->routeIs('admin.sitebuilder.*')];
         if (array_intersect(['services', 'products', 'quotes'], $uiActive)) $uiItems[] = ['Ordini', 'orders', route('admin.orders.index', $uiTenant), request()->routeIs('admin.orders.*')];
         $uiItems[] = ['Messaggi', 'messages', route('admin.customer-tickets.index', $uiTenant), request()->routeIs('admin.customer-tickets.*'), $uiNew];
 
@@ -43,6 +44,7 @@
             ['Commissioni', 'coins', route('admin.commissions.index'), request()->routeIs('admin.commissions.*')],
             ['Attività', 'chart', route('admin.activity.index'), request()->routeIs('admin.activity.*')],
             ['Feedback', 'messages', route('admin.feedback.index'), request()->routeIs('admin.feedback.*')],
+            ['Archivio siti', 'archive', route('admin.site-archive.index'), request()->routeIs('admin.site-archive.*')],
         ];
         $uiMore = [['Le mie attività', 'home', route('app.index'), request()->routeIs('app.index')]];
         $uiPublic = [['Listino prezzi', 'tag', route('pricing.show'), false]];

@@ -18,5 +18,8 @@ Schedule::command('hub:launch-offer-reminders')->dailyAt('10:00');
 // Pagamenti protetti: gira ai venditori i soldi il cui compratore ha confermato o la cui attesa è finita.
 Schedule::command('hub:release-protected-payments')->hourly()->withoutOverlapping();
 
+// Siti creati con Max: avviso e poi archivio per chi non paga o non li usa. Resta spento finché HUB_SITE_LIFECYCLE=true.
+Schedule::command('hub:sites-lifecycle --apply')->dailyAt('04:30')->when(fn () => (bool) config('hub.site_lifecycle.enabled'))->withoutOverlapping();
+
 // Commissioni del mese scorso sulle vendite del canale hub → registro addebiti (con commissione 0 non scrive nulla).
 Schedule::command('hub:charge-commissions')->monthlyOn(1, '03:00');
