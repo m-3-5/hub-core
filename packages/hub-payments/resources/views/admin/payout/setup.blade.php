@@ -25,6 +25,7 @@
         .guide { color: var(--c-dark); font-weight: 700; font-size: .92rem; }
         .stack { display: grid; gap: 14px; margin-top: 14px; }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 <div class="wz">

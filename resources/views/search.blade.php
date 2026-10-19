@@ -29,6 +29,7 @@
         .empty { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px; color: var(--muted); margin-top: 18px; }
         footer { text-align: center; color: var(--muted); font-size: .8rem; padding: 28px 16px calc(28px + env(safe-area-inset-bottom)); }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 <header>

@@ -69,6 +69,7 @@
         footer a { color: inherit; }
         #problema { scroll-margin-top: 80px; }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 <header class="bar">

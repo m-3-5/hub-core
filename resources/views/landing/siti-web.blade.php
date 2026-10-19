@@ -71,7 +71,7 @@
     <style>
         :root {
             --bg: #ffffff; --ink: #14142b; --muted: #5d5d73; --line: #e8e8f0; --soft: #f6f6fb;
-            --brand: #e91e8c; --brand-dark: #c2177a; --navy: #14142b; --navy2: #23234a; --ok: #1a9d6b; --warn: #b45309;
+            --brand: #6366f1; --brand-dark: #4f46e5; --navy: #14142b; --navy2: #23234a; --ok: #1a9d6b; --warn: #b45309;
             --radius: 20px;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -191,7 +191,7 @@
         /* barra fissa su telefono */
         .sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); backdrop-filter: blur(10px); border-top: 1px solid var(--line); display: flex; gap: 10px; transition: transform .25s; }
         .sticky .btn { flex: 1; }
-        .startbar { background: linear-gradient(135deg, #e91e8c, #7a3cff); color: #fff; border-radius: var(--radius); padding: 18px 20px; margin-top: 14px; }
+        .startbar { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border-radius: var(--radius); padding: 18px 20px; margin-top: 14px; }
         .startbar b { font-size: 1.15rem; }
         .startbar span { display: block; opacity: .92; font-size: .95rem; margin-top: 2px; }
         .plan .pay { background: #f4f1ff; border-radius: 12px; padding: 10px 12px; font-size: .9rem; margin: 0 0 14px; color: #3b2a85; }
@@ -217,6 +217,7 @@
         }
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn, .sticky { transition: none; } }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 

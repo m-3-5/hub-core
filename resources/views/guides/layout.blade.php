@@ -47,6 +47,7 @@
         th { background: #f1f0fa; }
         .small { color: var(--muted); font-size: .85rem; }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 <header class="top">

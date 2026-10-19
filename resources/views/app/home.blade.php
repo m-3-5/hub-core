@@ -15,7 +15,7 @@
         <h1>{{ $tenant->name }}</h1>
         <p>{{ $typeLabels[$tenantType] ?? 'Azienda' }} · Cosa vuoi fare oggi?</p>
     </div>
-    <div class="app-actions">
+    <div class="app-actions only-mobile">
         <a class="btn btn-ghost" href="{{ route('admin.customer-tickets.index', $tenant) }}">
             📨 Messaggi clienti
             @if ($newCustomerTicketsCount)

@@ -1,58 +1,99 @@
-@isset($tenant)
+{{--
+    Navigazione sempre visibile: barra laterale su computer (tutte le sezioni), barra in basso su telefono (le 5 principali).
+    Stili in public/css/hub-ui.css. Per l'attività corrente usa $tenant; per l'amministratore senza attività mostra le sezioni di gestione.
+--}}
 @auth
-<style>
-    .bottom-nav { display: none; }
-    @media (max-width: 860px) {
-        .bottom-nav {
-            display: flex;
-            position: fixed;
-            left: 0; right: 0; bottom: 0;
-            background: var(--card, #fff);
-            border-top: 1px solid rgba(15,23,42,.08);
-            box-shadow: 0 -4px 20px rgba(15,23,42,.06);
-            padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
-            z-index: 40;
-        }
-        .bottom-nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            padding: 6px 2px;
-            text-decoration: none;
-            color: var(--muted, #64748b);
-            border-radius: 12px;
-            transition: color .15s ease, background .15s ease;
-        }
-        .bottom-nav-item.is-active {
-            color: var(--accent, #e91e8c);
-            background: color-mix(in srgb, var(--accent, #e91e8c) 10%, transparent);
-        }
-        .bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
-        .bottom-nav-label { font-size: .65rem; font-weight: 600; }
-        body.has-bottom-nav { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+@php
+    $uiUser = auth()->user();
+    $uiTenant = $tenant ?? null;
+    $uiItems = [];   // [label, emoji, url, attivo, badge]
+    $uiTabs = [];
+
+    if ($uiTenant) {
+        $uiActive = collect(app(\App\Support\HubModules::class)->forTenant($uiTenant))->where('active', true)->pluck('key')->all();
+        $uiNew = (int) \App\Models\CustomerTicket::query()->where('tenant_id', $uiTenant->id)->where('status', 'new')->count();
+
+        $uiItems[] = ['Home', '🏠', route('app.home', $uiTenant), request()->routeIs('app.home')];
+        if (in_array('promo', $uiActive, true)) $uiItems[] = ['Promo', '✨', route('admin.promos.index', $uiTenant), request()->routeIs('admin.promos.*')];
+        if (in_array('services', $uiActive, true)) $uiItems[] = ['Servizi', '💆', route('admin.services.index', $uiTenant), request()->routeIs('admin.services.*')];
+        if (in_array('products', $uiActive, true)) $uiItems[] = ['Prodotti', '📦', route('admin.products.index', $uiTenant), request()->routeIs('admin.products.*')];
+        if (in_array('quotes', $uiActive, true)) $uiItems[] = ['Preventivi', '🧾', route('admin.quotes.index', $uiTenant), request()->routeIs('admin.quotes.*')];
+        if (in_array('classifieds', $uiActive, true)) $uiItems[] = ['Annunci', '📋', route('admin.classifieds.index', $uiTenant), request()->routeIs('admin.classifieds.*')];
+        if (array_intersect(['services', 'products', 'quotes'], $uiActive)) $uiItems[] = ['Ordini', '🛒', route('admin.orders.index', $uiTenant), request()->routeIs('admin.orders.*')];
+        $uiItems[] = ['Messaggi', '📨', route('admin.customer-tickets.index', $uiTenant), request()->routeIs('admin.customer-tickets.*'), $uiNew];
+
+        $uiMore = [];
+        $uiMore[] = ['Profilo', '🪪', route('admin.profile.edit', $uiTenant), request()->routeIs('admin.profile.*')];
+        if (in_array('billing', $uiActive, true)) $uiMore[] = ['Abbonamento', '💳', route('admin.billing.show', $uiTenant), request()->routeIs('admin.billing.*') || request()->routeIs('admin.module-billing.*')];
+
+        // Barra in basso: Home + le prime sezioni di lavoro + Messaggi (max 5)
+        $work = collect($uiItems)->reject(fn ($i) => in_array($i[0], ['Home', 'Messaggi', 'Ordini'], true))->take(3)->all();
+        $uiTabs = array_merge([$uiItems[0]], $work, [collect($uiItems)->firstWhere(0, 'Messaggi')]);
+        $brandName = $uiTenant->name;
+        $brandSub = ['azienda' => 'Azienda', 'privato' => 'Privato', 'ente' => 'Ente'][$uiTenant->type ?: 'azienda'] ?? 'Azienda';
+        $brandLogo = app(\App\Services\TenantBrandManager::class)->logoUrl($uiTenant);
+        $brandHome = route('app.home', $uiTenant);
+        $uiPublic = [['Pagina pubblica', '↗', route('promo.archive', $uiTenant), false]];
+    } elseif ($uiUser->isSuperAdmin()) {
+        $uiItems = [
+            ['Clienti', '👥', route('admin.dashboard'), request()->routeIs('admin.dashboard') || request()->routeIs('admin.tenants.*')],
+            ['Ticket', '🎫', route('admin.tickets.index'), request()->routeIs('admin.tickets.*')],
+            ['Richieste sito', '📩', route('admin.leads.index'), request()->routeIs('admin.leads.*')],
+            ['Pagamenti protetti', '🛡️', route('admin.protected-orders.index'), request()->routeIs('admin.protected-orders.*')],
+            ['Commissioni', '💶', route('admin.commissions.index'), request()->routeIs('admin.commissions.*')],
+            ['Attività', '📊', route('admin.activity.index'), request()->routeIs('admin.activity.*')],
+            ['Feedback', '💬', route('admin.feedback.index'), request()->routeIs('admin.feedback.*')],
+        ];
+        $uiMore = [['Le mie attività', '🏪', route('app.index'), request()->routeIs('app.index')]];
+        $uiPublic = [['Listino prezzi', '🏷️', route('pricing.show'), false]];
+        $uiTabs = array_slice($uiItems, 0, 4);
+        $uiTabs[] = ['Attività', '📊', route('admin.activity.index'), request()->routeIs('admin.activity.*')];
+        $brandName = 'Hub Core';
+        $brandSub = 'Amministrazione';
+        $brandLogo = null;
+        $brandHome = route('admin.dashboard');
     }
-</style>
-<nav class="bottom-nav">
-    <a href="{{ route('app.home', $tenant) }}" class="bottom-nav-item {{ request()->routeIs('app.home') ? 'is-active' : '' }}">
-        <span class="bottom-nav-icon">🏠</span>
-        <span class="bottom-nav-label">Home</span>
+@endphp
+@if (! empty($uiItems))
+<aside class="ui-side" aria-label="Menu principale">
+    <a class="ui-side__brand" href="{{ $brandHome }}">
+        <span class="ui-side__logo">@if (! empty($brandLogo))<img src="{{ $brandLogo }}" alt="">@else{{ mb_strtoupper(mb_substr($brandName, 0, 1)) }}@endif</span>
+        <span><b>{{ $brandName }}</b><small>{{ $brandSub }}</small></span>
     </a>
-    <a href="{{ route('admin.promos.index', $tenant) }}" class="bottom-nav-item {{ request()->routeIs('admin.promos.*') ? 'is-active' : '' }}">
-        <span class="bottom-nav-icon">✨</span>
-        <span class="bottom-nav-label">Promo</span>
-    </a>
-    @if ($tenant->type !== 'privato')
-    <a href="{{ route('admin.services.index', $tenant) }}" class="bottom-nav-item {{ request()->routeIs('admin.services.*') ? 'is-active' : '' }}">
-        <span class="bottom-nav-icon">💆</span>
-        <span class="bottom-nav-label">Servizi</span>
-    </a>
+
+    @foreach ($uiItems as $it)
+        <a class="ui-side__item {{ $it[3] ? 'is-active' : '' }}" href="{{ $it[2] }}" @if($it[3]) aria-current="page" @endif>
+            <span class="ui-side__ico">{{ $it[1] }}</span>{{ $it[0] }}
+            @if (! empty($it[4]))<span class="ui-side__badge">{{ $it[4] }}</span>@endif
+        </a>
+    @endforeach
+
+    <div class="ui-side__sep"></div>
+    @foreach (array_merge($uiMore ?? [], $uiPublic ?? []) as $it)
+        <a class="ui-side__item {{ $it[3] ? 'is-active' : '' }}" href="{{ $it[2] }}" @if($it[1] === '↗') target="_blank" rel="noopener" @endif>
+            <span class="ui-side__ico">{{ $it[1] }}</span>{{ $it[0] }}
+        </a>
+    @endforeach
+    @if ($uiTenant && $uiUser->isSuperAdmin())
+        <a class="ui-side__item" href="{{ route('admin.dashboard') }}"><span class="ui-side__ico">↩️</span>Tutti i clienti</a>
     @endif
-    <a href="{{ route('admin.billing.show', $tenant) }}" class="bottom-nav-item {{ request()->routeIs('admin.billing.*') || request()->routeIs('admin.module-billing.*') ? 'is-active' : '' }}">
-        <span class="bottom-nav-icon">🧾</span>
-        <span class="bottom-nav-label">Abbonamento</span>
-    </a>
+
+    <div class="ui-side__foot">
+        <form method="POST" action="{{ route('admin.logout') }}">
+            @csrf
+            <button type="submit" class="ui-side__item"><span class="ui-side__ico">🚪</span>Esci</button>
+        </form>
+    </div>
+</aside>
+
+<nav class="ui-tabbar" aria-label="Menu principale">
+    @foreach ($uiTabs as $it)
+        <a class="ui-tab {{ $it[3] ? 'is-active' : '' }}" href="{{ $it[2] }}" @if($it[3]) aria-current="page" @endif>
+            <span class="ui-tab__ico">{{ $it[1] }}</span>
+            <span class="ui-tab__label">{{ $it[0] }}</span>
+            @if (! empty($it[4]))<span class="ui-tab__badge">{{ $it[4] }}</span>@endif
+        </a>
+    @endforeach
 </nav>
+@endif
 @endauth
-@endisset

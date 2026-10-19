@@ -23,6 +23,7 @@
         .tenant-card small { color: #64748b; }
         .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 <div class="wrap">

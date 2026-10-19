@@ -88,6 +88,7 @@
         ],
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
     </script>
+@include('layouts.partials.ui')
 </head>
 <body>
 <div class="wrap">

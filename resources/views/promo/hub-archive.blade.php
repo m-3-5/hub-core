@@ -6,7 +6,7 @@
     <title>Tutte le promozioni — Hub Core</title>
     @include('layouts.partials.favicon')
     <meta name="description" content="Le promozioni attive di tutte le attività su Hub Core.">
-    <meta name="theme-color" content="#e91e8c">
+    <meta name="theme-color" content="#6366f1">
     <link rel="canonical" href="{{ route('promo.hub-archive') }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Hub Core">
@@ -19,9 +19,9 @@
     <meta name="twitter:title" content="Tutte le promozioni — Hub Core">
     <meta name="twitter:image" content="{{ asset('images/og-hub-core.png') }}">
     <style>
-        :root { --primary: #e91e8c; --text: #1f1a24; --muted: #5c5563; }
+        :root { --primary: #6366f1; --text: #1f1a24; --muted: #5c5563; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: system-ui, sans-serif; color: var(--text); background: #faf8fb; line-height: 1.5; }
+        body { font-family: system-ui, sans-serif; color: var(--text); background: #f6f7fb; line-height: 1.5; }
         .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 20px 48px; }
         h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); margin-bottom: 8px; }
         .lead { color: var(--muted); margin-bottom: 28px; }
@@ -42,6 +42,7 @@
     @isset($jsonLd)
     <script type="application/ld+json">{!! $jsonLd !!}</script>
     @endisset
+@include('layouts.partials.ui')
 </head>
 <body>
 <div class="wrap">

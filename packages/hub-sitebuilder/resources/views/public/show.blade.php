@@ -70,6 +70,7 @@
         footer { text-align: center; padding: 30px 20px; color: var(--muted); font-size: .82rem; }
         footer a { color: var(--primary); font-weight: 600; text-decoration: none; }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 

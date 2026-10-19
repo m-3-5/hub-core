@@ -8,6 +8,7 @@
     <meta name="robots" content="noindex">
     @include('layouts.partials.favicon')
     @include('layouts.partials.wizard-css', ['color' => '#6366f1'])
+@include('layouts.partials.ui')
 </head>
 <body>
 @php

@@ -6,6 +6,7 @@
     <meta name="theme-color" content="{{ $color }}">
     <title>{{ ['promo' => 'Nuova promo', 'product' => 'Nuovo prodotto', 'service' => 'Nuovo servizio'][$kind] }} — {{ $tenant->name }}</title>
     @include('layouts.partials.wizard-css', ['color' => $color])
+@include('layouts.partials.ui')
 </head>
 <body>
 @php

@@ -54,6 +54,7 @@
     @isset($jsonLd)
     <script type="application/ld+json">{!! $jsonLd !!}</script>
     @endisset
+@include('layouts.partials.ui')
 </head>
 <body>
 <div class="top">

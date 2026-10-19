@@ -54,7 +54,7 @@
         </div>
     @endif
 
-    <h2 style="font-size:1.1rem;margin:20px 0 12px;color:#e91e8c">Attive ({{ $active->count() }})</h2>
+    <h2 style="font-size:1.1rem;margin:20px 0 12px;color:#4f46e5">Attive ({{ $active->count() }})</h2>
     <div class="mgrid">
         @foreach ($active as $promo)
             @include('layouts.partials.media-card', [

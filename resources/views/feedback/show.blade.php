@@ -21,6 +21,7 @@
         button { background: var(--primary); color: #fff; border: 0; padding: 13px 26px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: .95rem; }
         .success { background: #e8f5e9; color: #2e7d32; padding: 16px; border-radius: 12px; }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 <div class="wrap">

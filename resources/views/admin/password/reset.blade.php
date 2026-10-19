@@ -30,6 +30,7 @@
         .error { color: #dc2626; font-size: .9rem; margin-bottom: 12px; }
         .hint { font-size: .82rem; color: #94a3b8; margin: -8px 0 12px; }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 <div class="card">

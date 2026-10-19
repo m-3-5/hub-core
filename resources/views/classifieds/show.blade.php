@@ -86,6 +86,7 @@
     @isset($jsonLd)
     <script type="application/ld+json">{!! $jsonLd !!}</script>
     @endisset
+@include('layouts.partials.ui')
 </head>
 <body>
 <div class="nav"><a href="{{ route('classifieds.tenant-board', $tenant) }}">← Tutti gli annunci di {{ $tenant->name }}</a></div>

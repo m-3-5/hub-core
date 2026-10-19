@@ -139,8 +139,9 @@
         }
     </style>
     @include('layouts.partials.app-mobile')
+@include('layouts.partials.ui')
 </head>
-<body class="@isset($tenant) has-bottom-nav @endisset">
+<body class="@if (auth()->check() && (isset($tenant) || auth()->user()->isSuperAdmin())) has-shell has-bottom-nav @endif">
 <div class="app-shell">
     @if (session('success'))
         <div class="alert">{{ session('success') }}</div>

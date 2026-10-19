@@ -17,7 +17,7 @@
         header a { color: #fff; text-decoration: none; }
         main { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
         .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
-        .btn { display: inline-block; background: #e91e8c; color: #fff; border: 0; padding: 10px 18px; border-radius: 8px; text-decoration: none; cursor: pointer; font-weight: 600; }
+        .btn { display: inline-block; background: #6366f1; color: #fff; border: 0; padding: 10px 18px; border-radius: 8px; text-decoration: none; cursor: pointer; font-weight: 600; }
         .btn-secondary { background: #eee; color: #333; }
         .btn-danger { background: #c62828; color: #fff; }
         .admin-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; }
@@ -34,7 +34,7 @@
         .mcard { position: relative; background: #fff; border-radius: 16px; overflow: hidden; border: 1px solid rgba(0,0,0,.06); box-shadow: 0 6px 20px rgba(0,0,0,.07); display: flex; flex-direction: column; transition: transform .15s, box-shadow .15s; }
         .mcard:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,.12); }
         .mcard--muted .mcard__media img { filter: grayscale(.55); opacity: .85; }
-        .mcard__media { position: relative; display: block; aspect-ratio: 4/5; background: linear-gradient(135deg, #fdf2f8, #eef2ff); }
+        .mcard__media { position: relative; display: block; aspect-ratio: 4/5; background: linear-gradient(135deg, #eef0fb, #eef2ff); }
         .mcard__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
         .mcard__ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 2.2rem; color: #b8879e; }
         .mcard__ph small { font-size: .72rem; }
@@ -53,17 +53,18 @@
         .mcard__body h3 { margin: 0; font-size: 1rem; line-height: 1.25; }
         .mcard__body h3 a { color: #1a1a2e; text-decoration: none; }
         .mcard__body p { margin: 0; font-size: .82rem; color: #666; }
-        .mcard__open { font-size: .8rem; color: #e91e8c; text-decoration: none; font-weight: 600; margin-top: 2px; }
+        .mcard__open { font-size: .8rem; color: #6366f1; text-decoration: none; font-weight: 600; margin-top: 2px; }
         .mcard__action { width: 100%; border: 0; border-radius: 999px; padding: 8px 12px; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; background: #f4f4f8; color: #333; }
         .mcard__action:hover { background: #e9e9f0; }
-        .mcard--new { border: 2px dashed #e91e8c; background: #fff7fb; box-shadow: none; min-height: 220px; }
-        .mcard--new a { flex: 1; display: grid; place-items: center; align-content: center; color: #e91e8c; text-align: center; font-weight: 700; text-decoration: none; padding: 20px; }
+        .mcard--new { border: 2px dashed #6366f1; background: #f5f5ff; box-shadow: none; min-height: 220px; }
+        .mcard--new a { flex: 1; display: grid; place-items: center; align-content: center; color: #6366f1; text-align: center; font-weight: 700; text-decoration: none; padding: 20px; }
         .mcard--new b { display: block; font-size: 2.6rem; line-height: 1; }
         @media (max-width: 560px) { .mgrid { grid-template-columns: repeat(2, 1fr); gap: 12px; } .mcard__tool { width: 36px; height: 36px; } }
     </style>
     @include('layouts.partials.app-mobile')
+@include('layouts.partials.ui')
 </head>
-<body class="@isset($tenant) has-bottom-nav @endisset">
+<body class="@if (auth()->check() && (isset($tenant) || auth()->user()->isSuperAdmin())) has-shell has-bottom-nav @endif">
 <header class="hdr">
     <div>
         <span style="background:#fff;border-radius:10px;padding:3px 7px;display:inline-flex;vertical-align:middle;margin-right:8px"><img src="{{ asset('images/logo-m35.png') }}" alt="M 3.5" height="28" style="height:28px;width:auto;display:block"></span><strong>Hub Core</strong>

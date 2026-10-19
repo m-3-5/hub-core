@@ -42,6 +42,7 @@
         .links a:hover { text-decoration: underline; }
         .back { display: block; margin-top: 14px; color: #64748b; }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 <div class="card">

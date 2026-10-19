@@ -172,6 +172,7 @@
             .network { width: 85%; opacity: .35; }
         }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 @if (!empty($previewMode))

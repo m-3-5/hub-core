@@ -102,6 +102,7 @@
             .dock .cta { flex: 0 1 360px; }
         }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 

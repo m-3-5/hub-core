@@ -31,6 +31,7 @@
         .success { color: #15803d; background: #f0fdf4; padding: 12px; border-radius: 10px; font-size: .9rem; margin-bottom: 16px; line-height: 1.45; }
         .back { display: block; text-align: center; margin-top: 20px; color: #64748b; font-size: .9rem; text-decoration: none; }
     </style>
+@include('layouts.partials.ui')
 </head>
 <body>
 <div class="card">
