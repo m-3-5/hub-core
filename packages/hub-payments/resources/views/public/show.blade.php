@@ -91,6 +91,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@include('layouts.partials.public-nav')
 <div class="wrap">
     @unless (!empty($embedMode))
         <p class="breadcrumb"><a href="{{ route('services.public.archive', $tenant) }}">{{ $tenant->name }}</a> · {{ $isProduct ? 'Prodotti' : 'Servizi' }}</p>
@@ -151,6 +152,7 @@
 </div>
 @unless (!empty($embedMode))
     @include('layouts.partials.share-bar', ['shareTitle' => $service->title.' — '.$tenant->name, 'shareUrl' => url()->current(), 'shareSection' => true, 'shareLabel' => $isProduct ? 'Condividi questo prodotto' : 'Condividi questo servizio'])
+    @include('layouts.partials.app-footer')
 @endunless
 </body>
 </html>

@@ -61,5 +61,6 @@
     @endif
 </div>
 @include('layouts.partials.share-bar', ['shareTitle' => 'Tutte le promozioni', 'shareUrl' => route('promo.hub-archive'), 'shareSection' => true, 'shareLabel' => 'Condividi le promozioni'])
+@include('layouts.partials.app-footer')
 </body>
 </html>

@@ -251,6 +251,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@include('layouts.partials.public-nav')
 @if (!empty($previewMode))
 <div style="background:#e65100;color:#fff;text-align:center;padding:14px 16px;font-weight:600;font-family:system-ui,sans-serif;position:sticky;top:0;z-index:100">
     ANTEPRIMA — Questa promo non è ancora visibile al pubblico
@@ -405,6 +406,7 @@
 
     @include('layouts.partials.share-bar', ['shareTitle' => $promo->seo_title ?? $promo->title, 'shareUrl' => $shareLinks['copy'], 'shareSection' => true, 'shareLabel' => 'Condividi questa promozione'])
 
+    @include('layouts.partials.app-footer')
     @php
         $promoLinks = $landingLinks;
     @endphp

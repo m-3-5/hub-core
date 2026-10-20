@@ -89,6 +89,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@include('layouts.partials.public-nav')
 <div class="nav"><a href="{{ route('classifieds.tenant-board', $tenant) }}">← Tutti gli annunci di {{ $tenant->name }}</a></div>
 
 <div class="layout">
@@ -186,6 +187,7 @@
 
 @include('layouts.partials.share-bar', ['shareTitle' => $ad->title, 'shareUrl' => $ad->publicUrl(), 'shareSection' => true, 'shareLabel' => 'Condividi questo annuncio'])
 
+@include('layouts.partials.app-footer')
 @if (! empty($protectedBuy))
     <div class="buybar"><b>{{ $ad->priceLabel() }}</b><a href="#acquista">🛡️ Compra ora</a></div>
 @endif

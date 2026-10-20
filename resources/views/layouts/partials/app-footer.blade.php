@@ -15,7 +15,7 @@
             @endif
             @foreach (($footExtra ?? []) as $x)<a href="{{ $x[1] }}">{{ $x[0] }}</a>@endforeach
         </nav>
-        <a class="ui-foot__cta" href="{{ route('admin.login') }}">Accedi</a>
+        @auth<a class="ui-foot__cta" href="{{ route('app.index') }}">La mia app</a>@else<a class="ui-foot__cta" href="{{ route('admin.login') }}">Accedi</a>@endauth
     </div>
     <div class="ui-foot__legal">@include('layouts.partials.company-footer')</div>
 </footer>

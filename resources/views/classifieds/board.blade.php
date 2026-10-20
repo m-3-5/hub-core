@@ -57,7 +57,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
-@unless ($tenant)@include('layouts.partials.public-nav')@endunless
+@include('layouts.partials.public-nav')
 <div class="top">
     <h1>{{ $tenant ? $tenant->name : 'Annunci' }}</h1>
     <p>Immobili, oggetti in vendita, servizi e lezioni</p>
@@ -109,5 +109,6 @@
     @endif
 </div>
 @include('layouts.partials.share-bar', ['shareTitle' => $boardTitle, 'shareUrl' => request()->url(), 'shareSection' => true, 'shareLabel' => 'Condividi questa pagina'])
+@include('layouts.partials.app-footer')
 </body>
 </html>

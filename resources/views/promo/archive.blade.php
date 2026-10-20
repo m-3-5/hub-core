@@ -49,6 +49,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@include('layouts.partials.public-nav')
 <div class="wrap">
     <h1>Promozioni — {{ $tenant->name }}</h1>
     <p class="lead">Offerte attive e archivio promozioni passate.</p>
@@ -76,5 +77,6 @@
     @endif
 </div>
 @include('layouts.partials.share-bar', ['shareTitle' => 'Promozioni — '.$tenant->name, 'shareUrl' => route('promo.archive', $tenant), 'shareSection' => true, 'shareLabel' => 'Condividi le promozioni'])
+@include('layouts.partials.app-footer')
 </body>
 </html>

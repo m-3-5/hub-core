@@ -35,6 +35,7 @@
 @include('layouts.partials.ui')
 </head>
 <body>
+@include('layouts.partials.public-nav')
 <div class="wrap">
     <h1>{{ $tenant->name }}</h1>
 
@@ -66,5 +67,6 @@
         </section>
     @endif
 </div>
+@include('layouts.partials.app-footer')
 </body>
 </html>

@@ -40,15 +40,26 @@ class HubUiTest extends TestCase
             ->assertSee('class="ui-media"', false);
     }
 
-    public function test_tenant_pages_do_not_get_the_platform_top_bar(): void
+    public function test_every_public_page_of_a_client_also_has_the_platform_bar_and_footer(): void
     {
         $tenant = $this->tenant();
+        $tenant->classifiedAds()->create(['slug' => 'bici', 'category' => 'oggetti', 'title' => 'Bici elettrica', 'zone' => 'Corigliano', 'price' => 500, 'description' => 'x', 'status' => 'published', 'published_at' => now()]);
+        $promo = $tenant->promos()->create(['title' => 'Offerta', 'slug' => 'offerta', 'status' => 'published', 'always_active' => true, 'offers' => [], 'published_at' => now()]);
 
-        $this->get(route('classifieds.tenant-board', $tenant))->assertOk()
-            ->assertSee('css/hub-ui.css', false)
-            ->assertDontSee('ui-pub__brand', false);
+        foreach ([
+            route('classifieds.tenant-board', $tenant),
+            route('classifieds.show', [$tenant, 'bici']),
+            route('promo.archive', $tenant),
+            route('promo.show', [$tenant, $promo]),
+        ] as $url) {
+            $this->get($url)->assertOk()
+                ->assertSee('css/hub-ui.css', false)
+                ->assertSee('ui-pub__links', false)
+                ->assertSee('ui-foot', false)
+                ->assertSee(route('classifieds.board'), false)
+                ->assertSee(route('welcome'), false);
+        }
     }
-
     public function test_tenant_owner_sees_the_whole_menu_at_once(): void
     {
         $tenant = $this->tenant();
