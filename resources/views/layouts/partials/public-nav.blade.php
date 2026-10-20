@@ -13,7 +13,7 @@
     <a class="ui-pub__brand" href="{{ route('welcome') }}" aria-label="Hub Core - Home">
         <span class="ui-pub__logo">H</span><span class="ui-pub__name">Hub Core</span>
     </a>
-    <div class="ui-pub__links">
+    <div class="ui-pub__links" data-ui-scroll>
         @foreach ($pubItems as $it)
             <a href="{{ $it[2] }}" class="{{ $it[3] ? 'is-active' : '' }} {{ $it[0] === 'Guide' ? 'ui-pub__opt' : '' }}" @if($it[3]) aria-current="page" @endif><span class="ui-pub__ico">@include('layouts.partials.icon', ['name' => $it[1], 'size' => 19])</span><span>{{ $it[0] }}</span></a>
         @endforeach

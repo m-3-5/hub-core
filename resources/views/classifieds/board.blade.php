@@ -63,7 +63,7 @@
     <p>Immobili, oggetti in vendita, servizi e lezioni</p>
 </div>
 <div class="wrap">
-    <nav class="cats" aria-label="Categorie">
+    <nav class="cats" data-ui-scroll aria-label="Categorie">
         <a class="cat {{ $category === null ? 'on' : '' }}" href="{{ request()->url() }}{{ $qs ? '?'.http_build_query($qs) : '' }}"><span class="i">🧭</span> Tutti <small>{{ $total }}</small></a>
         @foreach (\App\Models\ClassifiedAd::CATEGORIES as $key => $label)
             <a class="cat {{ $category === $key ? 'on' : '' }}" href="{{ request()->url() }}?{{ http_build_query($qs + ['categoria' => $key]) }}"><span class="i">{{ \App\Models\ClassifiedAd::iconFor($key) }}</span> {{ $label }} <small>{{ $counts[$key] ?? 0 }}</small></a>
