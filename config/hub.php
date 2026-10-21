@@ -13,6 +13,14 @@ return [
   */
     'bridge_secret' => env('HUB_BRIDGE_SECRET'),
 
+    // Elenco pubblico di piramide35.com: piramide:sync lo legge e porta tra le promo di inm35.it SOLO le voci scelte qui
+    // (slug delle pagine paese, "settore-..." per i tipi di attività, "servizio-..." per i servizi). Si cambia con PIRAMIDE_SELEZIONE.
+    'piramide_feed' => env('PIRAMIDE_FEED_URL', 'https://piramide35.com/feed/inm35.json'),
+    'piramide_selezione' => array_filter(array_map('trim', explode(',', (string) env(
+        'PIRAMIDE_SELEZIONE',
+        'senise,colobraro,tursi,matera,corigliano-rossano,settore-bb-case-vacanze,settore-ristoranti-pizzerie,settore-aziende-agricole-cantine,settore-negozi-online-ecommerce'
+    )))),
+
     // Bozze di promo create da post esterni (Facebook…): da quali host si scarica la foto (https, suffisso del dominio).
     'promo_import' => [
         'image_hosts' => ['fbcdn.net', 'cdninstagram.com', 'facebook.com'],

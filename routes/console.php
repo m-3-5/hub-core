@@ -23,3 +23,6 @@ Schedule::command('hub:sites-lifecycle --apply')->dailyAt('04:30')->when(fn () =
 
 // Commissioni del mese scorso sulle vendite del canale hub → registro addebiti (con commissione 0 non scrive nulla).
 Schedule::command('hub:charge-commissions')->monthlyOn(1, '03:00');
+
+// Voci scelte di piramide35.com (pagine paese, tipi di attività) → promo pubblicate su inm35.it.
+Schedule::command('piramide:sync')->dailyAt('05:15')->withoutOverlapping();
