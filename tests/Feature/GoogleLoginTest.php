@@ -103,6 +103,12 @@ class GoogleLoginTest extends TestCase
         $this->assertSame(0, User::count());
     }
 
+    public function test_the_privacy_page_explains_google_and_ai_and_is_linked_in_the_footer(): void
+    {
+        $this->get('/privacy')->assertOk()->assertSee('Continua con Google')->assertSee('Gemini')->assertSee('M 3.5 S.R.L.');
+        $this->get(route('site.start'))->assertOk()->assertSee(route('privacy'));
+    }
+
     public function test_the_signup_page_needs_a_google_session(): void
     {
         $this->get(route('google.signup'))->assertRedirect(route('registration.create'));
