@@ -177,3 +177,12 @@ Richiesta: prezzi uniformi, più bassi, con lo sconto che dura più a lungo. Non
 3. Foto vere al posto delle grafiche per Sonia/Hazar; costi Connect; commercialista (PDF pronto); frasi «Ora siamo a Fabrizio» nella landing.
 4. Nota operativa: il deploy da Plesk va fatto con **Laravel → Deployment → Deploy**, poi Artisan `optimize:clear` e `route:cache`; l'agente non può lanciare comandi Artisan che modificano dati di produzione (li lancia l'utente).
 
+
+## 14. «Crea il tuo sito con l'IA» (04/11/2026)
+- **Ingresso pubblico** `/crea-sito` (anche `?ref=piramide35` dal tasto «Crealo da solo» di piramide35.com): pagina in stile app → `/registrati?per=sito&ref=…` (niente scelta del modulo, primo modulo «website», la fonte va in `tenants.settings.source`). Chi è già dentro va dritto alla creazione del sito.
+- **Bug grave corretto**: chi si registrava da `/registrati` restava «ospite da confermare» (`guest_verified_at` vuoto) → il suo sito non andava mai online. Ora la conferma via email lo segna; la migrazione `2026_11_04_000001_…` ripara i clienti già registrati (quelli con un titolare con email vera).
+- Dopo aver scelto la password si entra subito (niente secondo login) e chi è venuto per il sito va alla creazione del sito.
+- **Creazione del sito** a schermo intero: «Cosa fa la tua attività?» → Gemini (`SiteCopyWriter`) propone frase, servizi, «Chi siamo» e pulsante → l'utente rivede → telefono → «Metti online» (controllo IA `SiteGuard` + sfondo IA). Se l'IA non risponde: «Preferisco scrivere io».
+- Pagina del sito: «Chi siamo», WhatsApp (cellulari), «Come arrivare», nessuna sezione contatti vuota, margini 16 px.
+- **Gemini**: ripiego sul modello successivo anche per 500/503; la scoperta modelli dentro le richieste ora fa solo l'elenco gratuito (prima provava ~30 modelli, anche generando immagini, una volta al giorno dentro la richiesta di un cliente). Scansione completa sempre con `php artisan gemini:discover-models`.
+- Provato dal vivo in locale con Gemini vero: IA ~4 s, pubblicazione ~9 s. Test: `tests/Feature/SiteWithAiJourneyTest.php`.
