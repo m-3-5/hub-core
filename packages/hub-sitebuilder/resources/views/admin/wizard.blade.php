@@ -51,6 +51,14 @@
         .thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
         .thumbs img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; }
         .review-in { display: grid; gap: 8px; margin-top: 10px; }
+        .chips.days { gap: 8px; }
+        .chips.days .chip { position: relative; padding: 10px 14px; min-width: 56px; text-align: center; }
+        .chips.days .chip input { position: absolute; opacity: 0; pointer-events: none; }
+        .chips.days .chip:has(input:checked) { border-color: var(--c); background: var(--c-soft); color: var(--c-dark); }
+        .times { display: grid; grid-template-columns: auto 1fr 1fr; gap: 8px; align-items: center; margin-top: 12px; }
+        .times span { color: var(--muted); font-weight: 600; font-size: .95rem; }
+        .times .field { font-size: 1.05rem; padding: 12px; min-width: 0; }
+        .styles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
         @media (prefers-color-scheme: dark) { .pick { border-color: #2c2c3a; } }
         .done-ico { width: 88px; height: 88px; border-radius: 50%; background: #e8f5e9; display: grid; place-items: center; font-size: 2.6rem; margin: 18px 0 4px; }
         .url { display: block; background: #f6f6fa; border-radius: 14px; padding: 14px 16px; font-weight: 600; overflow-wrap: anywhere; color: var(--ink); text-decoration: none; margin: 10px 0 16px; }
@@ -221,7 +229,24 @@
             <h1>Dove e quando</h1>
             <p class="sub">Indirizzo per la mappa e i tuoi orari.</p>
             <input class="field city" name="address" id="in-address" type="text" maxlength="200" autocomplete="street-address" placeholder="Via, numero, città" value="{{ old('address', $tenant->address) }}">
-            <textarea class="field city" name="hours" id="in-hours" maxlength="300" style="min-height:110px" placeholder="Es. Lun-Sab 9:00-13:00 e 16:00-20:00, domenica chiuso">{{ old('hours', $info['hours'] ?? '') }}</textarea>
+            @php
+                $sch = $info['schedule'] ?? null;
+                $selDays = old('days', $sch['days'] ?? []);
+                $r = $sch['ranges'] ?? [];
+            @endphp
+            <p class="hint" style="margin-top:18px"><b>Giorni di apertura</b> (così il sito mostra «Aperto ora»)</p>
+            <div class="chips days" id="days">
+                @foreach ([1 => 'Lun', 2 => 'Mar', 3 => 'Mer', 4 => 'Gio', 5 => 'Ven', 6 => 'Sab', 7 => 'Dom'] as $n => $label)
+                    <label class="chip"><input type="checkbox" name="days[]" value="{{ $n }}" @checked(in_array($n, array_map('intval', (array) $selDays), true))>{{ $label }}</label>
+                @endforeach
+            </div>
+            <div class="times">
+                <span>Mattina</span><input class="field" type="time" name="open1" id="in-open1" value="{{ old('open1', $r[0][0] ?? '') }}"><input class="field" type="time" name="close1" id="in-close1" value="{{ old('close1', $r[0][1] ?? '') }}">
+                <span>Pomeriggio</span><input class="field" type="time" name="open2" id="in-open2" value="{{ old('open2', $r[1][0] ?? '') }}"><input class="field" type="time" name="close2" id="in-close2" value="{{ old('close2', $r[1][1] ?? '') }}">
+            </div>
+            <p class="hint">Orario continuato? Compila solo «Mattina» (es. 9:00 – 19:00).</p>
+            <textarea class="field city" name="hours" id="in-hours" maxlength="300" style="min-height:80px" placeholder="Note sugli orari (facoltativo): es. domenica su prenotazione">{{ old('hours', $info['hours'] ?? '') }}</textarea>
+            <div class="err" id="err-where"></div>
         </section>
 
         <section class="wz-step" data-step="social">
@@ -249,6 +274,13 @@
                 <div class="pv-body"><div class="chips" id="pv-services"></div><p id="pv-about"></p><div class="pv-more" id="pv-more"></div></div>
             </div>
             <div class="rows" id="sum-rows"></div>
+            <p class="hint" style="margin-top:18px"><b>Stile della pagina</b> (caratteri e forme): l'IA ne ha scelto uno, puoi cambiarlo.</p>
+            <div class="chips styles" id="styles">
+                @foreach (\App\Support\BrandFonts::PRESETS as $key => $preset)
+                    <button type="button" class="chip" data-style="{{ $key }}" style="font-family: {{ $preset['display'] }}">{{ $preset['label'] }}</button>
+                @endforeach
+            </div>
+            @foreach (\App\Support\BrandFonts::PRESETS as $preset)<link rel="stylesheet" href="https://fonts.googleapis.com/css2?{{ $preset['google_fonts'] }}&display=swap" media="print" onload="this.media='all'">@endforeach
             <p class="hint">Prima di andare online l'IA controlla che i testi siano seri (niente spam o cose vietate).</p>
         </section>
     </form>
@@ -347,6 +379,13 @@
         if (id === 'photos') {
             return err('photos', $('in-photos').files.length > 6 ? 'Al massimo 6 foto: togline qualcuna.' : '');
         }
+        if (id === 'where') {
+            const anyDay = document.querySelector('[name="days[]"]:checked');
+            const okTimes = ($('in-open1').value && $('in-close1').value) || ($('in-open2').value && $('in-close2').value);
+            if (anyDay && !okTimes) return err('where', 'Hai scelto i giorni: scrivi anche a che ora apri e chiudi.');
+            if (!anyDay && okTimes) return err('where', 'Hai scritto gli orari: scegli anche i giorni.');
+            return err('where', '');
+        }
         if (id === 'social') {
             const vat = $('in-vat').value.replace(/\s|IT/gi, '');
             const fb = $('in-facebook').value.trim();
@@ -401,6 +440,7 @@
         if ((ex.faq || []).length) more.push(`<b>${ex.faq.length} domande frequenti</b>`);
         if (ex.closing) more.push(`<i>${esc(ex.closing)}</i>`);
         $('pv-more').innerHTML = more.join('');
+        markStyle();
         const rows = [];
         const row = (label, value, step) => rows.push(`<div class="row"><span>${label}</span><b>${esc(value || '—')}</b><a data-go="${step}">Modifica</a></div>`);
         row('Frase', state.tagline, 'tagline');
@@ -412,7 +452,10 @@
         row('Foto', nPhotos ? nPhotos + ' nuove' : ($('thumbs').children.length ? $('thumbs').children.length + ' già nel sito' : ''), 'photos');
         row('Logo', $('in-logo').files.length ? 'nuovo' : (@json(! empty($media['logo'])) ? 'già nel sito' : ''), 'photos');
         row('Indirizzo', $('in-address').value.trim(), 'where');
-        row('Orari', $('in-hours').value.trim(), 'where');
+        const dayNames = ['', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+        const days = [...document.querySelectorAll('[name="days[]"]:checked')].map(c => dayNames[c.value]).join(' ');
+        const times = [[$('in-open1').value, $('in-close1').value], [$('in-open2').value, $('in-close2').value]].filter(t => t[0] && t[1]).map(t => t.join('-')).join(' e ');
+        row('Orari', [days && times ? days + ' ' + times : '', $('in-hours').value.trim()].filter(Boolean).join(' · '), 'where');
         row('Social', [$('in-facebook').value.trim() && 'Facebook', $('in-instagram').value.trim() && 'Instagram'].filter(Boolean).join(', '), 'social');
         row('P.IVA', $('in-vat').value.trim(), 'social');
         row('Frasi clienti', String([...document.querySelectorAll('[name$="[text]"]')].filter(t => t.value.trim()).length || ''), 'social');
@@ -472,6 +515,17 @@
         if (current === 'review') return submit();
         go(1);
     }
+
+    const DEFAULT_STYLE = @json(\App\Support\BrandFonts::keyForTenant($tenant));
+    function markStyle() {
+        const current = (state.extras && state.extras.style) || DEFAULT_STYLE;
+        document.querySelectorAll('[data-style]').forEach(b => b.classList.toggle('on', b.dataset.style === current));
+    }
+    document.querySelectorAll('[data-style]').forEach(b => b.addEventListener('click', () => {
+        state.extras = state.extras || {};
+        state.extras.style = b.dataset.style;
+        markStyle();
+    }));
 
     document.querySelectorAll('[data-cta]').forEach(c => c.addEventListener('click', () => {
         state.cta = c.dataset.cta; $('in-cta').value = state.cta; markCta();

@@ -267,6 +267,42 @@ class SiteWithAiJourneyTest extends TestCase
             ->assertSessionHasErrors(['vat' => 'La partita IVA ha 11 cifre.', 'facebook']);
     }
 
+    public function test_weekly_hours_promos_shop_and_chosen_style_appear_in_the_site(): void
+    {
+        Notification::fake();
+        [$tenant, $user] = $this->tenantWithOwner();
+        $this->mock(ContentModerator::class, fn ($m) => $m->shouldReceive('check')->andReturn(['allowed' => true, 'unavailable' => false, 'category' => 'ok', 'reason' => '']));
+        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate')->andReturn(null));
+
+        \App\Models\Promo::create(['tenant_id' => $tenant->id, 'title' => 'Sconto autunno', 'slug' => 'sconto-autunno', 'status' => 'published', 'always_active' => true, 'published_at' => now()]);
+        \App\Models\Promo::create(['tenant_id' => $tenant->id, 'title' => 'Bozza segreta', 'slug' => 'bozza', 'status' => 'draft', 'always_active' => true]);
+        \M35\HubPayments\Models\PayableService::create(['tenant_id' => $tenant->id, 'type' => 'service', 'title' => 'Piega', 'slug' => 'piega', 'amount_cents' => 2500, 'currency' => 'eur', 'status' => 'active', 'published_to_site' => true]);
+        \M35\HubPayments\Models\PayableService::create(['tenant_id' => $tenant->id, 'type' => 'product', 'title' => 'Nascosto', 'slug' => 'nascosto', 'amount_cents' => 900, 'currency' => 'eur', 'status' => 'active', 'published_to_site' => false]);
+
+        $this->actingAs($user)->post(route('admin.sitebuilder.generate', $tenant), [
+            'tagline' => 'Il tuo taglio', 'services' => 'Taglio', 'cta_label' => 'Chiamaci', 'phone' => '333 123 4567', 'more' => '1',
+            'days' => [1, 2, 3, 4, 5, 6], 'open1' => '09:00', 'close1' => '13:00', 'open2' => '16:00', 'close2' => '20:00', 'hours' => 'Domenica su prenotazione',
+            'extras' => json_encode(['style' => 'classico']),
+        ])->assertSessionHasNoErrors();
+
+        $info = GeneratedSite::sole()->answers['info'];
+        $this->assertSame(['days' => [1, 2, 3, 4, 5, 6], 'ranges' => [['09:00', '13:00'], ['16:00', '20:00']]], $info['schedule']);
+        $this->assertSame('Lun-Sab 9:00-13:00 e 16:00-20:00', \M35\HubSitebuilder\Services\SiteContent::scheduleText($info['schedule']));
+        $this->assertSame('Lun, Mer 0:30-2:00', \M35\HubSitebuilder\Services\SiteContent::scheduleText(['days' => [1, 3], 'ranges' => [['00:30', '02:00']]]));
+
+        auth()->logout();
+        $this->get(route('site.public.show', $tenant))->assertOk()
+            ->assertSee('Lun-Sab 9:00-13:00 e 16:00-20:00 · Domenica su prenotazione')
+            ->assertSee('data-open-now', false)->assertSee('data-schedule', false)
+            ->assertSee('Offerte del momento')->assertSee('Sconto autunno')->assertDontSee('Bozza segreta')
+            ->assertSee(route('promo.show', [$tenant, 'sconto-autunno']), false)
+            ->assertSee('Acquista online')->assertSee('Piega')->assertSee('25,00 €')->assertDontSee('Nascosto')
+            ->assertSee('Playfair'); // stile «classico» scelto nel riepilogo
+
+        // Giorni senza orari: messaggio chiaro solo lato pagina; lato server lo schedule resta vuoto.
+        $this->assertNull(\M35\HubSitebuilder\Services\SiteContent::schedule(['days' => [1], 'open1' => null, 'close1' => null]));
+    }
+
     public function test_model_discovery_inside_a_request_only_lists_models_without_probing(): void
     {
         config(['services.gemini.api_key' => 'test-key', 'services.gemini.model' => 'gemini-flash-lite-latest', 'services.gemini.fallback_models' => ['gemini-ritirato']]);

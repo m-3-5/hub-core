@@ -15,7 +15,8 @@
         $about = $answers['extra'] ?? null;
 
         // Stile: quello scelto dall'attività nel profilo, altrimenti quello proposto dall'IA.
-        $styleKey = isset($tenant->settings['brand']['font']) ? \App\Support\BrandFonts::keyForTenant($tenant) : ($extras['style'] ?? \App\Support\BrandFonts::keyForTenant($tenant));
+        // Lo stile scelto nel riepilogo della creazione guidata vince; altrimenti quello del profilo.
+        $styleKey = $extras['style'] ?? \App\Support\BrandFonts::keyForTenant($tenant);
         $brandFont = \App\Support\BrandFonts::get($styleKey);
         $dark = $styleKey === 'digitale';
         $primary = $tenant->primary_color ?: '#6366f1';
@@ -34,6 +35,13 @@
             ? $disk->url($site->hero_video_path)
             : ($site->hero_svg_path ? $disk->url($site->hero_svg_path) : null));
         $aboutPhoto = $photos[1] ?? null;
+        $schedule = $info['schedule'] ?? null;
+        $hoursText = trim(implode(' · ', array_filter([\M35\HubSitebuilder\Services\SiteContent::scheduleText($schedule), $hours])));
+        // Quello che l'attività pubblica già su Hub Core entra da solo nel sito.
+        $promos = \App\Models\Promo::query()->where('tenant_id', $tenant->id)->active()->latest('published_at')->take(6)->get();
+        $shop = class_exists(\M35\HubPayments\Models\PayableService::class)
+            ? \M35\HubPayments\Models\PayableService::query()->where('tenant_id', $tenant->id)->where('status', 'active')->where('published_to_site', true)->latest()->take(6)->get()
+            : collect();
         $tel = $tenant->phone ? preg_replace('/[^0-9+]/', '', $tenant->phone) : null;
         // WhatsApp solo per i cellulari italiani (3xx) o numeri già con prefisso internazionale.
         $waNumber = $tel ? ltrim(preg_match('/^3\d{8,9}$/', $tel) ? '39'.$tel : (str_starts_with($tel, '+') ? $tel : ''), '+') : '';
@@ -231,6 +239,28 @@
         .lightbox img { max-width: 100%; max-height: 86vh; border-radius: 14px; }
         .lightbox button { position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 12px; width: 48px; height: 48px; border-radius: 50%; border: 0; background: rgba(255,255,255,.15); color: #fff; font-size: 1.4rem; cursor: pointer; }
 
+        /* Offerte e acquisti (promo e servizi già pubblicati su Hub Core) */
+        /* Schede di misura fissa e centrate: anche con una sola offerta non diventano enormi. */
+        .cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 320px)); justify-content: center; }
+        .card { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; text-decoration: none; transition: transform .2s, box-shadow .2s; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgba(16,18,24,.08); }
+        .card-img { position: relative; aspect-ratio: 4/3; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display: grid; place-items: center; color: #fff; font-weight: 800; text-align: center; padding: 0; }
+        .card-img span { padding: 16px; font-family: var(--font-display); font-size: 1.2rem; }
+        .card-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .card-img em { position: absolute; top: 10px; left: 10px; font-style: normal; background: #fff; color: var(--primary-dark); font-weight: 800; font-size: .75rem; padding: 5px 10px; border-radius: 99px; }
+        .card-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .card-body h3 { font-size: 1.05rem; }
+        .card-body p { color: var(--muted); font-size: .92rem; }
+        .card-body .price { color: var(--ink); font-weight: 800; font-size: 1.15rem; }
+        .card-cta { margin-top: auto; padding-top: 8px; color: var(--primary); font-weight: 800; }
+        .more { text-align: center; margin-top: 18px; }
+        .more a { display: inline-flex; align-items: center; min-height: 48px; font-weight: 700; color: var(--primary); }
+        .open-now { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+        .open-now::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: #9aa0ad; }
+        .open-now.is-open::before { background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,.25); }
+        .open-now:empty { display: none; }
+        .hero-open { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3); padding: 7px 14px; border-radius: 99px; font-size: .85rem; margin: 0 0 18px 8px; }
+
         /* Barra fissa su telefono */
         .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line); }
         .dock .btn { flex: 1; min-height: 50px; padding: 0 12px; box-shadow: none; }
@@ -245,7 +275,7 @@
     <script>document.documentElement.classList.add('js');</script>
 @include('layouts.partials.ui')
 </head>
-<body class="{{ $tel ? 'has-dock' : '' }}">
+<body class="{{ $tel ? 'has-dock' : '' }}" @if ($schedule) data-schedule='@json($schedule)' @endif>
 
 <header class="top">
     <div class="wrap">
@@ -253,6 +283,8 @@
         <nav aria-label="Sezioni">
             @if (count($services))<a href="#servizi">Servizi</a>@endif
             @if ($about)<a href="#chi-siamo">Chi siamo</a>@endif
+            @if ($promos->isNotEmpty())<a href="#offerte">Offerte</a>@endif
+            @if ($shop->isNotEmpty())<a href="#acquista">Acquista</a>@endif
             @if (count($photos) > 1)<a href="#foto">Foto</a>@endif
             @if (count($faq))<a href="#domande">Domande</a>@endif
             @if ($hasContacts)<a href="#contatti">Contatti</a>@endif
@@ -268,6 +300,7 @@
     <div class="hero-scrim"></div>
     <div class="wrap hero-inner">
         <span class="eyebrow">{{ $tenant->name }}</span>
+        @if ($schedule)<span class="open-now hero-open" data-open-now></span>@endif
         <h1>{{ $tagline }}</h1>
         @if ($lead)<p class="lead">{{ $lead }}</p>@endif
         <div class="hero-actions">
@@ -313,6 +346,48 @@
     <div class="wrap about">
         @if ($aboutPhoto)<div class="about-art photo rv"><img src="{{ $aboutPhoto }}" alt="{{ $tenant->name }}" loading="lazy"></div>@else<div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>@endif
         <div class="about-text rv"><span class="kicker">Chi siamo</span><h2>{{ $tenant->name }}</h2><p>{{ $about }}</p></div>
+    </div>
+</section>
+@endif
+
+@if ($promos->isNotEmpty())
+<section class="section soft" id="offerte">
+    <div class="wrap">
+        <div class="head rv"><span class="kicker">Offerte del momento</span><h2>Approfittane adesso</h2></div>
+        <div class="cards">
+            @foreach ($promos as $promo)
+                <a class="card rv" href="{{ route('promo.show', [$tenant, $promo]) }}">
+                    <div class="card-img">@if ($promo->imageUrl())<img src="{{ $promo->imageUrl() }}" alt="{{ $promo->title }}" loading="lazy">@else<span>{{ \Illuminate\Support\Str::limit($promo->title, 40) }}</span>@endif<em>Promo</em></div>
+                    <div class="card-body">
+                        <h3>{{ $promo->title }}</h3>
+                        @if (! $promo->always_active && $promo->ends_at)<p>Fino al {{ $promo->ends_at->format('d/m') }}</p>@endif
+                        <span class="card-cta">Scopri →</span>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+        <p class="more rv"><a href="{{ route('promo.archive', $tenant) }}">Tutte le offerte</a></p>
+    </div>
+</section>
+@endif
+
+@if ($shop->isNotEmpty())
+<section class="section" id="acquista">
+    <div class="wrap">
+        <div class="head rv"><span class="kicker">Acquista online</span><h2>Paghi subito, in sicurezza</h2></div>
+        <div class="cards">
+            @foreach ($shop as $item)
+                <a class="card rv" href="{{ route('services.public.show', [$tenant, $item]) }}">
+                    <div class="card-img">@if ($item->coverImageUrl())<img src="{{ $item->coverImageUrl() }}" alt="{{ $item->title }}" loading="lazy">@else<span>{{ \Illuminate\Support\Str::limit($item->title, 40) }}</span>@endif @if ($item->onPromo())<em>In promo</em>@endif</div>
+                    <div class="card-body">
+                        <h3>{{ $item->title }}</h3>
+                        <p class="price">{{ $item->amountEuros() }} €</p>
+                        <span class="card-cta">{{ $item->type === 'product' ? 'Compra' : 'Prenota e paga' }} →</span>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+        <p class="more rv"><a href="{{ route('services.public.archive', $tenant) }}">Vedi tutto</a></p>
     </div>
 </section>
 @endif
@@ -367,12 +442,13 @@
             </div>
         </div>
 
-        @if ($tenant->address || $hours)
+        @if ($tenant->address || $hoursText)
         <div class="where rv">
             <div class="where-text">
                 <h3>Dove e quando</h3>
                 @if ($tenant->address)<p>📍 {{ $tenant->address }}</p>@endif
-                @if ($hours)<p>🕒 {{ $hours }}</p>@endif
+                @if ($schedule)<p class="open-now" data-open-now></p>@endif
+                @if ($hoursText)<p>🕒 {{ $hoursText }}</p>@endif
             </div>
             @if ($tenant->address)
                 <div class="map" id="map" data-src="https://www.google.com/maps?q={{ rawurlencode($tenant->address) }}&output=embed">
@@ -401,14 +477,14 @@
                 <a class="brand" href="#top">@if ($logo)<img class="mono logo" src="{{ $logo }}" alt="">@else<span class="mono">{{ $initial }}</span>@endif<span>{{ $tenant->name }}</span></a>
                 <p>{{ $tagline }}</p>
             </div>
-            @if ($hasContacts || $hours || $socials)
+            @if ($hasContacts || $hoursText || $socials)
             <div>
                 <h4>Contatti</h4>
                 <ul>
                     @if ($tel)<li><a href="tel:{{ $tel }}">{{ $tenant->phone }}</a></li>@endif
                     @if ($waUrl)<li><a href="{{ $waUrl }}" target="_blank" rel="noopener">WhatsApp</a></li>@endif
                     @if ($tenant->address)<li><a href="{{ $mapsUrl }}" target="_blank" rel="noopener">{{ $tenant->address }}</a></li>@endif
-                    @if ($hours)<li>{{ $hours }}</li>@endif
+                    @if ($hoursText)<li>{{ $hoursText }}</li>@endif
                 </ul>
                 @if ($socials)<div class="socials">@foreach ($socials as $label => $url)<a href="{{ $url }}" target="_blank" rel="noopener">{{ $label }}</a>@endforeach</div>@endif
             </div>
@@ -441,6 +517,41 @@
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto"><button type="button" aria-label="Chiudi">✕</button><img alt=""></div>
 
 <script>
+(function () {
+    // «Aperto ora / Chiuso»: ora italiana, fasce anche oltre mezzanotte.
+    var raw = document.body.getAttribute('data-schedule');
+    if (!raw) return;
+    var sch; try { sch = JSON.parse(raw); } catch (e) { return; }
+    var toMin = function (t) { var p = t.split(':'); return (+p[0]) * 60 + (+p[1]); };
+    var fmt = function (m) { m = m % 1440; return Math.floor(m / 60) + ':' + ('0' + (m % 60)).slice(-2); };
+    var names = ['', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
+    var parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
+    var get = function (t) { return (parts.find(function (p) { return p.type === t; }) || {}).value; };
+    var day = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 }[get('weekday')];
+    var now = (+get('hour')) * 60 + (+get('minute'));
+    // Intervalli della settimana in minuti dal lunedì 00:00.
+    var spans = [];
+    sch.days.forEach(function (d) {
+        sch.ranges.forEach(function (r) {
+            var o = toMin(r[0]), c = toMin(r[1]);
+            if (c <= o) c += 1440;
+            spans.push([(d - 1) * 1440 + o, (d - 1) * 1440 + c]);
+        });
+    });
+    var t = (day - 1) * 1440 + now, week = 7 * 1440, text, open = false;
+    var current = spans.find(function (s) { return (t >= s[0] && t < s[1]) || (t + week >= s[0] && t + week < s[1]); });
+    if (current) {
+        open = true;
+        text = 'Aperto ora · chiude alle ' + fmt(current[1]);
+    } else {
+        var next = spans.map(function (s) { return s[0] > t ? s[0] : s[0] + week; }).sort(function (a, b) { return a - b; })[0];
+        if (next !== undefined) {
+            var nd = Math.floor((next % week) / 1440) + 1, diff = Math.floor(next / 1440) - Math.floor(t / 1440);
+            text = 'Chiuso · apre ' + (diff === 0 ? 'alle ' : diff === 1 ? 'domani alle ' : names[nd] + ' alle ') + fmt(next % 1440);
+        }
+    }
+    document.querySelectorAll('[data-open-now]').forEach(function (el) { el.textContent = text || ''; el.classList.toggle('is-open', open); });
+})();
 (function () {
     // Foto a schermo intero.
     var box = document.getElementById('lightbox');

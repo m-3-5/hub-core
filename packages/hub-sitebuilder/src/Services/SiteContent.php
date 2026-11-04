@@ -35,7 +35,64 @@ class SiteContent
             'photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
             'remove_photos' => ['nullable', 'boolean'],
             'remove_logo' => ['nullable', 'boolean'],
+            // Orari giorno per giorno (per «Aperto ora»): giorni 1=lunedì … 7=domenica, fino a due fasce.
+            'days' => ['nullable', 'array'],
+            'days.*' => ['integer', 'between:1,7'],
+            'open1' => ['nullable', 'date_format:H:i'],
+            'close1' => ['nullable', 'date_format:H:i'],
+            'open2' => ['nullable', 'date_format:H:i'],
+            'close2' => ['nullable', 'date_format:H:i'],
         ];
+    }
+
+    /**
+     * Orario settimanale semplice: stessi orari per i giorni scelti, una o due fasce (anche oltre mezzanotte).
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array{days: array<int, int>, ranges: array<int, array{0: string, 1: string}>}|null
+     */
+    public static function schedule(array $validated): ?array
+    {
+        $days = collect($validated['days'] ?? [])->map(fn ($d) => (int) $d)->filter(fn ($d) => $d >= 1 && $d <= 7)->unique()->sort()->values()->all();
+        $ranges = [];
+
+        foreach ([1, 2] as $i) {
+            $open = $validated['open'.$i] ?? null;
+            $close = $validated['close'.$i] ?? null;
+
+            if ($open && $close && $open !== $close) {
+                $ranges[] = [$open, $close];
+            }
+        }
+
+        return $days && $ranges ? ['days' => $days, 'ranges' => $ranges] : null;
+    }
+
+    /** «Lun-Sab 9:00-13:00 e 16:00-20:00»: riassunto leggibile dell'orario settimanale. */
+    public static function scheduleText(?array $schedule): ?string
+    {
+        if (! $schedule) {
+            return null;
+        }
+
+        $names = [1 => 'Lun', 2 => 'Mar', 3 => 'Mer', 4 => 'Gio', 5 => 'Ven', 6 => 'Sab', 7 => 'Dom'];
+        $groups = [];
+
+        foreach ($schedule['days'] as $d) {
+            $last = array_key_last($groups);
+
+            if ($last !== null && end($groups[$last]) === $d - 1) {
+                $groups[$last][] = $d;
+            } else {
+                $groups[] = [$d];
+            }
+        }
+
+        $days = collect($groups)->map(fn ($g) => count($g) > 2 ? $names[$g[0]].'-'.$names[end($g)] : implode(', ', array_map(fn ($d) => $names[$d], $g)))->implode(', ');
+        $time = fn ($t) => (int) substr($t, 0, 2).':'.substr($t, 3, 2);
+        $hours = collect($schedule['ranges'])->map(fn ($r) => $time($r[0]).'-'.$time($r[1]))->implode(' e ');
+
+        return $days.' '.$hours;
     }
 
     /** @return array<string, string> */
@@ -70,6 +127,7 @@ class SiteContent
 
         return [
             'hours' => SiteCopyWriter::clean($validated['hours'] ?? '', 300) ?: null,
+            'schedule' => self::schedule($validated),
             'facebook' => $facebook !== '' ? (preg_match('~^https?://~i', $facebook) ? $facebook : 'https://'.$facebook) : null,
             'instagram' => $instagram ?: null,
             'vat' => preg_replace('/\D/', '', (string) ($validated['vat'] ?? '')) ?: null,
