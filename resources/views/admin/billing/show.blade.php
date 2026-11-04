@@ -76,10 +76,16 @@
         <p style="margin-top:12px;font-size:.85rem;color:#666">Pagamento sicuro tramite Stripe. Puoi disdire in qualsiasi momento.</p>
     @endif
 
+    <style>
+        @media (max-width: 640px) {
+            .mod-table td.mod-emoji { float: left; font-size: 1.6rem !important; margin-right: 10px; }
+            .mod-table td.ract:not(:has(form)) { display: none !important; }
+        }
+    </style>
     <h2 style="margin:32px 0 6px;font-size:1.1rem">Moduli</h2>
     <p style="margin:0 0 16px;color:#666;font-size:.9rem">Cosa è attivo per {{ $tenant->name }}, e cosa manca ancora da costruire.</p>
 
-    <table style="width:100%;border-collapse:collapse">
+    <table class="rtable mod-table" style="width:100%;border-collapse:collapse">
         <thead>
             <tr style="text-align:left;border-bottom:2px solid #eee">
                 <th style="padding:8px"></th>
@@ -92,12 +98,12 @@
         <tbody>
             @foreach ($modules as $module)
                 <tr style="border-bottom:1px solid #f0f0f0">
-                    <td style="padding:8px;font-size:1.2rem">{{ $module['emoji'] }}</td>
+                    <td class="mod-emoji" style="padding:8px;font-size:1.2rem">{{ $module['emoji'] }}</td>
                     <td style="padding:8px">
                         <strong>{{ $module['label'] }}</strong>
                         <div style="color:#666;font-size:.82rem">{{ $module['description'] }}</div>
                     </td>
-                    <td style="padding:8px">
+                    <td style="padding:8px" data-label="Stato">
                         @if (! $module['buildable'])
                             <span style="color:#999">—</span>
                         @elseif ($module['enabled'])
@@ -106,7 +112,7 @@
                             <span style="color:#999;font-weight:600">○ Disattivato</span>
                         @endif
                     </td>
-                    <td style="padding:8px">
+                    <td style="padding:8px" data-label="Attivazione">
                         @if (! $module['buildable'])
                             <span style="color:#999">Prossimamente</span>
                         @elseif ($module['activation_paid'] === true)
@@ -117,7 +123,7 @@
                             <span style="color:#999">—</span>
                         @endif
                     </td>
-                    <td style="padding:8px;text-align:right">
+                    <td class="ract" style="padding:8px;text-align:right">
                         @if ($module['buildable'])
                             <form method="POST" action="{{ route('admin.billing.modules.toggle', [$tenant, $module['key']]) }}" style="display:inline">
                                 @csrf

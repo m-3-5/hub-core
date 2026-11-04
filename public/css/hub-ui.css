@@ -339,3 +339,41 @@ body.has-shell .card { border: 1px solid var(--ui-line); box-shadow: var(--ui-sh
     .ui-scroll-wrap > [data-ui-scroll] { cursor: grab; }
     .ui-scroll-wrap.can-left .ui-scroll__btn--prev, .ui-scroll-wrap.can-right .ui-scroll__btn--next { display: flex; }
 }
+/* ───────── 6. TELEFONO: niente fuori dallo schermo, tasti grandi ─────────
+   Rete di sicurezza per tutte le pagine (320–430 px): misure calcolate col bordo dentro,
+   foto e video mai più larghi dello schermo, griglie che scendono a una colonna. */
+*, *::before, *::after { box-sizing: border-box; }
+img, video, iframe, canvas { max-width: 100%; }
+@media (max-width: 900px) {
+    body { overflow-x: clip; }
+}
+@media (max-width: 640px) {
+    /* griglie con colonne minime larghe: una colonna sola invece di uscire dallo schermo */
+    body .cgrid, body .ah-todo { grid-template-columns: minmax(0, 1fr); }
+    body .ccard .head small { max-width: none; }
+    /* barra scura in alto (area riservata): logo + tasti su una riga */
+    header.hdr { gap: 8px; }
+    header.hdr > div:first-child { min-width: 0; display: flex; align-items: center; }
+    header.hdr > div:first-child > strong { white-space: nowrap; }
+    header.hdr .btn { white-space: nowrap; min-height: 44px; }
+    /* tasti e campi comodi al tocco */
+    body .btn, body button[type=submit], body input[type=submit] { min-height: 48px; }
+    body button.btn { font-family: inherit; font-size: .95rem; }
+    body input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=range]):not([type=color]),
+    body select, body textarea { font-size: 16px; min-height: 48px; max-width: 100%; }
+    body textarea { min-height: 96px; }
+    body .mcard__tool { width: 44px; height: 44px; }
+    body .svc-btn, body .q-btn, body .psubmit, body .pcf-submit { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+    body .share-row .sb { width: 44px; height: 44px; }
+    /* piè di pagina pubblico: link a pillola, non colonne altissime */
+    body .ui-foot__links { flex: none; }
+    body .ui-foot__links a { min-height: 44px; display: inline-flex; align-items: center; }
+    body .ui-foot__cta { min-height: 48px; display: flex; align-items: center; justify-content: center; }
+    /* tabelle con classe .rtable: celle con i pulsanti in riga che va a capo */
+    body .rtable td.ract { display: flex !important; flex-wrap: wrap; gap: 8px; padding-top: 10px !important; }
+    body .rtable td.ract > form { display: contents; }
+    body .rtable td.ract .btn { flex: 1 1 auto; }
+}
+@media (max-width: 380px) {
+    header.hdr > div:first-child > strong { display: none; }
+}
