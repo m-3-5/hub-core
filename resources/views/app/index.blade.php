@@ -43,6 +43,8 @@
         </div>
     </div>
 
+    @include('layouts.partials.install-app')
+
     <div class="tenant-grid">
         @foreach ($tenants as $tenant)
             <a class="tenant-card" href="{{ route('app.home', $tenant) }}">

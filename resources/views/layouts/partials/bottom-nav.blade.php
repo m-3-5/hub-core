@@ -52,7 +52,7 @@
         $uiTabs[] = ['Attività', 'chart', route('admin.activity.index'), request()->routeIs('admin.activity.*')];
         $brandName = 'Hub Core';
         $brandSub = 'Amministrazione';
-        $brandLogo = null;
+        $brandLogo = asset('images/logo-piramide-128.png');
         $brandHome = route('admin.dashboard');
     }
 @endphp

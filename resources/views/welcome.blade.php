@@ -158,6 +158,7 @@
                 <a class="wl-btn" href="{{ route('admin.login') }}">Accedi</a>
                 <a class="wl-btn" href="{{ route('pricing.show') }}">Prezzi</a>
             </div>
+            @include('layouts.partials.install-app')
             <ul class="wl-trust">
                 <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) {{ config('services.hub_billing.free_days', 30) }} giorni gratis</li>
                 <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) Funziona da telefono</li>

@@ -31,7 +31,7 @@ class SeoSchema
             'name' => 'M 3.5 S.R.L.',
             'alternateName' => 'Hub Core',
             'url' => url('/'),
-            'logo' => asset('images/icon-192.png'),
+            'logo' => asset('pwa/icon-512.png'),
             'description' => 'M 3.5 sviluppa Hub Core, la piattaforma per promozioni, servizi, prodotti e pagamenti online di aziende, professionisti e privati, e realizza siti web e app a Corigliano-Rossano e in Calabria.',
             'areaServed' => ['@type' => 'Place', 'name' => config('landing.city')],
             'sameAs' => $group ? [$group] : null,

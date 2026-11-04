@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a2e">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="/manifest.json">
     @include('layouts.partials.favicon')
     <title>@yield('title', 'Hub Core Admin')</title>
     <style>

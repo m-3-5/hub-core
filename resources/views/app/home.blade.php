@@ -45,6 +45,8 @@
     </div>
 </header>
 
+@include('layouts.partials.install-app')
+
 @if (! empty($todo))
 <section class="ah-sec">
     <h2 class="ah-h">Da fare adesso</h2>

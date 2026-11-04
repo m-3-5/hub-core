@@ -1,0 +1,72 @@
+{
+  "id": "/app",
+  "name": "Hub Core · inm35.it",
+  "short_name": "Hub Core",
+  "description": "La tua attività in un'app: promo, servizi, prodotti, annunci e pagamenti.",
+  "lang": "it",
+  "dir": "ltr",
+  "start_url": "/app?app=1",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#6366f1",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pwa/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "La mia app",
+      "short_name": "App",
+      "url": "/app?app=1",
+      "icons": [
+        {
+          "src": "/pwa/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Cerca su inm35.it",
+      "short_name": "Cerca",
+      "url": "/cerca",
+      "icons": [
+        {
+          "src": "/pwa/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

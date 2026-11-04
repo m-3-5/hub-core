@@ -2,7 +2,7 @@
      Parametri facoltativi: $footExtra = [['Etichetta', 'url'], ...] link in più. --}}
 <footer class="ui-foot">
     <div class="ui-foot__top">
-        <a class="ui-foot__brand" href="{{ route('welcome') }}"><span class="ui-pub__logo">H</span><span><b>Hub Core</b><small>La tua attività in un'app</small></span></a>
+        <a class="ui-foot__brand" href="{{ route('welcome') }}"><span class="ui-pub__logo ui-pub__logo--img"><img src="{{ asset('images/logo-piramide-128.png') }}" alt="M 3.5" width="32" height="32"></span><span><b>Hub Core</b><small>La tua attività in un'app</small></span></a>
         <nav class="ui-foot__links" aria-label="Link utili">
             <a href="{{ route('promo.hub-archive') }}">Promo</a>
             <a href="{{ route('classifieds.board') }}">Annunci</a>

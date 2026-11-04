@@ -11,7 +11,7 @@
 @endphp
 <nav class="ui-pub" aria-label="Menu del sito">
     <a class="ui-pub__brand" href="{{ route('welcome') }}" aria-label="Hub Core - Home">
-        <span class="ui-pub__logo">H</span><span class="ui-pub__name">Hub Core</span>
+        <span class="ui-pub__logo ui-pub__logo--img"><img src="{{ asset('images/logo-piramide-128.png') }}" alt="M 3.5" width="32" height="32"></span><span class="ui-pub__name">Hub Core</span>
     </a>
     <div class="ui-pub__links" data-ui-scroll>
         @foreach ($pubItems as $it)
