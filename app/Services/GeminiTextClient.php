@@ -32,8 +32,9 @@ class GeminiTextClient
 
         $parts = [['text' => $prompt]];
 
-        if ($image) {
-            $parts[] = ['inline_data' => ['mime_type' => $image['mime'], 'data' => $image['data']]];
+        // Una foto ({mime, data}) oppure un elenco di foto (es. logo e galleria del sito, controllate insieme).
+        foreach ($image ? (isset($image['data']) ? [$image] : $image) : [] as $img) {
+            $parts[] = ['inline_data' => ['mime_type' => $img['mime'], 'data' => $img['data']]];
         }
 
         $body = [

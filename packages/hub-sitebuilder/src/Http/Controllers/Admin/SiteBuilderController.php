@@ -40,28 +40,62 @@ class SiteBuilderController extends Controller
             return $locked;
         }
 
+        // Controllo IA di testi e foto + eventuale sfondo: può superare i 30 secondi predefiniti.
+        if (function_exists('set_time_limit')) {
+            set_time_limit(180);
+        }
+
         $validated = $request->validate([
             ...SiteContent::rules(),
             'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+()\s.\-]{6,30}$/'],
-        ], ['phone.regex' => 'Controlla il numero di telefono: usa solo cifre.']);
+        ], ['phone.regex' => 'Controlla il numero di telefono: usa solo cifre.', ...SiteContent::messages()]);
         $answers = SiteContent::answers($validated);
+        $newFiles = [];
+        $images = [];
+        $oldMedia = $tenant->generatedSite?->answers['media'] ?? [];
+
+        // Passi facoltativi (foto, dove e quando, altro): solo dalla creazione guidata.
+        if (($validated['more'] ?? null) === '1') {
+            $answers['info'] = SiteContent::info($validated);
+            $stored = SiteContent::storeMedia($tenant, $request, $tenant->generatedSite?->answers['media'] ?? []);
+            $answers['media'] = $stored['media'];
+            $newFiles = $stored['new'];
+            // Si controllano solo le foto nuove: quelle di prima sono già state approvate.
+            $images = SiteContent::imagesForCheck($newFiles);
+        }
 
         // Solo siti seri: niente spam né contenuti vietati. Se il controllo non risponde, non si pubblica.
-        $check = $guard->check($tenant, $answers);
+        $check = $guard->check($tenant, $answers, $images);
 
         if (! $check['ok']) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($newFiles);
+
             return back()->withInput()->withErrors(['tagline' => $check['unavailable']
                 ? $check['reason']
                 : 'Non posso pubblicare questo sito: '.$check['reason']]);
         }
 
-        // Il telefono serve al pulsante «Chiamaci» e ai contatti del sito.
+        // Telefono e indirizzo servono ai pulsanti, ai contatti e alla mappa del sito.
         if (filled($validated['phone'] ?? null)) {
             $tenant->update(['phone' => trim($validated['phone'])]);
         }
 
-        $hero = $heroGenerator->generate($tenant, SiteContent::heroDir($tenant), $answers['extras']['style'] ?? null);
+        if (($validated['more'] ?? null) === '1') {
+            $tenant->update(['address' => SiteCopyWriter::clean($validated['address'] ?? '', 200) ?: null]);
+        }
+
+        // Con foto vere la prima fa da sfondo in alto: inutile (e lento) disegnarne uno con l'IA.
+        $hero = empty($answers['media']['photos'] ?? ($tenant->generatedSite?->answers['media']['photos'] ?? []))
+            ? $heroGenerator->generate($tenant, SiteContent::heroDir($tenant), $answers['extras']['style'] ?? null)
+            : null;
         $site = SiteContent::save($tenant, $answers, $hero);
+
+        // Foto e logo sostituiti o tolti: via dal disco.
+        if (isset($answers['media'])) {
+            $kept = array_filter([$answers['media']['logo'] ?? null, ...($answers['media']['photos'] ?? [])]);
+            $gone = array_diff(array_filter([$oldMedia['logo'] ?? null, ...($oldMedia['photos'] ?? [])]), $kept);
+            \Illuminate\Support\Facades\Storage::disk('public')->delete(array_values($gone));
+        }
 
         // Il link segreto per modificare il sito parte alla prima pubblicazione, solo se c'è una email vera.
         $linkSent = false;

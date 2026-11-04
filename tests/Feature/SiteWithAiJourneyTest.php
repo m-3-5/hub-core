@@ -204,6 +204,69 @@ class SiteWithAiJourneyTest extends TestCase
         $this->actingAs($user)->get(route('admin.sitebuilder.show', $tenant))->assertOk()->assertSee('Il tuo sito è online');
     }
 
+    public function test_photos_logo_hours_socials_vat_and_reviews_make_the_page_richer(): void
+    {
+        Notification::fake();
+        Storage::fake('public');
+        [$tenant, $user] = $this->tenantWithOwner();
+        $seen = [];
+        $this->mock(ContentModerator::class, function ($m) use (&$seen) {
+            $m->shouldReceive('check')->andReturnUsing(function ($text, $images = null) use (&$seen) {
+                $seen[] = [$text, $images];
+
+                return ['allowed' => true, 'unavailable' => false, 'category' => 'ok', 'reason' => ''];
+            });
+        });
+        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate')->andReturn(null));
+
+        $payload = [
+            'tagline' => 'Il tuo taglio', 'services' => 'Taglio', 'cta_label' => 'Chiamaci', 'phone' => '333 123 4567', 'more' => '1',
+            'address' => 'Via Roma 1, Rossano', 'hours' => 'Lun-Sab 9-19',
+            'facebook' => 'facebook.com/saloneanna', 'instagram' => '@saloneanna', 'vat' => 'IT 01234567890',
+            'reviews' => [['text' => 'Bravissime!', 'name' => 'Maria R.'], ['text' => '', 'name' => '']],
+            'logo' => \Illuminate\Http\UploadedFile::fake()->image('logo.png', 200, 200),
+            'photos' => [\Illuminate\Http\UploadedFile::fake()->image('a.jpg', 1200, 900), \Illuminate\Http\UploadedFile::fake()->image('b.jpg', 1200, 900)],
+        ];
+
+        $this->actingAs($user)->post(route('admin.sitebuilder.generate', $tenant), $payload)->assertSessionHasNoErrors();
+
+        $answers = GeneratedSite::sole()->answers;
+        $this->assertCount(2, $answers['media']['photos']);
+        $this->assertNotNull($answers['media']['logo']);
+        $this->assertSame('https://www.instagram.com/saloneanna', $answers['info']['instagram']);
+        $this->assertSame('https://facebook.com/saloneanna', $answers['info']['facebook']);
+        $this->assertSame('01234567890', $answers['info']['vat']);
+        $this->assertCount(1, $answers['info']['reviews']);
+        $this->assertSame('Via Roma 1, Rossano', $tenant->fresh()->address);
+        // Logo e foto controllati dall'IA insieme ai testi, già rimpiccioliti.
+        $this->assertCount(3, $seen[0][1]);
+        $this->assertStringContainsString('Bravissime!', $seen[0][0]);
+        Storage::disk('public')->assertExists($answers['media']['photos']);
+
+        auth()->logout();
+        $this->get(route('site.public.show', $tenant))->assertOk()
+            ->assertSee('Dai un\'occhiata', false)->assertSee('Parola ai clienti')->assertSee('Bravissime!')
+            ->assertSee('Lun-Sab 9-19')->assertSee('Mostra la mappa')->assertSee('P.IVA 01234567890')
+            ->assertSee('https://www.instagram.com/saloneanna', false)->assertSee($answers['media']['logo'], false);
+
+        // Foto nuove sostituiscono le vecchie, che spariscono dal disco.
+        $old = $answers['media']['photos'];
+        $this->actingAs($user)->post(route('admin.sitebuilder.generate', $tenant), [...$payload, 'logo' => null, 'photos' => [\Illuminate\Http\UploadedFile::fake()->image('c.jpg')]])->assertSessionHasNoErrors();
+        $this->assertCount(1, GeneratedSite::sole()->answers['media']['photos']);
+        $this->assertNotNull(GeneratedSite::sole()->answers['media']['logo']);
+        Storage::disk('public')->assertMissing($old);
+
+        // Se il controllo rifiuta, le foto appena caricate non restano sul disco.
+        $this->mock(ContentModerator::class, fn ($m) => $m->shouldReceive('check')->andReturn(['allowed' => false, 'unavailable' => false, 'category' => 'altro', 'reason' => 'Foto non adatta.']));
+        $before = count(Storage::disk('public')->allFiles('sites/salone-anna/media'));
+        $this->actingAs($user)->post(route('admin.sitebuilder.generate', $tenant), [...$payload, 'logo' => null, 'photos' => [\Illuminate\Http\UploadedFile::fake()->image('d.jpg')]])->assertSessionHasErrors('tagline');
+        $this->assertCount($before, Storage::disk('public')->allFiles('sites/salone-anna/media'));
+
+        // Valori sbagliati: messaggi chiari.
+        $this->actingAs($user)->post(route('admin.sitebuilder.generate', $tenant), [...$payload, 'logo' => null, 'photos' => null, 'vat' => '123', 'facebook' => 'ciao'])
+            ->assertSessionHasErrors(['vat' => 'La partita IVA ha 11 cifre.', 'facebook']);
+    }
+
     public function test_model_discovery_inside_a_request_only_lists_models_without_probing(): void
     {
         config(['services.gemini.api_key' => 'test-key', 'services.gemini.model' => 'gemini-flash-lite-latest', 'services.gemini.fallback_models' => ['gemini-ritirato']]);

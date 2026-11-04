@@ -20,7 +20,140 @@ class SiteContent
             'extra' => ['nullable', 'string', 'max:1000'],
             // Testi in più scritti dall'IA (punti di forza, servizi spiegati, domande, stile), in JSON.
             'extras' => ['nullable', 'string', 'max:12000'],
+            // Dati facoltativi (passi «Foto», «Dove e quando», «Altro»): arrivano solo dalla creazione guidata.
+            'more' => ['nullable', 'in:1'],
+            'address' => ['nullable', 'string', 'max:200'],
+            'hours' => ['nullable', 'string', 'max:300'],
+            'facebook' => ['nullable', 'string', 'max:200', 'regex:~^(https?://)?([a-z0-9-]+\.)?(facebook|fb)\.com/\S+$~i'],
+            'instagram' => ['nullable', 'string', 'max:200', 'regex:~^(@?[A-Za-z0-9._]{1,30}|(https?://)?(www\.)?instagram\.com/[A-Za-z0-9._]{1,30}/?)$~'],
+            'vat' => ['nullable', 'string', 'regex:/^\s*(IT)?\s*\d{11}\s*$/i'],
+            'reviews' => ['nullable', 'array', 'max:3'],
+            'reviews.*.text' => ['nullable', 'string', 'max:300'],
+            'reviews.*.name' => ['nullable', 'string', 'max:60'],
+            'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'photos' => ['nullable', 'array', 'max:6'],
+            'photos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+            'remove_photos' => ['nullable', 'boolean'],
+            'remove_logo' => ['nullable', 'boolean'],
         ];
+    }
+
+    /** @return array<string, string> */
+    public static function messages(): array
+    {
+        return [
+            'facebook.regex' => 'Scrivi l\'indirizzo della pagina Facebook (es. facebook.com/latuaattivita).',
+            'instagram.regex' => 'Scrivi il nome Instagram (es. @latuaattivita).',
+            'vat.regex' => 'La partita IVA ha 11 cifre.',
+            'photos.max' => 'Al massimo 6 foto.',
+            'photos.*.image' => 'Una delle foto non è un\'immagine.',
+            'photos.*.max' => 'Una delle foto è troppo pesante (max 8 MB).',
+            'logo.max' => 'Il logo è troppo pesante (max 4 MB).',
+        ];
+    }
+
+    /**
+     * Dati facoltativi puliti: orari, social, P.IVA, frasi dei clienti.
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array{hours: ?string, facebook: ?string, instagram: ?string, vat: ?string, reviews: array<int, array{text: string, name: string}>}
+     */
+    public static function info(array $validated): array
+    {
+        $facebook = trim((string) ($validated['facebook'] ?? ''));
+        $instagram = trim((string) ($validated['instagram'] ?? ''));
+
+        if ($instagram !== '') {
+            $handle = trim(preg_replace('~^(https?://)?(www\.)?instagram\.com/~i', '', ltrim($instagram, '@')) ?? '', '/');
+            $instagram = $handle !== '' ? 'https://www.instagram.com/'.$handle : '';
+        }
+
+        return [
+            'hours' => SiteCopyWriter::clean($validated['hours'] ?? '', 300) ?: null,
+            'facebook' => $facebook !== '' ? (preg_match('~^https?://~i', $facebook) ? $facebook : 'https://'.$facebook) : null,
+            'instagram' => $instagram ?: null,
+            'vat' => preg_replace('/\D/', '', (string) ($validated['vat'] ?? '')) ?: null,
+            'reviews' => collect($validated['reviews'] ?? [])
+                ->map(fn ($r) => ['text' => SiteCopyWriter::clean($r['text'] ?? '', 300), 'name' => SiteCopyWriter::clean($r['name'] ?? '', 60)])
+                ->filter(fn ($r) => $r['text'] !== '')
+                ->take(3)->values()->all(),
+        ];
+    }
+
+    /**
+     * Salva logo e foto nuovi (le foto nuove sostituiscono quelle di prima).
+     *
+     * @param  array{logo?: ?string, photos?: array<int, string>}  $old
+     * @return array{media: array{logo: ?string, photos: array<int, string>}, new: array<int, string>}
+     */
+    public static function storeMedia(Tenant $tenant, \Illuminate\Http\Request $request, array $old): array
+    {
+        $dir = 'sites/'.$tenant->slug.'/media';
+        $new = [];
+        $logo = $request->boolean('remove_logo') ? null : ($old['logo'] ?? null);
+        $photos = $request->boolean('remove_photos') ? [] : ($old['photos'] ?? []);
+
+        if ($request->hasFile('logo')) {
+            $logo = $new[] = $request->file('logo')->store($dir, 'public');
+        }
+
+        if ($request->hasFile('photos')) {
+            $photos = [];
+
+            foreach (array_slice($request->file('photos'), 0, 6) as $file) {
+                $photos[] = $new[] = $file->store($dir, 'public');
+            }
+        }
+
+        return ['media' => ['logo' => $logo, 'photos' => array_values($photos)], 'new' => $new];
+    }
+
+    /**
+     * Foto da far controllare all'IA, rimpicciolite (meno peso, meno costo).
+     *
+     * @param  array<int, string>  $paths  percorsi sul disco «public»
+     * @return array<int, array{mime: string, data: string}>
+     */
+    public static function imagesForCheck(array $paths): array
+    {
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        $out = [];
+
+        foreach ($paths as $path) {
+            if (! $path || ! $disk->exists($path)) {
+                continue;
+            }
+
+            $bytes = $disk->get($path);
+            $small = self::shrink($bytes);
+            $out[] = $small ?? ['mime' => $disk->mimeType($path) ?: 'image/jpeg', 'data' => base64_encode($bytes)];
+        }
+
+        return $out;
+    }
+
+    /** @return array{mime: string, data: string}|null */
+    private static function shrink(string $bytes): ?array
+    {
+        if (! function_exists('imagecreatefromstring')) {
+            return null;
+        }
+
+        $img = @imagecreatefromstring($bytes);
+
+        if (! $img) {
+            return null;
+        }
+
+        $w = imagesx($img);
+        $h = imagesy($img);
+        $scale = min(1, 768 / max($w, $h));
+        $small = imagescale($img, max(1, (int) round($w * $scale)), max(1, (int) round($h * $scale)));
+
+        ob_start();
+        imagejpeg($small ?: $img, null, 80);
+
+        return ['mime' => 'image/jpeg', 'data' => base64_encode((string) ob_get_clean())];
     }
 
     /**
@@ -129,9 +262,11 @@ class SiteContent
     {
         $site = $tenant->generatedSite ?: new GeneratedSite(['tenant_id' => $tenant->id]);
 
-        // Il link segreto non manda i testi in più: si tengono quelli già salvati.
-        if (! array_key_exists('extras', $answers) && isset($site->answers['extras'])) {
-            $answers['extras'] = $site->answers['extras'];
+        // Il link segreto non manda testi in più, foto e dati facoltativi: si tengono quelli già salvati.
+        foreach (['extras', 'info', 'media'] as $key) {
+            if (! array_key_exists($key, $answers) && isset($site->answers[$key])) {
+                $answers[$key] = $site->answers[$key];
+            }
         }
 
         $site->fill([

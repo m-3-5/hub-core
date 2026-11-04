@@ -7,6 +7,8 @@
     $hasOld = old('tagline') !== null;
     $start = $hasOld ? 'review' : ($published && ! request()->boolean('rifai') ? 'done' : 'describe');
     $ctaChoices = ['Chiamaci', 'Scrivici su WhatsApp', 'Prenota ora', 'Richiedi un preventivo', 'Vieni a trovarci'];
+    $media = $answers['media'] ?? [];
+    $info = $answers['info'] ?? [];
 @endphp
 <!DOCTYPE html>
 <html lang="it">
@@ -40,6 +42,16 @@
         .pv-more b { display: block; margin-top: 6px; }
         .pv-more span { display: block; color: var(--muted); }
         .pv-more i { color: var(--c-dark); }
+        .pick { position: relative; display: flex; align-items: center; gap: 14px; padding: 14px; border: 2px dashed #d7d8e2; border-radius: 18px; margin-top: 12px; cursor: pointer; min-height: 72px; }
+        .pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .pick b { display: block; font-size: 1.08rem; }
+        .pick small { color: var(--muted); }
+        .pick-ico { flex: none; width: 52px; height: 52px; border-radius: 14px; background: var(--c-soft); display: grid; place-items: center; font-size: 1.6rem; overflow: hidden; }
+        .pick-ico img { width: 100%; height: 100%; object-fit: cover; }
+        .thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+        .thumbs img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 12px; }
+        .review-in { display: grid; gap: 8px; margin-top: 10px; }
+        @media (prefers-color-scheme: dark) { .pick { border-color: #2c2c3a; } }
         .done-ico { width: 88px; height: 88px; border-radius: 50%; background: #e8f5e9; display: grid; place-items: center; font-size: 2.6rem; margin: 18px 0 4px; }
         .url { display: block; background: #f6f6fa; border-radius: 14px; padding: 14px 16px; font-weight: 600; overflow-wrap: anywhere; color: var(--ink); text-decoration: none; margin: 10px 0 16px; }
         .stack { display: grid; gap: 12px; }
@@ -69,10 +81,10 @@
         <div class="wz-count" id="wz-count"></div>
     </div>
 
-    <form id="wz-form" class="wz-stage" method="POST" action="{{ route('admin.sitebuilder.generate', $tenant) }}" novalidate>
+    <form id="wz-form" class="wz-stage" method="POST" action="{{ route('admin.sitebuilder.generate', $tenant) }}" enctype="multipart/form-data" novalidate>
         @csrf
         @if ($errors->any())
-            <div class="banner bad">{{ $errors->first() }}</div>
+            <div class="banner bad">{{ $errors->first() }}@if (old('more'))<br><small>Se avevi scelto foto nuove, sceglile di nuovo al passo «Logo e foto».</small>@endif</div>
         @endif
         @php
             // «Sito creato! Eccolo qui: URL — nota»: la pagina finale mostra già il link, qui resta solo la nota.
@@ -177,6 +189,58 @@
             <div class="err" id="err-phone"></div>
         </section>
 
+        {{-- Passi facoltativi: arricchiscono la pagina (galleria, mappa, orari, social, recensioni). --}}
+        <input type="hidden" name="more" value="1">
+
+        <section class="wz-step" data-step="photos">
+            <span class="ai">📷 Facoltativo, ma fa la differenza</span>
+            <h1>Logo e foto</h1>
+            <p class="sub">Dal telefono: il tuo logo e fino a 6 foto vere (locale, lavori, prodotti).</p>
+            <label class="pick">
+                <input type="file" name="logo" id="in-logo" accept="image/*">
+                <span class="pick-ico" id="logo-prev">@if (! empty($media['logo']))<img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($media['logo']) }}" alt="">@else 🏷️ @endif</span>
+                <span><b>Logo</b><small>Quadrato va benissimo</small></span>
+            </label>
+            <label class="pick">
+                <input type="file" name="photos[]" id="in-photos" accept="image/*" multiple>
+                <span class="pick-ico">🖼️</span>
+                <span><b>Foto</b><small id="photos-note">{{ count($media['photos'] ?? []) ? count($media['photos']).' foto già nel sito: sceglierne di nuove le sostituisce' : 'Fino a 6' }}</small></span>
+            </label>
+            <div class="thumbs" id="thumbs">
+                @foreach ($media['photos'] ?? [] as $p)<img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($p) }}" alt="">@endforeach
+            </div>
+            @if (! empty($media['photos']) || ! empty($media['logo']))
+                <label class="toggle"><input type="checkbox" name="remove_photos" value="1"> Togli le foto dal sito</label>
+                @if (! empty($media['logo']))<label class="toggle"><input type="checkbox" name="remove_logo" value="1"> Togli il logo</label>@endif
+            @endif
+            <div class="err" id="err-photos"></div>
+        </section>
+
+        <section class="wz-step" data-step="where">
+            <span class="ai">📍 Facoltativo</span>
+            <h1>Dove e quando</h1>
+            <p class="sub">Indirizzo per la mappa e i tuoi orari.</p>
+            <input class="field city" name="address" id="in-address" type="text" maxlength="200" autocomplete="street-address" placeholder="Via, numero, città" value="{{ old('address', $tenant->address) }}">
+            <textarea class="field city" name="hours" id="in-hours" maxlength="300" style="min-height:110px" placeholder="Es. Lun-Sab 9:00-13:00 e 16:00-20:00, domenica chiuso">{{ old('hours', $info['hours'] ?? '') }}</textarea>
+        </section>
+
+        <section class="wz-step" data-step="social">
+            <span class="ai">✨ Facoltativo</span>
+            <h1>Ancora qualcosa?</h1>
+            <p class="sub">Social, partita IVA e cosa dicono di te i clienti.</p>
+            <input class="field city" name="facebook" id="in-facebook" type="text" maxlength="200" placeholder="Pagina Facebook (es. facebook.com/latuaattivita)" value="{{ old('facebook', $info['facebook'] ?? '') }}">
+            <input class="field city" name="instagram" id="in-instagram" type="text" maxlength="200" placeholder="Instagram (es. @latuaattivita)" value="{{ old('instagram', $info['instagram'] ?? '') }}">
+            <input class="field city" name="vat" id="in-vat" type="text" inputmode="numeric" maxlength="16" placeholder="Partita IVA (11 cifre)" value="{{ old('vat', $info['vat'] ?? '') }}">
+            <p class="hint" style="margin-top:18px"><b>Frasi vere dei tuoi clienti</b> (max 3, solo se te le hanno dette davvero)</p>
+            @for ($i = 0; $i < 3; $i++)
+                <div class="review-in">
+                    <textarea class="field" name="reviews[{{ $i }}][text]" maxlength="300" style="min-height:70px;font-size:1rem" placeholder="«Gentilissimi e veloci, consigliati!»">{{ old("reviews.$i.text", $info['reviews'][$i]['text'] ?? '') }}</textarea>
+                    <input class="field" name="reviews[{{ $i }}][name]" maxlength="60" style="font-size:1rem" placeholder="Nome (es. Maria R.)" value="{{ old("reviews.$i.name", $info['reviews'][$i]['name'] ?? '') }}">
+                </div>
+            @endfor
+            <div class="err" id="err-social"></div>
+        </section>
+
         <section class="wz-step" data-step="review">
             <h1>Ecco il tuo sito</h1>
             <p class="sub">Controlla e premi «Metti online».</p>
@@ -214,7 +278,7 @@
     const SUGGEST = @json(route('admin.sitebuilder.suggest', $tenant));
     const SITE_URL = @json($siteUrl);
     const sections = Object.fromEntries([...document.querySelectorAll('[data-step]')].map(s => [s.dataset.step, s]));
-    const ORDER = ['describe', 'tagline', 'services', 'about', 'cta', 'phone', 'review'];
+    const ORDER = ['describe', 'tagline', 'services', 'about', 'cta', 'phone', 'photos', 'where', 'social', 'review'];
     const esc = (t) => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
     const state = {
@@ -280,8 +344,50 @@
             state.phone = $('in-phone').value.trim();
             return err('phone', state.phone && !/^[0-9+()\s.\-]{6,30}$/.test(state.phone) ? 'Controlla il numero: usa solo cifre.' : '');
         }
+        if (id === 'photos') {
+            return err('photos', $('in-photos').files.length > 6 ? 'Al massimo 6 foto: togline qualcuna.' : '');
+        }
+        if (id === 'social') {
+            const vat = $('in-vat').value.replace(/\s|IT/gi, '');
+            const fb = $('in-facebook').value.trim();
+            if (vat && !/^\d{11}$/.test(vat)) return err('social', 'La partita IVA ha 11 cifre.');
+            if (fb && !/(facebook|fb)\.com\//i.test(fb)) return err('social', 'Scrivi l\'indirizzo della pagina Facebook (es. facebook.com/latuaattivita).');
+            return err('social', '');
+        }
         return true;
     }
+
+    // Foto rimpicciolite sul telefono prima dell'invio (max 1600 px): caricamento veloce anche con poca rete.
+    async function shrinkFiles(input, max) {
+        const files = [...input.files].slice(0, max);
+        if (!files.length || !window.DataTransfer) return files;
+        const dt = new DataTransfer();
+        for (const f of files) {
+            try {
+                const bmp = await createImageBitmap(f);
+                const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+                const c = document.createElement('canvas');
+                c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+                c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+                const blob = await new Promise(r => c.toBlob(r, f.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.85));
+                dt.items.add(blob ? new File([blob], f.name.replace(/\.\w+$/, '') + (f.type === 'image/png' ? '.png' : '.jpg'), { type: blob.type }) : f);
+            } catch (e) { dt.items.add(f); }
+        }
+        input.files = dt.files;
+        return [...input.files];
+    }
+
+    $('in-photos').addEventListener('change', async () => {
+        if ($('in-photos').files.length > 6) err('photos', 'Ne tengo solo 6.');
+        const files = await shrinkFiles($('in-photos'), 6);
+        $('thumbs').innerHTML = '';
+        files.forEach(f => { const i = new Image(); i.src = URL.createObjectURL(f); $('thumbs').appendChild(i); });
+        $('photos-note').textContent = files.length + ' foto scelte';
+    });
+    $('in-logo').addEventListener('change', async () => {
+        const [f] = await shrinkFiles($('in-logo'), 1);
+        if (f) $('logo-prev').innerHTML = `<img src="${URL.createObjectURL(f)}" alt="">`;
+    });
 
     function renderReview() {
         $('pv-tagline').textContent = state.tagline;
@@ -302,6 +408,14 @@
         row('Chi siete', state.about ? state.about.slice(0, 60) + (state.about.length > 60 ? '…' : '') : '', 'about');
         row('Pulsante', state.cta, 'cta');
         row('Telefono', state.phone, 'phone');
+        const nPhotos = $('in-photos').files.length;
+        row('Foto', nPhotos ? nPhotos + ' nuove' : ($('thumbs').children.length ? $('thumbs').children.length + ' già nel sito' : ''), 'photos');
+        row('Logo', $('in-logo').files.length ? 'nuovo' : (@json(! empty($media['logo'])) ? 'già nel sito' : ''), 'photos');
+        row('Indirizzo', $('in-address').value.trim(), 'where');
+        row('Orari', $('in-hours').value.trim(), 'where');
+        row('Social', [$('in-facebook').value.trim() && 'Facebook', $('in-instagram').value.trim() && 'Instagram'].filter(Boolean).join(', '), 'social');
+        row('P.IVA', $('in-vat').value.trim(), 'social');
+        row('Frasi clienti', String([...document.querySelectorAll('[name$="[text]"]')].filter(t => t.value.trim()).length || ''), 'social');
         $('sum-rows').innerHTML = rows.join('');
         $('sum-rows').querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => show(a.dataset.go)));
     }

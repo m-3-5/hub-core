@@ -20,9 +20,20 @@
         $dark = $styleKey === 'digitale';
         $primary = $tenant->primary_color ?: '#6366f1';
 
-        $heroVisual = $site->hero_video_path
-            ? \Illuminate\Support\Facades\Storage::disk('public')->url($site->hero_video_path)
-            : ($site->hero_svg_path ? \Illuminate\Support\Facades\Storage::disk('public')->url($site->hero_svg_path) : null);
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        $info = $answers['info'] ?? [];
+        $media = $answers['media'] ?? [];
+        $photos = array_map(fn ($p) => $disk->url($p), $media['photos'] ?? []);
+        $logo = ! empty($media['logo']) ? $disk->url($media['logo']) : null;
+        $reviews = $info['reviews'] ?? [];
+        $hours = $info['hours'] ?? null;
+        $socials = array_filter(['Facebook' => $info['facebook'] ?? null, 'Instagram' => $info['instagram'] ?? null]);
+        $vat = $info['vat'] ?? null;
+        // Una foto vera batte qualsiasi grafica: se c'è, la prima diventa lo sfondo in alto.
+        $heroVisual = $photos[0] ?? ($site->hero_video_path
+            ? $disk->url($site->hero_video_path)
+            : ($site->hero_svg_path ? $disk->url($site->hero_svg_path) : null));
+        $aboutPhoto = $photos[1] ?? null;
         $tel = $tenant->phone ? preg_replace('/[^0-9+]/', '', $tenant->phone) : null;
         // WhatsApp solo per i cellulari italiani (3xx) o numeri già con prefisso internazionale.
         $waNumber = $tel ? ltrim(preg_match('/^3\d{8,9}$/', $tel) ? '39'.$tel : (str_starts_with($tel, '+') ? $tel : ''), '+') : '';
@@ -43,10 +54,10 @@
     <meta property="og:type" content="website">
     <meta property="og:locale" content="it_IT">
     <meta property="og:url" content="{{ $siteUrl }}">
-    <meta property="og:image" content="{{ asset('images/og-hub-core.png') }}">
+    <meta property="og:image" content="{{ $photos[0] ?? asset('images/og-hub-core.png') }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $tenant->name }}">
-    <meta name="twitter:image" content="{{ asset('images/og-hub-core.png') }}">
+    <meta name="twitter:image" content="{{ $photos[0] ?? asset('images/og-hub-core.png') }}">
     <meta name="theme-color" content="{{ $primary }}">
     <script type="application/ld+json">{!! json_encode(array_filter([
         '@'.'context' => 'https://schema.org',
@@ -56,6 +67,10 @@
         'url' => $siteUrl,
         'telephone' => $tenant->phone,
         'address' => $tenant->address,
+        'image' => $photos[0] ?? $logo,
+        'logo' => $logo,
+        'vatID' => $vat,
+        'sameAs' => array_values($socials) ?: null,
     ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -185,6 +200,37 @@
         .made b { color: #fff; }
         @media (min-width: 760px) { .foot { grid-template-columns: 1.4fr 1fr 1fr; } }
 
+        /* Logo, foto, galleria, recensioni, dove e quando */
+        .mono.logo { object-fit: contain; background: #fff; padding: 3px; border: 1px solid var(--line); }
+        .about-art.photo { background: var(--soft); }
+        .about-art.photo::before, .about-art.photo::after { display: none; }
+        .about-art.photo img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
+        .shot { border: 0; padding: 0; background: none; cursor: zoom-in; border-radius: var(--radius); overflow: hidden; aspect-ratio: 4/3; }
+        .shot img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+        .shot:hover img { transform: scale(1.05); }
+        @media (min-width: 760px) { .gallery { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
+        .reviews { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
+        .review { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; position: relative; }
+        .review::before { content: '“'; position: absolute; right: 18px; top: -6px; font-size: 5rem; line-height: 1; color: var(--primary-soft); font-family: Georgia, serif; }
+        .stars { color: #f5b301; letter-spacing: 2px; margin-bottom: 8px; }
+        .review blockquote { font-size: 1.05rem; }
+        .review figcaption { margin-top: 10px; color: var(--muted); font-weight: 700; font-size: .92rem; }
+        .where { display: grid; gap: 16px; margin-top: 22px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+        .where h3 { font-size: 1.2rem; margin-bottom: 8px; }
+        .where p { color: var(--muted); margin-top: 4px; }
+        .map { min-height: 220px; border-radius: calc(var(--radius) - 6px); background: linear-gradient(135deg, var(--primary-soft), var(--soft)); display: grid; place-items: center; text-align: center; gap: 8px; padding: 16px; overflow: hidden; }
+        .map small { color: var(--muted); font-size: .8rem; }
+        .map iframe { width: 100%; height: 100%; min-height: 260px; border: 0; }
+        .map.on { padding: 0; }
+        @media (min-width: 760px) { .where { grid-template-columns: 1fr 1.3fr; align-items: center; } }
+        .socials { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+        .socials a { border: 1px solid #343a48; border-radius: 99px; padding: 8px 14px; font-size: .88rem; min-height: 40px; display: inline-flex; align-items: center; }
+        .lightbox { position: fixed; inset: 0; z-index: 60; background: rgba(5,6,10,.92); display: none; place-items: center; padding: 16px; }
+        .lightbox.on { display: grid; }
+        .lightbox img { max-width: 100%; max-height: 86vh; border-radius: 14px; }
+        .lightbox button { position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 12px; width: 48px; height: 48px; border-radius: 50%; border: 0; background: rgba(255,255,255,.15); color: #fff; font-size: 1.4rem; cursor: pointer; }
+
         /* Barra fissa su telefono */
         .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line); }
         .dock .btn { flex: 1; min-height: 50px; padding: 0 12px; box-shadow: none; }
@@ -203,10 +249,11 @@
 
 <header class="top">
     <div class="wrap">
-        <a class="brand" href="#top"><span class="mono">{{ $initial }}</span><span>{{ $tenant->name }}</span></a>
+        <a class="brand" href="#top">@if ($logo)<img class="mono logo" src="{{ $logo }}" alt="">@else<span class="mono">{{ $initial }}</span>@endif<span>{{ $tenant->name }}</span></a>
         <nav aria-label="Sezioni">
             @if (count($services))<a href="#servizi">Servizi</a>@endif
             @if ($about)<a href="#chi-siamo">Chi siamo</a>@endif
+            @if (count($photos) > 1)<a href="#foto">Foto</a>@endif
             @if (count($faq))<a href="#domande">Domande</a>@endif
             @if ($hasContacts)<a href="#contatti">Contatti</a>@endif
         </nav>
@@ -264,8 +311,34 @@
 @if ($about)
 <section class="section" id="chi-siamo">
     <div class="wrap about">
-        <div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>
+        @if ($aboutPhoto)<div class="about-art photo rv"><img src="{{ $aboutPhoto }}" alt="{{ $tenant->name }}" loading="lazy"></div>@else<div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>@endif
         <div class="about-text rv"><span class="kicker">Chi siamo</span><h2>{{ $tenant->name }}</h2><p>{{ $about }}</p></div>
+    </div>
+</section>
+@endif
+
+@if (count($photos) > 1)
+<section class="section soft" id="foto">
+    <div class="wrap">
+        <div class="head rv"><span class="kicker">Foto</span><h2>Dai un'occhiata</h2></div>
+        <div class="gallery">
+            @foreach ($photos as $i => $p)
+                <button type="button" class="shot rv" data-full="{{ $p }}" aria-label="Apri foto {{ $i + 1 }}"><img src="{{ $p }}" alt="{{ $tenant->name }} — foto {{ $i + 1 }}" loading="lazy"></button>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+@if (count($reviews))
+<section class="section" aria-label="Cosa dicono i clienti">
+    <div class="wrap">
+        <div class="head rv"><span class="kicker">Dicono di noi</span><h2>Parola ai clienti</h2></div>
+        <div class="reviews">
+            @foreach ($reviews as $r)
+                <figure class="review rv"><div class="stars" aria-hidden="true">★★★★★</div><blockquote>«{{ $r['text'] }}»</blockquote>@if ($r['name'])<figcaption>{{ $r['name'] }}</figcaption>@endif</figure>
+            @endforeach
+        </div>
     </div>
 </section>
 @endif
@@ -294,6 +367,22 @@
             </div>
         </div>
 
+        @if ($tenant->address || $hours)
+        <div class="where rv">
+            <div class="where-text">
+                <h3>Dove e quando</h3>
+                @if ($tenant->address)<p>📍 {{ $tenant->address }}</p>@endif
+                @if ($hours)<p>🕒 {{ $hours }}</p>@endif
+            </div>
+            @if ($tenant->address)
+                <div class="map" id="map" data-src="https://www.google.com/maps?q={{ rawurlencode($tenant->address) }}&output=embed">
+                    <button type="button" class="btn light" id="map-btn">🗺️ Mostra la mappa</button>
+                    <small>La mappa è di Google: si carica solo se la apri.</small>
+                </div>
+            @endif
+        </div>
+        @endif
+
         <div class="contacts" style="margin-top:22px">
             @if ($tel)<a class="contact rv" href="tel:{{ $tel }}"><span class="ico" aria-hidden="true">📞</span><span><small>Telefono</small><b>{{ $tenant->phone }}</b></span></a>@endif
             @if ($waUrl)<a class="contact rv" href="{{ $waUrl }}" target="_blank" rel="noopener"><span class="ico" aria-hidden="true">💬</span><span><small>WhatsApp</small><b>Scrivici ora</b></span></a>@endif
@@ -309,17 +398,19 @@
     <div class="wrap">
         <div class="foot">
             <div>
-                <a class="brand" href="#top"><span class="mono">{{ $initial }}</span><span>{{ $tenant->name }}</span></a>
+                <a class="brand" href="#top">@if ($logo)<img class="mono logo" src="{{ $logo }}" alt="">@else<span class="mono">{{ $initial }}</span>@endif<span>{{ $tenant->name }}</span></a>
                 <p>{{ $tagline }}</p>
             </div>
-            @if ($hasContacts)
+            @if ($hasContacts || $hours || $socials)
             <div>
                 <h4>Contatti</h4>
                 <ul>
                     @if ($tel)<li><a href="tel:{{ $tel }}">{{ $tenant->phone }}</a></li>@endif
                     @if ($waUrl)<li><a href="{{ $waUrl }}" target="_blank" rel="noopener">WhatsApp</a></li>@endif
                     @if ($tenant->address)<li><a href="{{ $mapsUrl }}" target="_blank" rel="noopener">{{ $tenant->address }}</a></li>@endif
+                    @if ($hours)<li>{{ $hours }}</li>@endif
                 </ul>
+                @if ($socials)<div class="socials">@foreach ($socials as $label => $url)<a href="{{ $url }}" target="_blank" rel="noopener">{{ $label }}</a>@endforeach</div>@endif
             </div>
             @endif
             <div>
@@ -334,7 +425,7 @@
             </div>
         </div>
         <div class="legal">
-            <span>© {{ now()->year }} {{ $tenant->name }} · <a href="{{ route('privacy') }}">Privacy</a></span>
+            <span>© {{ now()->year }} {{ $tenant->name }}@if ($vat) · P.IVA {{ $vat }}@endif · <a href="{{ route('privacy') }}">Privacy</a></span>
             <a class="made" href="{{ route('site.start', ['ref' => 'sito-'.$tenant->slug]) }}">Sito creato con l'IA di <b>Hub Core</b> · crea il tuo</a>
         </div>
     </div>
@@ -347,7 +438,27 @@
 </div>
 @endif
 
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto"><button type="button" aria-label="Chiudi">✕</button><img alt=""></div>
+
 <script>
+(function () {
+    // Foto a schermo intero.
+    var box = document.getElementById('lightbox');
+    document.querySelectorAll('.shot').forEach(function (b) {
+        b.addEventListener('click', function () { box.querySelector('img').src = b.dataset.full; box.classList.add('on'); });
+    });
+    box.addEventListener('click', function () { box.classList.remove('on'); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') box.classList.remove('on'); });
+
+    // Mappa di Google solo se la persona la apre (niente cookie di terzi prima).
+    var map = document.getElementById('map');
+    if (map) {
+        document.getElementById('map-btn').addEventListener('click', function () {
+            map.innerHTML = '<iframe src="' + map.dataset.src + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mappa"></iframe>';
+            map.classList.add('on');
+        });
+    }
+})();
 (function () {
     var items = document.querySelectorAll('.rv');
     var showAll = function () { items.forEach(function (el) { el.classList.add('in'); }); };
