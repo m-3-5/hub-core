@@ -60,7 +60,7 @@ class SiteBuilderController extends Controller
             $tenant->update(['phone' => trim($validated['phone'])]);
         }
 
-        $hero = $heroGenerator->generate($tenant, SiteContent::heroDir($tenant));
+        $hero = $heroGenerator->generate($tenant, SiteContent::heroDir($tenant), $answers['extras']['style'] ?? null);
         $site = SiteContent::save($tenant, $answers, $hero);
 
         // Il link segreto per modificare il sito parte alla prima pubblicazione, solo se c'è una email vera.

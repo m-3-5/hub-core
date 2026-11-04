@@ -117,7 +117,15 @@ class SiteWithAiJourneyTest extends TestCase
         [$tenant, $user] = $this->tenantWithOwner();
         $this->fakeGemini([
             'tagline' => 'Il tuo taglio, come lo sogni',
-            'services' => ['Taglio', 'Colore, riflessi', 'Sposa <b>vip</b>'],
+            'services' => [
+                ['name' => 'Taglio', 'line' => 'Su misura per te', 'icon' => '✂️'],
+                ['name' => 'Colore, riflessi', 'line' => 'Toni naturali', 'icon' => 'abc'],
+                'Sposa <b>vip</b>',
+            ],
+            'strengths' => [['title' => 'Su appuntamento', 'text' => 'Niente attese', 'icon' => '📅'], ['title' => '<script>x</script>', 'text' => 'y', 'icon' => '⭐']],
+            'faq' => [['q' => 'Serve prenotare?', 'a' => 'Sì, scrivici su WhatsApp.']],
+            'closing' => 'Prenota il tuo momento',
+            'style' => 'elegante',
             'about' => 'Siamo un salone di Rossano.',
             'cta_label' => 'Prenota ora',
         ]);
@@ -125,7 +133,14 @@ class SiteWithAiJourneyTest extends TestCase
         $this->actingAs($user)->postJson(route('admin.sitebuilder.suggest', $tenant), ['description' => 'Parrucchiera per donna a Rossano', 'city' => 'Rossano'])
             ->assertOk()
             ->assertJson(['ok' => true, 'tagline' => 'Il tuo taglio, come lo sogni', 'cta_label' => 'Prenota ora', 'about' => 'Siamo un salone di Rossano.'])
-            ->assertJsonPath('services', ['Taglio', 'Colore riflessi', 'Sposa vip']);
+            ->assertJsonPath('services', ['Taglio', 'Colore riflessi', 'Sposa vip'])
+            ->assertJsonPath('extras.service_details.0', ['name' => 'Taglio', 'line' => 'Su misura per te', 'icon' => '✂️'])
+            ->assertJsonPath('extras.service_details.1.icon', '✓')
+            ->assertJsonPath('extras.strengths.0.title', 'Su appuntamento')
+            ->assertJsonPath('extras.strengths.1.title', 'x')
+            ->assertJsonPath('extras.faq.0.q', 'Serve prenotare?')
+            ->assertJsonPath('extras.closing', 'Prenota il tuo momento')
+            ->assertJsonPath('extras.style', 'elegante');
 
         Http::assertSent(fn ($r) => str_contains($r->url(), 'gemini-test:generateContent') && str_contains(json_encode($r->data()), 'Salone Anna'));
     }
@@ -149,20 +164,42 @@ class SiteWithAiJourneyTest extends TestCase
         $this->mock(ContentModerator::class, fn ($m) => $m->shouldReceive('check')->andReturn(['allowed' => true, 'unavailable' => false, 'category' => 'ok', 'reason' => '']));
         $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate')->andReturn(null));
 
+        $extras = json_encode([
+            'service_details' => [['name' => 'Taglio', 'line' => 'Su misura per te', 'icon' => '✂️']],
+            'strengths' => [['title' => 'Su appuntamento', 'text' => 'Niente attese', 'icon' => '📅']],
+            'faq' => [['q' => 'Serve prenotare?', 'a' => 'Sì, scrivici su WhatsApp.']],
+            'closing' => 'Prenota il tuo momento',
+            'style' => 'amichevole',
+        ]);
+
         $this->actingAs($user)->post(route('admin.sitebuilder.generate', $tenant), [
             'tagline' => 'Il tuo taglio, come lo sogni', 'services' => 'Taglio, Colore', 'cta_label' => 'Scrivici su WhatsApp',
-            'extra' => 'Siamo un salone di Rossano.', 'phone' => '333 123 4567',
+            'extra' => 'Siamo un salone di Rossano.', 'phone' => '333 123 4567', 'extras' => $extras,
         ])->assertRedirect(route('admin.sitebuilder.show', $tenant));
 
         $this->assertSame('333 123 4567', $tenant->fresh()->phone);
-        $this->assertTrue(GeneratedSite::sole()->isLive());
+        $site = GeneratedSite::sole();
+        $this->assertTrue($site->isLive());
 
         auth()->logout();
         $this->get(route('site.public.show', $tenant))
             ->assertOk()
             ->assertSee('Il tuo taglio, come lo sogni')
             ->assertSee('Chi siamo')
+            ->assertSee('Perché sceglierci')
+            ->assertSee('Su appuntamento')
+            ->assertSee('Su misura per te')
+            ->assertSee('Serve prenotare?')
+            ->assertSee('Prenota il tuo momento')
+            ->assertSee('Quicksand') // stile «amichevole» proposto dall'IA
+            ->assertSee(route('privacy'))
+            ->assertSee(route('site.start', ['ref' => 'sito-salone-anna']), false)
             ->assertSee('https://wa.me/393331234567', false);
+
+        // Il link segreto modifica i testi principali ma non cancella quelli in più.
+        $token = $site->fresh()->issueEditToken();
+        $this->post(route('site.edit.update', $token), ['tagline' => 'Nuova frase', 'services' => 'Taglio', 'cta_label' => 'Chiamaci'])->assertRedirect();
+        $this->assertSame('Prenota il tuo momento', $site->fresh()->answers['extras']['closing']);
 
         $this->actingAs($user)->get(route('admin.sitebuilder.show', $tenant))->assertOk()->assertSee('Il tuo sito è online');
     }

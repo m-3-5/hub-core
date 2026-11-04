@@ -35,6 +35,11 @@
         .pv-body .chips { gap: 8px; }
         .pv-body .chips span { background: var(--c-soft); color: var(--c-dark); font-weight: 600; padding: 8px 12px; border-radius: 99px; font-size: .92rem; }
         .pv-body p { color: #444; margin: 12px 0 0; line-height: 1.5; }
+        .pv-more { display: grid; gap: 6px; margin-top: 12px; font-size: .92rem; }
+        .pv-more:empty { display: none; }
+        .pv-more b { display: block; margin-top: 6px; }
+        .pv-more span { display: block; color: var(--muted); }
+        .pv-more i { color: var(--c-dark); }
         .done-ico { width: 88px; height: 88px; border-radius: 50%; background: #e8f5e9; display: grid; place-items: center; font-size: 2.6rem; margin: 18px 0 4px; }
         .url { display: block; background: #f6f6fa; border-radius: 14px; padding: 14px 16px; font-weight: 600; overflow-wrap: anywhere; color: var(--ink); text-decoration: none; margin: 10px 0 16px; }
         .stack { display: grid; gap: 12px; }
@@ -88,6 +93,7 @@
         <input type="hidden" name="cta_label" id="f-cta" value="{{ old('cta_label', $answers['cta_label'] ?? '') }}">
         <input type="hidden" name="extra" id="f-extra" value="{{ old('extra', $answers['extra'] ?? '') }}">
         <input type="hidden" name="phone" id="f-phone" value="{{ old('phone', $tenant->phone) }}">
+        <input type="hidden" name="extras" id="f-extras" value="{{ old('extras', json_encode($answers['extras'] ?? new \stdClass)) }}">
 
         {{-- Sito già online --}}
         <section class="wz-step" data-step="done">
@@ -176,7 +182,7 @@
             <p class="sub">Controlla e premi «Metti online».</p>
             <div class="pv">
                 <div class="pv-hero"><small>{{ $tenant->name }}</small><h2 id="pv-tagline"></h2><span id="pv-cta"></span></div>
-                <div class="pv-body"><div class="chips" id="pv-services"></div><p id="pv-about"></p></div>
+                <div class="pv-body"><div class="chips" id="pv-services"></div><p id="pv-about"></p><div class="pv-more" id="pv-more"></div></div>
             </div>
             <div class="rows" id="sum-rows"></div>
             <p class="hint">Prima di andare online l'IA controlla che i testi siano seri (niente spam o cose vietate).</p>
@@ -217,6 +223,7 @@
         about: $('f-extra').value,
         cta: $('f-cta').value || 'Chiamaci',
         phone: $('f-phone').value,
+        extras: (() => { try { return JSON.parse($('f-extras').value || '{}') || {}; } catch (e) { return {}; } })(),
     };
     let current = @json($start);
     let busy = false;
@@ -281,6 +288,13 @@
         $('pv-cta').textContent = state.cta;
         $('pv-services').innerHTML = state.services.map(s => `<span>${esc(s)}</span>`).join('');
         $('pv-about').textContent = state.about;
+        // Quello che l'IA ha aggiunto in più: punti di forza e domande frequenti.
+        const ex = state.extras || {};
+        const more = [];
+        if ((ex.strengths || []).length) more.push('<b>Perché sceglierci</b>' + ex.strengths.map(s => `<span>${esc(s.icon)} ${esc(s.title)}</span>`).join(''));
+        if ((ex.faq || []).length) more.push(`<b>${ex.faq.length} domande frequenti</b>`);
+        if (ex.closing) more.push(`<i>${esc(ex.closing)}</i>`);
+        $('pv-more').innerHTML = more.join('');
         const rows = [];
         const row = (label, value, step) => rows.push(`<div class="row"><span>${label}</span><b>${esc(value || '—')}</b><a data-go="${step}">Modifica</a></div>`);
         row('Frase', state.tagline, 'tagline');
@@ -316,6 +330,7 @@
             state.services = data.services;
             state.about = data.about || '';
             state.cta = data.cta_label || state.cta;
+            state.extras = data.extras || {};
             $('ai-tag').hidden = false;
             show('tagline');
         } catch (e) {
@@ -333,6 +348,7 @@
         $('f-extra').value = state.about;
         $('f-cta').value = state.cta;
         $('f-phone').value = state.phone;
+        $('f-extras').value = JSON.stringify(state.extras || {});
         veil(true, 'Sto creando il tuo sito…', 'Controllo i testi e disegno la grafica: fino a un minuto.');
         form.submit();
     }

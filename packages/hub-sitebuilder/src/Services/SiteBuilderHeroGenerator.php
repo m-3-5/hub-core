@@ -35,7 +35,7 @@ class SiteBuilderHeroGenerator
      *
      * @return array{svg_path: string, video_path: ?string}|null
      */
-    public function generate(Tenant $tenant, string $directory): ?array
+    public function generate(Tenant $tenant, string $directory, ?string $style = null): ?array
     {
         $apiKey = config('services.gemini.api_key');
 
@@ -48,7 +48,7 @@ class SiteBuilderHeroGenerator
         }
 
         $color = $tenant->primary_color ?: '#6366f1';
-        $fontKey = $this->brand->font($tenant);
+        $fontKey = $style ?: $this->brand->font($tenant);
         $styleDirective = self::STYLE_DIRECTIVES[$fontKey] ?? self::STYLE_DIRECTIVES['moderno'];
 
         $prompt = <<<PROMPT
