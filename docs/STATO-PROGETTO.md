@@ -191,4 +191,4 @@ Richiesta: prezzi uniformi, più bassi, con lo sconto che dura più a lungo. Non
 ## 15. «Continua con Google» (04/11/2026)
 - Tasto in login e in `/registrati` (anche `?per=sito&ref=…`): chi ha già l'account entra; chi è nuovo risponde a tipo + nome attività (`/registrati/google`) e l'account nasce con email confermata, poi va alla creazione del sito se veniva per il sito. Codice: `GoogleLoginController`, `RegistrationController::createAccount`, test `GoogleLoginTest`.
 - Google Cloud: progetto **«Hub Core inm35»** (separato da Beauty), schermata di consenso «Hub Core», client OAuth «inm35.it», ritorno `https://inm35.it/accedi/google/ritorno`. Chiavi in `.env`: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (le ha messe Max). Scope solo `openid email` (con `profile` il firewall di Plesk dà 403).
-- **App Google in modalità test**: entrano solo gli utenti di prova. Per tutti: Google Auth Platform → Pubblico → «Pubblica app».
+- **App Google pubblicata** (In produzione, 04/11). Branding: home inm35.it, privacy `/privacy` (pagina nuova). Niente logo: farebbe partire la verifica di Google.
