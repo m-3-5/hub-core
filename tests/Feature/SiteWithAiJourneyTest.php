@@ -60,6 +60,18 @@ class SiteWithAiJourneyTest extends TestCase
             ->assertDontSee('data-type="privato"', false);
     }
 
+    public function test_an_email_already_registered_gets_a_clear_italian_message(): void
+    {
+        app()->setLocale('it');
+        User::factory()->create(['email' => 'max@example.com']);
+
+        $this->from(route('registration.create', ['per' => 'sito']))->post(route('registration.store'), [
+            'type' => 'azienda', 'first_module' => 'website', 'company_name' => 'M 3.5', 'contact_name' => 'Max', 'email' => 'max@example.com',
+        ])->assertSessionHasErrors(['email' => 'Questa email ha già un account: accedi con «Accedi» (o «Password dimenticata?»).']);
+
+        $this->assertSame('Compila il nome dell\'attività.', __('validation.required', ['attribute' => __('validation.attributes.company_name')]));
+    }
+
     public function test_someone_already_inside_goes_straight_to_the_site_creation(): void
     {
         [$tenant, $user] = $this->tenantWithOwner();
