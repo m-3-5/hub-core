@@ -186,3 +186,4 @@ Richiesta: prezzi uniformi, più bassi, con lo sconto che dura più a lungo. Non
 - Pagina del sito: «Chi siamo», WhatsApp (cellulari), «Come arrivare», nessuna sezione contatti vuota, margini 16 px.
 - **Gemini**: ripiego sul modello successivo anche per 500/503; la scoperta modelli dentro le richieste ora fa solo l'elenco gratuito (prima provava ~30 modelli, anche generando immagini, una volta al giorno dentro la richiesta di un cliente). Scansione completa sempre con `php artisan gemini:discover-models`.
 - Provato dal vivo in locale con Gemini vero: IA ~4 s, pubblicazione ~9 s. Test: `tests/Feature/SiteWithAiJourneyTest.php`.
+- **Deploy 04/11** fatto (6156834): in produzione la migrazione del 19/10 (link segreto, vita del sito, archivio) **non era mai partita** per un errore MySQL su `archived_at` → dal 19/10 «Crea sito» su inm35.it andava in errore al salvataggio. Migrazione resa ripetibile, ora eseguita insieme a quella del 04/11.
