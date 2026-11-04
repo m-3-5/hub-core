@@ -21,9 +21,23 @@ use Throwable;
 class RegistrationController extends Controller
 {
     /** Registrazione a passi, una domanda per schermata (come la creazione guidata delle promo). */
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('registration.wizard');
+        // Da piramide35.com / pagina «Crea il tuo sito»: /registrati?per=sito&ref=piramide35
+        $forSite = $request->query('per') === 'sito';
+
+        return view('registration.wizard', [
+            'forSite' => $forSite,
+            'source' => self::cleanSource($request->query('ref')),
+        ]);
+    }
+
+    /** Solo lettere, numeri e trattini: è un'etichetta, non un indirizzo. */
+    public static function cleanSource(mixed $ref): ?string
+    {
+        $ref = is_string($ref) ? strtolower(trim($ref)) : '';
+
+        return preg_match('/^[a-z0-9][a-z0-9_-]{0,39}$/', $ref) ? $ref : null;
     }
 
     public function store(Request $request): RedirectResponse
@@ -37,7 +51,7 @@ class RegistrationController extends Controller
 
         $validated = $request->validate([
             'type' => ['required', 'in:azienda,privato,ente'],
-            'first_module' => ['required_unless:type,privato', 'nullable', 'in:promo,services'],
+            'first_module' => ['required_unless:type,privato', 'nullable', 'in:promo,services,website'],
             'company_name' => ['required', 'string', 'max:120'],
             'contact_name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:190', 'unique:users,email', 'unique:pending_registrations,email'],
@@ -47,7 +61,8 @@ class RegistrationController extends Controller
         $pending = PendingRegistration::create([
             'token' => Str::random(48),
             'type' => $validated['type'],
-            'first_module' => $validated['first_module'] ?? null,
+            'first_module' => $validated['type'] === 'privato' ? null : ($validated['first_module'] ?? null),
+            'source' => self::cleanSource($request->input('source')),
             'name' => $validated['company_name'],
             'contact_name' => $validated['contact_name'],
             'email' => $validated['email'],
@@ -90,7 +105,12 @@ class RegistrationController extends Controller
             'plan' => 'demo',
             'trial_ends_at' => null,
             'subscription_status' => $isPrivato ? 'free' : 'pending_payment',
-            'settings' => $pending->first_module ? ['first_module' => $pending->first_module] : null,
+            // Ha cliccato il link arrivato alla sua email: è confermata (senza questo il suo sito non andava online).
+            'guest_verified_at' => now(),
+            'settings' => array_filter([
+                'first_module' => $pending->first_module,
+                'source' => $pending->source,
+            ]) ?: null,
         ]);
 
         $user = User::create([

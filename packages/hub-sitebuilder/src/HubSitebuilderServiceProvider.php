@@ -27,6 +27,7 @@ class HubSitebuilderServiceProvider extends ServiceProvider
             ->group(function () {
                 Route::get('/sitebuilder', [SiteBuilderController::class, 'show'])->name('sitebuilder.show');
                 Route::post('/sitebuilder', [SiteBuilderController::class, 'generate'])->middleware('throttle:10,1')->name('sitebuilder.generate');
+                Route::post('/sitebuilder/scrivi', [SiteBuilderController::class, 'suggest'])->middleware('throttle:8,1')->name('sitebuilder.suggest');
                 Route::post('/sitebuilder/link', [SiteBuilderController::class, 'editLink'])->middleware('throttle:5,10')->name('sitebuilder.edit-link');
             });
 

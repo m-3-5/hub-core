@@ -56,7 +56,8 @@ class GeminiTextClient
                 $body,
             );
 
-            if (in_array($response->status(), [404, 429], true)) {
+            // 404 modello inesistente, 429 quota finita, 500/503 modello sovraccarico: provo il successivo.
+            if (in_array($response->status(), [404, 429, 500, 503], true)) {
                 $lastError = data_get($response->json(), 'error.message', "Modello {$model} non disponibile.");
 
                 continue;

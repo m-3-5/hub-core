@@ -29,6 +29,7 @@ class SitemapController extends Controller
         $urls = [
             ['loc' => route('welcome'), 'lastmod' => null, 'priority' => '1.0'],
             ['loc' => route('landing.web'), 'lastmod' => null, 'priority' => '0.9'],
+            ['loc' => route('site.start'), 'lastmod' => null, 'priority' => '0.9'],
             ['loc' => route('pricing.show'), 'lastmod' => null, 'priority' => '0.8'],
             ['loc' => route('promo.hub-archive'), 'lastmod' => null, 'priority' => '0.7'],
             ['loc' => route('classifieds.board'), 'lastmod' => null, 'priority' => '0.7'],

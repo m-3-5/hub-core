@@ -4,9 +4,8 @@ namespace M35\HubSitebuilder\Services;
 
 use App\Models\Tenant;
 use App\Services\FlyerVideoGenerator;
-use App\Services\GeminiModelResolver;
+use App\Services\GeminiTextClient;
 use App\Services\TenantBrandManager;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -23,7 +22,7 @@ class SiteBuilderHeroGenerator
     ];
 
     public function __construct(
-        private GeminiModelResolver $models,
+        private GeminiTextClient $gemini,
         private TenantBrandManager $brand,
         private FlyerVideoGenerator $videoGenerator,
     ) {}
@@ -48,8 +47,6 @@ class SiteBuilderHeroGenerator
             set_time_limit(90);
         }
 
-        $this->models->ensureDiscovered();
-
         $color = $tenant->primary_color ?: '#6366f1';
         $fontKey = $this->brand->font($tenant);
         $styleDirective = self::STYLE_DIRECTIVES[$fontKey] ?? self::STYLE_DIRECTIVES['moderno'];
@@ -61,25 +58,18 @@ Direzione artistica: {$styleDirective}
 Deve essere puramente decorativa: NESSUN testo, NESSuna scritta, NESSUN logo — solo forme, linee, texture artistiche. Non banale (niente semplici due macchie sfumate + puntini): almeno 5-6 elementi grafici distinti che diano profondità e movimento visivo.
 PROMPT;
 
-        foreach ($this->models->textModels() as $model) {
-            $response = Http::timeout(60)->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}",
-                ['contents' => [['parts' => [['text' => $prompt]]]]]
-            );
+        try {
+            // Stesso client delle altre funzioni IA: modelli di ripiego se uno è esaurito o sovraccarico.
+            $text = $this->gemini->generate($prompt, temperature: 0.9, timeout: 60, maxModels: 2);
+        } catch (\Throwable $e) {
+            report($e);
 
-            if (! $response->successful()) {
-                continue;
-            }
-
-            $text = data_get($response->json(), 'candidates.0.content.parts.0.text');
-            $svg = $this->extractSvg($text ?? '');
-
-            if ($svg) {
-                return $this->save($svg, $directory);
-            }
+            return null;
         }
 
-        return null;
+        $svg = $this->extractSvg($text);
+
+        return $svg ? $this->save($svg, $directory) : null;
     }
 
     private function extractSvg(string $raw): ?string

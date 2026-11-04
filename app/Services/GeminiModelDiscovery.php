@@ -92,6 +92,58 @@ class GeminiModelDiscovery
         return $catalog;
     }
 
+    /**
+     * Versione leggera per le richieste dei clienti: una sola chiamata gratuita (elenco modelli), nessuna prova.
+     * Tiene il modello del .env per primo e scarta i nomi che Google non offre più; se un modello poi fallisce,
+     * GeminiTextClient passa da solo al successivo. La scansione completa resta nel comando gemini:discover-models.
+     *
+     * @return array<string, mixed>
+     */
+    public function discoverQuick(): array
+    {
+        $apiKey = config('services.gemini.api_key');
+
+        if (! $apiKey) {
+            throw new \RuntimeException('GEMINI_API_KEY non configurata.');
+        }
+
+        $listed = $this->listModelNames($apiKey);
+
+        if ($listed === []) {
+            return [];
+        }
+
+        $available = fn (array $names) => array_values(array_filter(array_unique(array_filter($names)), fn ($m) => in_array($m, $listed, true)));
+
+        $text = $available([
+            config('services.gemini.model'),
+            ...config('services.gemini.fallback_models', []),
+            'gemini-flash-lite-latest',
+            'gemini-flash-latest',
+            ...$this->textPriority,
+        ]);
+        $image = $available([
+            config('services.gemini.image_model'),
+            ...config('services.gemini.image_fallback_models', []),
+            ...$this->imagePriority,
+        ]);
+
+        $catalog = [
+            'discovered_at' => now()->toIso8601String(),
+            'api_key_fingerprint' => $this->keyFingerprint($apiKey),
+            'quick' => true,
+            'text_best' => $text[0] ?? null,
+            'image_best' => $image[0] ?? null,
+            'text_models' => $text,
+            'image_models' => $image,
+            'probes' => [],
+        ];
+
+        Cache::put(self::CACHE_KEY, $catalog, now()->addHours(6));
+
+        return $catalog;
+    }
+
     public function clearCache(): void
     {
         Cache::forget(self::CACHE_KEY);
@@ -100,9 +152,10 @@ class GeminiModelDiscovery
     /** @return array<int, string> */
     private function listModelNames(string $apiKey): array
     {
-        $response = Http::timeout(30)->get(
-            'https://generativelanguage.googleapis.com/v1beta/models',
-            ['key' => $apiKey]
+        // pageSize alto: con il valore predefinito (50) Google taglia l'elenco e i modelli nuovi sparivano.
+        $response = Http::timeout(15)->get(
+            rtrim((string) config('services.gemini.base_url'), '/').'/v1beta/models',
+            ['key' => $apiKey, 'pageSize' => 1000]
         );
 
         if ($response->failed()) {

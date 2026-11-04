@@ -10,6 +10,7 @@ class PendingRegistration extends Model
         'token',
         'type',
         'first_module',
+        'source',
         'name',
         'contact_name',
         'email',

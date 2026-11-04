@@ -46,6 +46,8 @@ Route::post('/siti-web-corigliano-rossano/richiesta', [LandingController::class,
 Route::post('/siti-web-corigliano-rossano/parti', [LandingController::class, 'start'])
     ->middleware('throttle:6,10')
     ->name('landing.web.start');
+// «Crea il tuo sito con l'IA»: ingresso pubblico (anche da piramide35.com con ?ref=piramide35).
+Route::get('/crea-sito', [\App\Http\Controllers\SiteStartController::class, 'show'])->name('site.start');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/cerca', [\App\Http\Controllers\SearchController::class, 'index'])->name('search');
 Route::get('/opensearch.xml', [\App\Http\Controllers\SearchController::class, 'openSearch'])->name('opensearch');

@@ -3,14 +3,17 @@
 namespace M35\HubSitebuilder\Http\Controllers\Admin;
 
 use App\Models\Tenant;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 use M35\HubSitebuilder\Notifications\SiteEditLinkNotification;
 use M35\HubSitebuilder\Services\SiteBuilderHeroGenerator;
 use M35\HubSitebuilder\Services\SiteContent;
+use M35\HubSitebuilder\Services\SiteCopyWriter;
 use M35\HubSitebuilder\Services\SiteGuard;
 use M35\HubSitebuilder\Services\SiteOwners;
 
@@ -37,7 +40,10 @@ class SiteBuilderController extends Controller
             return $locked;
         }
 
-        $validated = $request->validate(SiteContent::rules());
+        $validated = $request->validate([
+            ...SiteContent::rules(),
+            'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+()\s.\-]{6,30}$/'],
+        ], ['phone.regex' => 'Controlla il numero di telefono: usa solo cifre.']);
         $answers = SiteContent::answers($validated);
 
         // Solo siti seri: niente spam né contenuti vietati. Se il controllo non risponde, non si pubblica.
@@ -47,6 +53,11 @@ class SiteBuilderController extends Controller
             return back()->withInput()->withErrors(['tagline' => $check['unavailable']
                 ? $check['reason']
                 : 'Non posso pubblicare questo sito: '.$check['reason']]);
+        }
+
+        // Il telefono serve al pulsante «Chiamaci» e ai contatti del sito.
+        if (filled($validated['phone'] ?? null)) {
+            $tenant->update(['phone' => trim($validated['phone'])]);
         }
 
         $hero = $heroGenerator->generate($tenant, SiteContent::heroDir($tenant));
@@ -68,6 +79,36 @@ class SiteBuilderController extends Controller
         }
 
         return redirect()->route('admin.sitebuilder.show', $tenant)->with('success', $message);
+    }
+
+    /** L'IA scrive frase, servizi, «chi siamo» e pulsante da poche parole (solo proposte: l'utente le rivede). */
+    public function suggest(Request $request, Tenant $tenant, SiteCopyWriter $writer): JsonResponse
+    {
+        if ($this->premiumOnly($tenant)) {
+            return response()->json(['ok' => false, 'message' => 'Il sito web è incluso nel livello Premium.'], 403);
+        }
+
+        // Risposta JSON anche in errore (l'app rende JSON solo per /api/*).
+        $validator = Validator::make($request->all(), [
+            'description' => ['required', 'string', 'min:10', 'max:600'],
+            'city' => ['nullable', 'string', 'max:80'],
+        ], [
+            'description.required' => 'Scrivi qualche parola sulla tua attività.',
+            'description.min' => 'Scrivi qualche parola in più (almeno 10 lettere).',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['ok' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        $data = $validator->validated();
+        $copy = $writer->write($tenant, strip_tags($data['description']), isset($data['city']) ? strip_tags($data['city']) : null);
+
+        if (! $copy) {
+            return response()->json(['ok' => false, 'message' => 'L\'IA non risponde in questo momento: scrivi tu i testi, oppure riprova tra un minuto.']);
+        }
+
+        return response()->json(['ok' => true, ...$copy]);
     }
 
     /** Nuovo link segreto per modificare il sito (il precedente smette di funzionare). */

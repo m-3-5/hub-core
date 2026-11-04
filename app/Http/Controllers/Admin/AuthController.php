@@ -87,9 +87,12 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
+        $resetUser = null;
+
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user, string $password) {
+            function (User $user, string $password) use (&$resetUser) {
+                $resetUser = $user;
                 $user->forceFill([
                     'password' => $password,
                     'remember_token' => Str::random(60),
@@ -100,9 +103,12 @@ class AuthController extends Controller
         );
 
         if ($status === Password::PASSWORD_RESET) {
-            return redirect()
-                ->route('admin.login')
-                ->with('status', 'Password impostata! Ora puoi accedere con le nuove credenziali.');
+            // Il link arrivato per email prova che l'account è suo: entra subito, senza rifare il login.
+            Auth::login($resetUser);
+            $request->session()->regenerate();
+
+            return $this->redirectAfterLogin($resetUser)
+                ->with('success', 'Password impostata! Sei dentro.');
         }
 
         return back()
@@ -124,7 +130,14 @@ class AuthController extends Controller
         $tenants = $user->accessibleTenants();
 
         if ($tenants->count() === 1) {
-            return redirect()->route('app.home', $tenants->first());
+            $tenant = $tenants->first();
+
+            // Chi si è registrato per farsi il sito (es. da piramide35.com) va dritto alla creazione del sito, finché non c'è.
+            if (($tenant->settings['first_module'] ?? null) === 'website' && ! $tenant->generatedSite && $tenant->hasPremiumFeatures()) {
+                return redirect()->route('admin.sitebuilder.show', $tenant);
+            }
+
+            return redirect()->route('app.home', $tenant);
         }
 
         if ($tenants->isNotEmpty()) {

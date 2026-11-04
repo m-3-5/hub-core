@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#6366f1">
-    <title>Registrati — Hub Core</title>
+    <title>{{ (($forSite ?? false) || old('first_module') === 'website') ? 'Crea il tuo sito — Hub Core' : 'Registrati — Hub Core' }}</title>
     <meta name="robots" content="noindex">
     @include('layouts.partials.favicon')
     @include('layouts.partials.wizard-css', ['color' => '#6366f1'])
@@ -14,6 +14,9 @@
 @php
     $offer = (int) config('services.hub_billing.launch_offer_price_eur', 1);
     $monthly = (int) config('services.hub_billing.monthly_price_eur', 9);
+    $forSite = (bool) ($forSite ?? false) || old('first_module') === 'website';
+    $premiumMonthly = (int) config('services.hub_billing.tiers.premium.monthly', 19);
+    $freeDays = (int) config('services.hub_billing.free_days', 30);
 @endphp
 <div class="wz">
     <div class="wz-top">
@@ -29,18 +32,25 @@
         @endif
 
         <input type="hidden" name="type" id="f-type" value="{{ old('type') }}">
-        <input type="hidden" name="first_module" id="f-module" value="{{ old('first_module') }}">
+        <input type="hidden" name="first_module" id="f-module" value="{{ old('first_module', $forSite ? 'website' : '') }}">
+        <input type="hidden" name="source" value="{{ old('source', $source ?? '') }}">
         <input type="hidden" name="company_name" id="f-company" value="{{ old('company_name') }}">
         <input type="hidden" name="contact_name" id="f-contact" value="{{ old('contact_name') }}">
         <input type="hidden" name="email" id="f-email" value="{{ old('email') }}">
         <input type="hidden" name="phone" id="f-phone" value="{{ old('phone') }}">
 
         <section class="wz-step" data-step="type">
+            @if ($forSite)
+            <span class="ai">✨ Il tuo sito con l'IA</span>
+            <h1>Per chi è il sito?</h1>
+            <p class="sub">Registrati gratis: poi l'IA scrive il sito per te.</p>
+            @else
             <h1>Come vuoi usare Hub Core?</h1>
             <p class="sub">Scegli: ti preparo lo spazio giusto.</p>
+            @endif
             <div class="choices">
                 <button type="button" class="choice" data-type="azienda"><span class="ico">🏢</span><span><b>Azienda</b><small>Negozio, studio, attività con clienti</small></span></button>
-                <button type="button" class="choice" data-type="privato"><span class="ico">👤</span><span><b>Privato</b><small>Sempre gratis: annunci, affitti, idee</small></span></button>
+                @unless ($forSite)<button type="button" class="choice" data-type="privato"><span class="ico">👤</span><span><b>Privato</b><small>Sempre gratis: annunci, affitti, idee</small></span></button>@endunless
                 <button type="button" class="choice" data-type="ente"><span class="ico">🏛️</span><span><b>Ente o associazione</b><small>Eventi, comunicazioni, iniziative</small></span></button>
             </div>
             <div class="err" id="err-type"></div>
@@ -105,20 +115,22 @@
 
 <script>
 (function () {
-    const OFFER = @json($offer), MONTHLY = @json($monthly);
+    const OFFER = @json($offer), MONTHLY = @json($monthly), FOR_SITE = @json($forSite), PREMIUM = @json($premiumMonthly), FREE_DAYS = @json($freeDays);
     const $ = (id) => document.getElementById(id);
     const form = $('wz-form');
     const sections = Object.fromEntries([...document.querySelectorAll('[data-step]')].map(s => [s.dataset.step, s]));
     const esc = (t) => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const TYPES = { azienda: 'Azienda', privato: 'Privato', ente: 'Ente' };
-    const MODULES = { promo: 'Promo', services: 'Servizi e prodotti' };
+    const MODULES = { promo: 'Promo', services: 'Servizi e prodotti', website: 'Sito web con l\x27IA' };
 
     const state = {
         type: $('f-type').value, module: $('f-module').value, company: $('f-company').value,
         contact: $('f-contact').value, email: $('f-email').value, phone: $('f-phone').value,
     };
     // Il privato non sceglie il modulo e usa lo stesso nome per tutto.
-    const steps = () => state.type === 'privato' ? ['type', 'company', 'email', 'phone', 'review'] : ['type', 'module', 'company', 'contact', 'email', 'phone', 'review'];
+    // Chi arriva per il sito non sceglie il modulo: è già «Sito web».
+    const steps = () => state.type === 'privato' ? ['type', 'company', 'email', 'phone', 'review']
+        : (FOR_SITE ? ['type', 'company', 'contact', 'email', 'phone', 'review'] : ['type', 'module', 'company', 'contact', 'email', 'phone', 'review']);
     let current = state.type && state.email ? 'review' : 'type';
     let busy = false;
 
@@ -191,6 +203,8 @@
         $('sub-review').textContent = 'Ti mando un\'email: un clic e il tuo spazio è attivo.';
         $('note-offer').textContent = state.type === 'privato'
             ? 'Per i privati Hub Core è sempre gratis.'
+            : FOR_SITE
+            ? `Sito web incluso nel piano Premium (${PREMIUM} €/mese). I primi ${FREE_DAYS} giorni sono gratis, senza carta. Se non attivi, non succede niente.`
             : `La prova è gratis, senza carta. Dopo, per continuare, basta ${OFFER} € (offerta di lancio, tutti i moduli inclusi); il canone da ${MONTHLY} €/mese parte solo dopo altri mesi di prova. Se non attivi, non succede niente.`;
     }
 
@@ -216,7 +230,7 @@
     document.querySelectorAll('[data-type]').forEach(b => b.addEventListener('click', () => {
         state.type = b.dataset.type;
         document.querySelectorAll('[data-type]').forEach(x => x.classList.toggle('on', x === b));
-        if (state.type !== 'privato' && !state.module) { show('module'); return; }
+        if (state.type !== 'privato' && !state.module && !FOR_SITE) { show('module'); return; }
         go(1);
     }));
     document.querySelectorAll('[data-module]').forEach(b => b.addEventListener('click', () => {

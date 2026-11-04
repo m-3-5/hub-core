@@ -70,7 +70,8 @@ class GeminiModelResolver
     {
         if (empty($this->catalog())) {
             try {
-                $this->discovery->discover();
+                // Dentro una richiesta del cliente: solo l'elenco (veloce e gratis), mai la scansione completa.
+                $this->discovery->discoverQuick();
             } catch (\Throwable) {
                 // fallback env models
             }
