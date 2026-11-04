@@ -5,7 +5,7 @@
 @section('content')
 <div class="card" style="max-width:640px">
     <h1 style="margin:0 0 8px">{{ $kind['new'] }} a pagamento</h1>
-    <p style="margin:0 0 20px;color:#666">Genera un link Stripe con carta e gli altri metodi attivi sul conto del salone (Klarna, Scalapay, ecc.).</p>
+    <p style="margin:0 0 20px;color:#666">Genera un link Stripe con carta e gli altri metodi attivi sul conto Stripe della tua attività (Klarna, Scalapay, ecc.).</p>
 
     @if ($kind['quota'])
     <div class="alert" style="background:#eef2ff;color:#312e81;margin-bottom:20px">

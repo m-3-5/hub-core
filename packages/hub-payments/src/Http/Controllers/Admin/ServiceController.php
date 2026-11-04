@@ -62,7 +62,7 @@ class ServiceController extends Controller
         if (! TenantStripeConfig::isConfigured($tenant)) {
             return redirect()
                 ->route('admin.services.index', $tenant)
-                ->withErrors(['stripe' => 'Configura prima le chiavi Stripe del salone.']);
+                ->withErrors(['stripe' => 'Collega prima il tuo conto Stripe (chiavi in «Servizi»).']);
         }
 
         return view('hub-payments::admin.services.create', [

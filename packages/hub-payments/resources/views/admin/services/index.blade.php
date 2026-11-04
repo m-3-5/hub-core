@@ -38,7 +38,7 @@
                 @if ($kind['route'] === 'products')
                     Prodotti in vendita: ogni voce ha un link Stripe e può comparire sul tuo sito e nel carrello.
                 @else
-                    Crea link Stripe (carta + metodi extra attivi sul conto) per trattamenti e servizi del salone.
+                    Crea link Stripe (carta + metodi extra attivi sul conto) per i servizi della tua attività.
                 @endif
             </p>
         </div>
@@ -82,11 +82,11 @@
 
     @if ($kind['route'] === 'services')
     <div class="card" id="stripe-keys" style="background:#fafafa;margin-bottom:24px;padding:20px">
-        <h2 style="margin:0 0 12px;font-size:1.1rem">Stripe del salone (vendite dirette sul tuo sito)</h2>
+        <h2 style="margin:0 0 12px;font-size:1.1rem">Il tuo Stripe (vendite dirette sul tuo sito)</h2>
         @if ($stripeConfigured)
             <p style="margin:0 0 12px;color:#2e7d32">✓ Collegato — chiave: <code>{{ $stripeMasked }}</code></p>
         @else
-            <p style="margin:0 0 12px;color:#c62828">Inserisci la <strong>Secret key</strong> del conto Stripe Beauty (Dashboard → Sviluppatori → Chiavi API).</p>
+            <p style="margin:0 0 12px;color:#c62828">Inserisci la <strong>Secret key</strong> del tuo conto Stripe (Dashboard → Sviluppatori → Chiavi API).</p>
         @endif
         <form method="POST" action="{{ route('admin.services.stripe-settings', $tenant) }}" style="display:grid;gap:12px;max-width:520px">
             @csrf

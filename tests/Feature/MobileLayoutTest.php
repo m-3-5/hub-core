@@ -15,7 +15,7 @@ class MobileLayoutTest extends TestCase
 
     private function tenant(): array
     {
-        $tenant = Tenant::create(['name' => 'Salone Anna', 'slug' => 'salone-anna', 'type' => 'azienda', 'plan' => 'demo', 'guest_verified_at' => now(), 'subscription_status' => 'active']);
+        $tenant = Tenant::create(['name' => 'Ferramenta Rossi', 'slug' => 'ferramenta-rossi', 'type' => 'azienda', 'plan' => 'demo', 'guest_verified_at' => now(), 'subscription_status' => 'active']);
         $user = User::factory()->create();
         $user->tenants()->attach($tenant, ['role' => 'admin']);
 
@@ -49,6 +49,17 @@ class MobileLayoutTest extends TestCase
         $this->assertStringContainsString('class="ract"', $html);
         $this->assertStringContainsString('data-label="Prezzo"', $html);
         $this->assertStringContainsString('Importa e pubblica', $html);
+    }
+
+    public function test_the_payment_pages_speak_to_any_business_not_only_to_a_beauty_salon(): void
+    {
+        [$tenant, $user] = $this->tenant();
+
+        $this->actingAs($user)->get(route('admin.services.index', $tenant))->assertOk()
+            ->assertDontSee('salone')->assertDontSee('Stripe Beauty')->assertDontSee('trattamenti');
+        foreach (['create', 'payment-links'] as $view) {
+            $this->assertStringNotContainsString('salone', file_get_contents(base_path("packages/hub-payments/resources/views/admin/services/{$view}.blade.php")));
+        }
     }
 
     public function test_the_modules_table_of_the_subscription_page_becomes_cards_on_the_phone(): void

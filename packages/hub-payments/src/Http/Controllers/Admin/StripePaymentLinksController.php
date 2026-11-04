@@ -19,7 +19,7 @@ class StripePaymentLinksController extends Controller
         if (! TenantStripeConfig::isConfigured($tenant)) {
             return redirect()
                 ->route('admin.services.index', $tenant)
-                ->withErrors(['stripe' => 'Configura prima le chiavi Stripe del salone.']);
+                ->withErrors(['stripe' => 'Collega prima il tuo conto Stripe (chiavi in «Servizi»).']);
         }
 
         $linkedServices = PayableService::query()
@@ -48,7 +48,7 @@ class StripePaymentLinksController extends Controller
     public function import(Tenant $tenant, string $link): RedirectResponse
     {
         if (! TenantStripeConfig::isConfigured($tenant)) {
-            return back()->withErrors(['stripe' => 'Configura prima le chiavi Stripe del salone.']);
+            return back()->withErrors(['stripe' => 'Collega prima il tuo conto Stripe (chiavi in «Servizi»).']);
         }
 
         try {
@@ -93,7 +93,7 @@ class StripePaymentLinksController extends Controller
     public function deactivate(Tenant $tenant, string $link): RedirectResponse
     {
         if (! TenantStripeConfig::isConfigured($tenant)) {
-            return back()->withErrors(['stripe' => 'Configura prima le chiavi Stripe del salone.']);
+            return back()->withErrors(['stripe' => 'Collega prima il tuo conto Stripe (chiavi in «Servizi»).']);
         }
 
         try {

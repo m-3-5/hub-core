@@ -46,7 +46,7 @@
     @if ($services->isNotEmpty())
         <section id="servizi">
             <h2 class="section-title">Servizi</h2>
-            <p class="lead">Scegli un trattamento e prenota pagando subito online.</p>
+            <p class="lead">Scegli un servizio e prenota pagando subito online.</p>
             <div class="grid">
                 @foreach ($services as $service)
                     @include('hub-payments::public._card', ['service' => $service, 'tenant' => $tenant])

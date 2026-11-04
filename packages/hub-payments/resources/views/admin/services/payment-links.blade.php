@@ -10,7 +10,7 @@
     <div class="ph-row">
         <div>
             <h1 style="margin:0 0 6px">Link di pagamento</h1>
-            <p style="margin:0;color:#666">Link di pagamento Stripe attivi del salone, creati dall'hub o a mano su Stripe.</p>
+            <p style="margin:0;color:#666">Link di pagamento Stripe attivi della tua attività, creati dall'hub o a mano su Stripe.</p>
         </div>
         <a href="{{ route('admin.services.index', $tenant) }}" class="btn btn-secondary">← Servizi</a>
     </div>
