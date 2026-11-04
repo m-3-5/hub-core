@@ -95,42 +95,15 @@ class RegistrationController extends Controller
                 ->withErrors(['registration' => 'Link di conferma non valido o scaduto. Registrati di nuovo.']);
         }
 
-        $isPrivato = $pending->type === 'privato';
-
-        $tenant = Tenant::create([
-            'name' => $pending->name,
-            'type' => $pending->type,
-            'slug' => $this->uniqueTenantSlug($pending->name),
-            'phone' => $pending->phone,
-            'plan' => 'demo',
-            'trial_ends_at' => null,
-            'subscription_status' => $isPrivato ? 'free' : 'pending_payment',
-            // Ha cliccato il link arrivato alla sua email: è confermata (senza questo il suo sito non andava online).
-            'guest_verified_at' => now(),
-            'settings' => array_filter([
-                'first_module' => $pending->first_module,
-                'source' => $pending->source,
-            ]) ?: null,
-        ]);
-
-        $user = User::create([
-            'name' => $pending->contact_name,
-            'email' => $pending->email,
-            'password' => Str::random(40),
-        ]);
-
-        $tenant->users()->attach($user->id, ['role' => 'admin']);
-
-        if (! $isPrivato) {
-            // Prima settimana gratis, senza pagare nulla: se non attivano subito non succede niente.
-            // L'euro di lancio si chiede dopo la settimana (email + avviso nell'app, vedi hub:launch-offer-reminders).
-            $tenant->update([
-                'subscription_status' => 'trialing',
-                'trial_ends_at' => now()->addDays(config('services.hub_billing.free_days', 30)),
-                // Solo chi si registra con la settimana gratuita riceve il promemoria dell'euro di lancio.
-                'settings' => array_merge($tenant->settings ?? [], ['free_week' => true]),
-            ]);
-        }
+        [$tenant, $user] = self::createAccount(
+            type: $pending->type,
+            companyName: $pending->name,
+            contactName: $pending->contact_name,
+            email: $pending->email,
+            phone: $pending->phone,
+            firstModule: $pending->first_module,
+            source: $pending->source,
+        );
 
         $passwordToken = Password::broker()->createToken($user);
 
@@ -187,7 +160,48 @@ class RegistrationController extends Controller
         }
     }
 
-    private function uniqueTenantSlug(string $companyName): string
+    /**
+     * Crea attività + titolare con email già confermata (link via email oppure Google).
+     *
+     * @return array{0: Tenant, 1: User}
+     */
+    public static function createAccount(string $type, string $companyName, string $contactName, string $email, ?string $phone = null, ?string $firstModule = null, ?string $source = null): array
+    {
+        $isPrivato = $type === 'privato';
+
+        $settings = array_filter([
+            'first_module' => $isPrivato ? null : $firstModule,
+            'source' => $source,
+            // Solo chi si registra con il periodo gratuito riceve il promemoria dell'euro di lancio.
+            'free_week' => $isPrivato ? null : true,
+        ]);
+
+        $tenant = Tenant::create([
+            'name' => $companyName,
+            'type' => $type,
+            'slug' => self::uniqueTenantSlug($companyName),
+            'phone' => $phone,
+            'plan' => 'demo',
+            // Periodo gratuito senza pagare nulla: se non attivano non succede niente (vedi hub:launch-offer-reminders).
+            'subscription_status' => $isPrivato ? 'free' : 'trialing',
+            'trial_ends_at' => $isPrivato ? null : now()->addDays(config('services.hub_billing.free_days', 30)),
+            // Email confermata (link o Google): senza questo il suo sito non andava online.
+            'guest_verified_at' => now(),
+            'settings' => $settings ?: null,
+        ]);
+
+        $user = User::create([
+            'name' => $contactName,
+            'email' => $email,
+            'password' => Str::random(40),
+        ]);
+
+        $tenant->users()->attach($user->id, ['role' => 'admin']);
+
+        return [$tenant, $user];
+    }
+
+    private static function uniqueTenantSlug(string $companyName): string
     {
         $base = Str::slug($companyName) ?: 'azienda';
         $slug = $base;

@@ -35,6 +35,13 @@ return [
         ],
     ],
 
+    // «Continua con Google»: client OAuth del progetto Google Cloud «Hub Core inm35».
+    // Indirizzo di ritorno da autorizzare: {APP_URL}/accedi/google/ritorno. Vuoti = tasto nascosto.
+    'google_login' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+    ],
+
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
         // Solo per prove in locale con un finto Gemini: in produzione resta l'indirizzo ufficiale.

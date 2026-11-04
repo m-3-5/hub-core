@@ -54,6 +54,12 @@
                 <button type="button" class="choice" data-type="ente"><span class="ico">🏛️</span><span><b>Ente o associazione</b><small>Eventi, comunicazioni, iniziative</small></span></button>
             </div>
             <div class="err" id="err-type"></div>
+            @if (\App\Http\Controllers\GoogleLoginController::configured())
+                <div style="margin-top:22px">
+                    <p class="hint" style="text-align:center;margin:0 0 10px">Più veloce: niente email da confermare</p>
+                    @include('layouts.partials.google-button', ['googleParams' => ['per' => $forSite ? 'sito' : null, 'ref' => $source ?? null], 'googleLabel' => 'Registrati con Google', 'googleOr' => false])
+                </div>
+            @endif
         </section>
 
         <section class="wz-step" data-step="module">

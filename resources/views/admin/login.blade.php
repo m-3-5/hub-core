@@ -57,6 +57,8 @@
         <p class="error">{{ $message }}</p>
     @enderror
 
+    @include('layouts.partials.google-button')
+
     <form method="POST" action="{{ route('admin.login.submit') }}">
         @csrf
         <label for="email">Email</label>

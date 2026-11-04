@@ -46,6 +46,14 @@ Route::post('/siti-web-corigliano-rossano/richiesta', [LandingController::class,
 Route::post('/siti-web-corigliano-rossano/parti', [LandingController::class, 'start'])
     ->middleware('throttle:6,10')
     ->name('landing.web.start');
+// «Continua con Google»: accesso e registrazione (attivo solo con GOOGLE_CLIENT_ID/SECRET nel .env).
+Route::middleware('throttle:20,1')->group(function () {
+    Route::get('/accedi/google', [\App\Http\Controllers\GoogleLoginController::class, 'redirect'])->name('google.login');
+    Route::get('/accedi/google/ritorno', [\App\Http\Controllers\GoogleLoginController::class, 'callback'])->name('google.callback');
+    Route::get('/registrati/google', [\App\Http\Controllers\GoogleLoginController::class, 'signup'])->name('google.signup');
+    Route::post('/registrati/google', [\App\Http\Controllers\GoogleLoginController::class, 'store'])->name('google.signup.store');
+});
+
 // «Crea il tuo sito con l'IA»: ingresso pubblico (anche da piramide35.com con ?ref=piramide35).
 Route::get('/crea-sito', [\App\Http\Controllers\SiteStartController::class, 'show'])->name('site.start');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');

@@ -125,7 +125,7 @@ class AuthController extends Controller
         return redirect()->route('welcome');
     }
 
-    private function redirectAfterLogin(User $user): RedirectResponse
+    public function redirectAfterLogin(User $user): RedirectResponse
     {
         $tenants = $user->accessibleTenants();
 
