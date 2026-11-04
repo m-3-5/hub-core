@@ -187,3 +187,8 @@ Richiesta: prezzi uniformi, più bassi, con lo sconto che dura più a lungo. Non
 - **Gemini**: ripiego sul modello successivo anche per 500/503; la scoperta modelli dentro le richieste ora fa solo l'elenco gratuito (prima provava ~30 modelli, anche generando immagini, una volta al giorno dentro la richiesta di un cliente). Scansione completa sempre con `php artisan gemini:discover-models`.
 - Provato dal vivo in locale con Gemini vero: IA ~4 s, pubblicazione ~9 s. Test: `tests/Feature/SiteWithAiJourneyTest.php`.
 - **Deploy 04/11** fatto (6156834): in produzione la migrazione del 19/10 (link segreto, vita del sito, archivio) **non era mai partita** per un errore MySQL su `archived_at` → dal 19/10 «Crea sito» su inm35.it andava in errore al salvataggio. Migrazione resa ripetibile, ora eseguita insieme a quella del 04/11.
+
+## 15. «Continua con Google» (04/11/2026)
+- Tasto in login e in `/registrati` (anche `?per=sito&ref=…`): chi ha già l'account entra; chi è nuovo risponde a tipo + nome attività (`/registrati/google`) e l'account nasce con email confermata, poi va alla creazione del sito se veniva per il sito. Codice: `GoogleLoginController`, `RegistrationController::createAccount`, test `GoogleLoginTest`.
+- Google Cloud: progetto **«Hub Core inm35»** (separato da Beauty), schermata di consenso «Hub Core», client OAuth «inm35.it», ritorno `https://inm35.it/accedi/google/ritorno`. Chiavi in `.env`: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (le ha messe Max). Scope solo `openid email` (con `profile` il firewall di Plesk dà 403).
+- **App Google in modalità test**: entrano solo gli utenti di prova. Per tutti: Google Auth Platform → Pubblico → «Pubblica app».
