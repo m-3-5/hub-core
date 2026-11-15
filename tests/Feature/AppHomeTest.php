@@ -56,6 +56,26 @@ class AppHomeTest extends TestCase
         $this->get(route('admin.services.index', $tenant))->assertSee('Costi e condizioni')->assertSee(route('terms.economic'), false);
     }
 
+    public function test_a_guest_sees_one_button_to_register_and_comes_back_where_they_were(): void
+    {
+        $this->post(route('guest.start'), ['type' => 'azienda', 'company_name' => 'Pizzeria Da Gino']);
+        $tenant = Tenant::where('slug', 'pizzeria-da-gino')->sole();
+        $back = '/admin/tenants/pizzeria-da-gino/sitebuilder';
+
+        $this->get(route('app.home', $tenant))->assertOk()
+            ->assertSee('Vuoi andare online?')
+            ->assertSee(route('guest.claim'), false);
+
+        $this->get(route('guest.claim', ['torna' => $back]))->assertOk()->assertSee('Email o cellulare');
+        $this->post(route('guest.claim.store'), ['contact' => '+39 340 000 1111', 'password' => 'password-di-prova', 'consent' => 1])
+            ->assertRedirect($back);
+
+        $this->assertNotNull($tenant->fresh()->guest_verified_at);
+        $this->get(route('app.home', $tenant))->assertDontSee('Vuoi andare online?');
+        // niente rimandi verso altri siti
+        $this->get(route('guest.claim', ['torna' => '//evil.example']))->assertRedirect(route('app.index'));
+    }
+
     public function test_a_private_account_has_no_website_banner(): void
     {
         [$tenant, $user] = $this->tenant('privato');

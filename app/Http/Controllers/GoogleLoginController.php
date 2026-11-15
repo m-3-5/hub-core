@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Admin\AuthController;
+use App\Models\Tenant;
 use App\Models\User;
+use App\Services\GuestAccount;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,6 +51,36 @@ class GoogleLoginController extends Controller
         ]));
     }
 
+    private function claimGuest(Request $request, string $email, ?User $existing): ?RedirectResponse
+    {
+        $claim = $request->session()->get('guest_claim');
+        $guest = $request->user();
+
+        if (! $claim || ! $guest || (int) ($claim['user'] ?? 0) !== $guest->id) {
+            return null;
+        }
+
+        $tenant = $guest->tenants()->get()->first(fn (Tenant $t) => $t->isGuestPending());
+        if (! $tenant) {
+            return null;
+        }
+
+        $accounts = app(GuestAccount::class);
+
+        if (! $existing || $existing->is($guest)) {
+            $accounts->claim($tenant, $guest, ['email', $email], null);
+        } else {
+            // Ha già un account con questa email: l'attività creata da ospite passa a quell'account.
+            $existing->tenants()->syncWithoutDetaching([$tenant->id => ['role' => 'admin']]);
+            $tenant->update(['guest_verified_at' => now(), 'guest_email_token' => null, 'guest_email_token_expires_at' => null]);
+            Auth::login($existing, remember: true);
+            $request->session()->regenerate();
+            $request->session()->put('guest_claim', $claim);
+        }
+
+        return GuestClaimController::afterClaim($request, $tenant->fresh(), $accounts);
+    }
+
     public function callback(Request $request): RedirectResponse
     {
         abort_unless(self::configured(), 404);
@@ -84,6 +116,11 @@ class GoogleLoginController extends Controller
         }
 
         $user = User::whereRaw('LOWER(email) = ?', [$email])->first();
+
+        // Ospite che si registra per pubblicare («Ultimo passo»): l'attività creata da ospite diventa sua.
+        if ($claimed = $this->claimGuest($request, $email, $user)) {
+            return $claimed;
+        }
 
         if ($user) {
             Auth::login($user, remember: true);

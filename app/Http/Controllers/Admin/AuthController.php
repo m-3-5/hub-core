@@ -25,19 +25,25 @@ class AuthController extends Controller
 
     public function login(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
+        $request->validate([
+            'email' => ['required', 'string', 'max:190'],
             'password' => ['required', 'string'],
             'remember' => ['nullable', 'boolean'],
+        ], [
+            'email.required' => 'Scrivi la tua email o il tuo cellulare.',
         ]);
 
-        if (! Auth::attempt(
-            $request->only('email', 'password'),
-            $request->boolean('remember')
-        )) {
+        // Nella casella «email» si può scrivere anche il cellulare (account nati da ospite col cellulare).
+        $login = trim((string) $request->input('email'));
+        $phone = str_contains($login, '@') ? null : \App\Services\GuestAccount::normalizePhone($login);
+        $credentials = $phone
+            ? ['phone' => $phone, 'password' => (string) $request->input('password')]
+            : ['email' => $login, 'password' => (string) $request->input('password')];
+
+        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             return back()
                 ->withInput($request->only('email', 'remember'))
-                ->withErrors(['email' => 'Email o password non validi.']);
+                ->withErrors(['email' => 'Email, cellulare o password non validi.']);
         }
 
         $request->session()->regenerate();

@@ -19,7 +19,7 @@
         h1 { margin: 0 0 8px; font-size: 1.6rem; }
         .sub { color: #64748b; margin: 0 0 24px; font-size: .95rem; }
         label { display: block; margin-bottom: 6px; font-weight: 600; font-size: .9rem; }
-        input[type=email], input[type=password] {
+        input[type=email], input[type=password], input#email {
             width: 100%; padding: 12px 14px; margin-bottom: 16px;
             border: 1px solid #e2e8f0; border-radius: 12px; font-size: 1rem;
         }
@@ -61,8 +61,8 @@
 
     <form method="POST" action="{{ route('admin.login.submit') }}">
         @csrf
-        <label for="email">Email</label>
-        <input type="email" name="email" id="email" value="{{ old('email') }}" required autofocus autocomplete="username">
+        <label for="email">Email o cellulare</label>
+        <input type="text" inputmode="email" name="email" id="email" value="{{ old('email') }}" required autofocus autocomplete="username" maxlength="190">
 
         <label for="password">Password</label>
         <input type="password" name="password" id="password" required autocomplete="current-password">

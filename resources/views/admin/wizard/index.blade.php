@@ -15,9 +15,6 @@
         'product' => ['photo', 'title', 'description', 'price', 'promo', 'review'],
         default => ['photo', 'title', 'description', 'price', 'duration', 'promo', 'review'],
     };
-    if ($guestPending) {
-        $steps[] = 'register';
-    }
     $noun = ['promo' => 'la promo', 'product' => 'il prodotto', 'service' => 'il servizio'][$kind];
     $f = $meta['fields'];
 @endphp
@@ -186,17 +183,6 @@
             <p class="hint" id="sum-note"></p>
         </section>
 
-        @if ($guestPending)
-            <section class="wz-step" data-step="register">
-                <span class="ai">🛡️ Ultimo passo</span>
-                <h1>Registrati per pubblicare</h1>
-                <p class="sub">Prima di andare online la nostra IA controlla che la promo sia adatta a tutti (niente volgarità, violenza o contenuti pericolosi). Poi ti mandiamo un'email: un clic e la tua promo è su inm35.it.</p>
-                <input class="field" type="email" name="guest_email" id="in-guest-email" inputmode="email" autocomplete="email" placeholder="la-tua-email@esempio.it" maxlength="190" value="{{ old('guest_email') }}">
-                <label class="toggle"><input type="checkbox" id="in-guest-consent"> Accetto che la promo sia controllata dall'IA e che la mia email sia usata per registrarmi.</label>
-                <div class="err" id="err-register"></div>
-                <p class="hint">Non ti chiediamo nessuna carta. Se l'IA non ritiene adatta la promo ti spieghiamo cosa cambiare.</p>
-            </section>
-        @endif
     </form>
 
     <div class="wz-bar">
@@ -252,7 +238,7 @@
         $('wz-count').textContent = (idx + 1) + '/' + STEPS.length;
         $('b-back').hidden = idx === 0;
         $('b-draft').hidden = id !== 'review';
-        $('b-next').textContent = id === LAST ? (GUEST ? 'Registrati e pubblica' : 'Pubblica') : 'Avanti';
+        $('b-next').textContent = id === LAST ? 'Pubblica' : 'Avanti';
         $('b-next').style.display = (id === 'photo' && !state.mode) ? 'none' : '';
         prepare(id);
         window.scrollTo({ top: 0 });
@@ -320,12 +306,6 @@
                 if (!state.promoEnd || state.promoEnd < TODAY) return err('promo', 'Scegli una data da oggi in poi.');
             }
             return err('promo', '');
-        }
-        if (id === 'register') {
-            const email = $('in-guest-email').value.trim();
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return err('register', 'Scrivi un indirizzo email valido.');
-            if (!$('in-guest-consent').checked) return err('register', 'Serve il tuo consenso per continuare.');
-            return err('register', '');
         }
         return true;
     }
@@ -439,9 +419,7 @@
             if (!publish) $('in-visible').checked = false;
         }
         if (state.mode !== 'photo') file.value = '';
-        // Salvando solo la bozza l'ospite non invia l'email: la chiederà quando vuole pubblicare.
-        if (GUEST && !publish) $('in-guest-email').disabled = true;
-        veil(true, publish ? (GUEST ? 'Controllo la tua promo…' : 'Sto pubblicando…') : 'Sto salvando…', state.mode === 'graphic' ? 'Sto disegnando la grafica, ci vuole qualche secondo.' : 'Ancora un attimo.');
+        veil(true, publish ? 'Sto pubblicando…' : 'Sto salvando…', state.mode === 'graphic' ? 'Sto disegnando la grafica, ci vuole qualche secondo.' : 'Ancora un attimo.');
         form.submit();
     }
 

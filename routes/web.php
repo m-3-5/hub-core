@@ -88,6 +88,14 @@ Route::post('/ospite/inizia', [GuestController::class, 'start'])
     ->middleware('throttle:5,10')
     ->name('guest.start');
 
+// «Ultimo passo»: chi ha iniziato da ospite si registra una volta sola, quando pubblica.
+Route::middleware('auth')->group(function () {
+    Route::get('/pubblica/registrati', [\App\Http\Controllers\GuestClaimController::class, 'show'])->name('guest.claim');
+    Route::post('/pubblica/registrati', [\App\Http\Controllers\GuestClaimController::class, 'store'])
+        ->middleware('throttle:10,10')
+        ->name('guest.claim.store');
+});
+
 Route::get('/ospite/conferma/{token}', [GuestController::class, 'confirmPublish'])
     ->name('guest.confirm-publish');
 

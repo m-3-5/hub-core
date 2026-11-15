@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use App\Notifications\ResetPasswordNotification;
 
-#[Fillable(['name', 'email', 'password', 'is_super_admin', 'wp_username'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'is_super_admin', 'wp_username'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
