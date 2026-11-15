@@ -50,7 +50,7 @@
                     </div>
                 </div>
                 <p>Il cliente paga tramite Hub Core e tu ricevi i soldi <strong>dopo la consegna</strong>. Tutela chi compra e chi vende. Ti serve un IBAN e un documento.</p>
-                <p style="font-size:.85rem;color:#6b6b7b">Stripe trattiene indicativamente {{ \M35\HubPayments\Support\StripeFees::rateLabel() }} su ogni pagamento (vedi <a href="{{ route('terms.economic') }}" target="_blank">condizioni economiche</a>).</p>
+                <p>@include('layouts.partials.costs-link')</p>
                 <div class="acts">
                     <form method="POST" action="{{ route('admin.connect.start', $tenant) }}" style="display:grid;gap:10px;flex:1 1 100%">@csrf
                         @include('hub-payments::admin.partials.seller-terms', ['tenant' => $tenant])

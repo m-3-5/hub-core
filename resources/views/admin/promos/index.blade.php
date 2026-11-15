@@ -7,7 +7,6 @@
     <div class="ph-row">
         <div>
             <h1>Promozioni — {{ $tenant->name }}</h1>
-            <p style="color:#666;margin-top:6px">Tocca una promo per aprirla, ✎ per modificarla, ✕ per eliminarla.</p>
         </div>
         <div class="ph-act">
             <div class="chips">

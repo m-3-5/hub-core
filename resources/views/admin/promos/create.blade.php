@@ -6,15 +6,9 @@
 <div class="card">
     <h1>Nuova promo — {{ $tenant->name }}</h1>
 
-    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:16px 18px;margin:16px 0 24px">
-        <strong>Pacchetto mensile</strong> — hai usato <strong>{{ $promoQuota['used'] }}</strong> di
-        <strong>{{ $promoQuota['included'] }}</strong> promo incluse
-        @if ($promoQuota['remaining'] > 0)
-            (<strong>{{ $promoQuota['remaining'] }}</strong> ancora disponibili).
-        @else
-            . Le prossime promo saranno <strong>a pagamento</strong>.
-        @endif
-    </div>
+    @if ($promoQuota['remaining'] <= 0)
+        <p class="ui-note">Promo del mese finite. @include('layouts.partials.costs-link')</p>
+    @endif
 
     <form method="POST" action="{{ route('admin.promos.store', $tenant) }}" enctype="multipart/form-data" id="promo-form">
         @csrf
@@ -25,16 +19,16 @@
             <label style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px;font-weight:500;cursor:pointer">
                 <input type="radio" name="visual_tier" value="base" checked data-visual-tier>
                 <span>
-                    <strong>Promo base</strong> (inclusa nel pacchetto)<br>
-                    <small style="color:#666">Carica il volantino o crea con illustrazioni SVG tematiche — senza costi extra</small>
+                    <strong>Promo base</strong><br>
+                    <small style="color:#666">Carica il volantino</small>
                 </span>
             </label>
 
             <label style="display:flex;gap:10px;align-items:flex-start;font-weight:500;cursor:pointer;opacity:.85">
                 <input type="radio" name="visual_tier" value="ai_flyer" data-visual-tier>
                 <span>
-                    <strong>Volantino generato con IA</strong> — €{{ $aiFlyerPrice }}<br>
-                    <small style="color:#666">Creazione automatica del volantino dal logo (pagamento richiesto — in arrivo)</small>
+                    <strong>Volantino fatto dall'IA</strong><br>
+                    <small style="color:#666">Presto</small>
                 </span>
             </label>
         </fieldset>
@@ -44,12 +38,10 @@
             <input type="hidden" name="promo_source" value="upload" id="promo_source">
             <label for="image">Carica il volantino / immagine promo</label>
             <input type="file" name="image" id="image" accept="image/*" required>
-            <p style="color:#666;font-size:.9rem;margin-top:8px">L'IA legge i testi dal volantino. Le immagini decorative saranno SVG inclusi nel pacchetto.</p>
         </fieldset>
 
         <div id="panel-ai-flyer" style="display:none;margin-bottom:24px;padding:16px;background:#fff7ed;border-radius:12px;border:1px solid #fed7aa;color:#9a3412">
-            Il volantino IA richiede il pagamento di <strong>€{{ $aiFlyerPrice }}</strong>.
-            Il pagamento online sarà disponibile a breve — seleziona <strong>Promo base</strong> per continuare ora.
+            Arriva presto: per ora scegli <strong>Promo base</strong>.
         </div>
 
         <label style="display:flex;align-items:center;gap:8px;font-weight:normal;margin-bottom:12px">

@@ -33,18 +33,10 @@
 <div class="card">
     <div class="ph-row">
         <div>
-            <h1 style="margin:0 0 6px">{{ $kind['plural'] }}</h1>
-            <p style="margin:0;color:#666">
-                @if ($kind['route'] === 'products')
-                    Prodotti in vendita: ogni voce ha un link Stripe e può comparire sul tuo sito e nel carrello.
-                @else
-                    Crea link Stripe (carta + metodi extra attivi sul conto) per i servizi della tua attività.
-                @endif
-            </p>
+            <h1 style="margin:0">{{ $kind['plural'] }}</h1>
         </div>
         <div class="ph-act">
             <div class="chips">
-                <a class="btn btn-secondary" href="{{ route('admin.module-billing.show', $tenant) }}">Costi e pagamenti</a>
                 <a class="btn btn-secondary" href="{{ route('admin.orders.index', $tenant) }}">Ordini</a>
                 <a class="btn btn-secondary" href="{{ route('admin.quotes.index', $tenant) }}">Preventivi</a>
                 @if ($stripeConfigured)
@@ -64,14 +56,8 @@
         <p class="error">{{ $message }}</p>
     @enderror
 
-    @if ($kind['quota'])
-    <div class="alert" style="background:#eef2ff;color:#312e81;margin-bottom:20px">
-        <strong>Demo inclusa:</strong>
-        {{ $quota['remaining'] }} / {{ $quota['included'] }} servizi gratuiti rimasti.
-        @if ($quota['remaining'] === 0)
-            Per crearne altri: pacchetto da €{{ $quota['paid_price'] }} (pagamento hub in arrivo).
-        @endif
-    </div>
+    @if ($kind['quota'] && $quota['remaining'] === 0)
+        <p class="ui-note">Hai usato tutti quelli inclusi. @include('layouts.partials.costs-link')</p>
     @endif
 
     @if ($kind['route'] === 'products' && ! $stripeConfigured)

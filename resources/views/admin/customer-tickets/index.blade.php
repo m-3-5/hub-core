@@ -5,7 +5,6 @@
 @section('content')
 <div class="card">
     <h1 style="margin:0 0 8px">Messaggi clienti — {{ $tenant->name }}</h1>
-    <p style="color:#666;margin:0 0 20px">Messaggi ricevuti dal modulo "Scrivici" delle tue promo. Rispondi direttamente al cliente via email o telefono.</p>
 
     @if ($customerTickets->isEmpty())
         <p style="color:#666">Nessun messaggio per ora.</p>

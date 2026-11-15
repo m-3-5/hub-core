@@ -449,3 +449,11 @@ span.ah-gi.is-off { cursor: default; }
 .gs-card input[type=text] { width: 100%; min-height: 52px; padding: 0 14px; border: 1px solid #d6d9e6; border-radius: 14px; font: inherit; font-size: 16px; }
 .gs-go { min-height: 52px; border: 0; border-radius: 16px; background: var(--ui-brand); color: #fff; font: 800 1.05rem system-ui, -apple-system, "Segoe UI", sans-serif; cursor: pointer; }
 .gs-card small { color: var(--ui-muted); text-align: center; font-size: .8rem; }
+/* ───────── 10. APP SOLO FUNZIONI: stato prova corto e tasto «Costi e condizioni» (i costi stanno in pagine a parte) ───────── */
+.ui-trial { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; margin: 0 0 14px; padding: 6px 8px 6px 14px; border-radius: 999px; background: #eef2ff; color: #3730a3; font: 700 .88rem system-ui, -apple-system, "Segoe UI", sans-serif; text-decoration: none; }
+.ui-trial b { background: var(--ui-brand); color: #fff; border-radius: 999px; padding: 5px 12px; }
+.ui-trial--end { background: #fff3e0; color: #b45309; }
+.ui-trial--end b { background: #e65100; }
+.ui-costs { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 4px 12px; border-radius: 999px; background: var(--ui-soft); color: var(--ui-brand-dark); font: 700 .82rem system-ui, -apple-system, "Segoe UI", sans-serif; text-decoration: none; white-space: nowrap; }
+.ui-costs:hover { background: color-mix(in srgb, var(--ui-brand) 16%, #fff); }
+.ui-note { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; color: var(--ui-muted); font-size: .9rem; }

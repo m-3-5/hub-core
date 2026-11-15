@@ -70,8 +70,12 @@ class StripeConnectOnboardingTest extends TestCase
 
         [$tenant, $user] = $this->seller();
 
+        // nell'app solo il tasto «Costi e condizioni»; le trattenute con l'esempio stanno nella pagina a parte
         $this->actingAs($user)->get(route('admin.services.index', $tenant))->assertOk()
-            ->assertSee('Trattenute di Stripe')->assertSee('1,5% + 0,25 € a pagamento')->assertSee('ricevi circa')->assertSee('98,25');
+            ->assertSee('Costi e condizioni')->assertSee(route('terms.economic'), false)
+            ->assertDontSee('Trattenute di Stripe');
+        $this->get(route('terms.economic'))->assertOk()
+            ->assertSee('1,5% + 0,25 € a pagamento')->assertSee('ricevi circa')->assertSee('98,25');
 
         $this->get(route('pricing.show'))->assertOk()
             ->assertSee('pagamenti protetti e trattenute')->assertSee('Quanto mi trattiene Stripe quando vendo?')

@@ -157,9 +157,11 @@ class FreeWeekOfferTest extends TestCase
     {
         [$tenant, $user] = $this->trialingTenant();
 
+        // nell'app solo lo stato corto e il tasto per attivare; il prezzo sta nella pagina Abbonamento
         $this->actingAs($user)->get(route('app.home', $tenant))->assertOk()
-            ->assertSee('La prova gratuita di Salone Anna è finita')
-            ->assertSee('attiva con 1 € per continuare');
+            ->assertSee('Prova finita')
+            ->assertSee(route('admin.billing.show', $tenant), false)
+            ->assertDontSee('attiva con 1 € per continuare');
     }
 
     public function test_pricing_page_explains_the_three_steps_and_has_a_back_button(): void

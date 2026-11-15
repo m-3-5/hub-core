@@ -18,11 +18,7 @@
 
 <div class="card">
     <div style="margin-bottom:20px">
-        <h1 style="margin:0 0 6px">Preventivi</h1>
-        <p style="margin:0;color:#666">
-            Scrivi un importo a piacere e ottieni subito un link di pagamento Stripe da mandare al cliente. Ogni link si può pagare <strong>una volta sola</strong>.
-            I preventivi non compaiono sul sito e non contano nei servizi inclusi.
-        </p>
+        <h1 style="margin:0">Preventivi</h1>
     </div>
 
     @if (session('status'))

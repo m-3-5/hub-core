@@ -12,8 +12,7 @@
 <div class="card">
     <div class="ph-row">
         <div>
-            <h1 style="margin:0 0 6px">Ordini</h1>
-            <p style="margin:0;color:#666">Pagamenti ricevuti da carrello, preventivi e link di pagamento, divisi per dove ha comprato il cliente.</p>
+            <h1 style="margin:0">Ordini</h1>
         </div>
         <div class="ph-act"><div class="chips">
         @if (in_array($tenant->type ?: 'azienda', ['azienda', 'ente'], true))
@@ -34,7 +33,6 @@
                     <div style="margin-top:8px;font-size:.88rem;color:#8a6100">
                         Commissione maturata: <strong>{{ $eur($summary['hub']['commission_cents']) }}</strong>
                         · ancora da pagare: {{ $eur($summary['hub']['unpaid_cents']) }}
-                        <div style="color:#888;font-size:.82rem">A carico dell'azienda: il prezzo per il cliente non cambia. Si somma a fine mese nel registro «Costi e pagamenti».</div>
                     </div>
                 @endif
             </div>
@@ -43,7 +41,7 @@
 
     @if ($heldCents > 0)
         <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:12px 14px;margin-bottom:20px;font-size:.92rem;color:#3730a3">
-            🛡️ <strong>{{ $eur($heldCents) }}</strong> di pagamenti protetti sono custoditi da Hub Core: ti arrivano quando il cliente conferma, o alla data indicata se non ci sono segnalazioni (meno la commissione Stripe). <a href="{{ route('terms.economic') }}" target="_blank">Come funziona</a>.
+            🛡️ <strong>{{ $eur($heldCents) }}</strong> custoditi da Hub Core, in arrivo. @include('layouts.partials.costs-link')
         </div>
     @endif
 

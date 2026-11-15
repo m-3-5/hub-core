@@ -39,6 +39,23 @@ class AppHomeTest extends TestCase
         $this->assertLessThan(strpos($html, 'class="ah-grid"'), strpos($html, 'Sito web a 1 €'));
     }
 
+    public function test_app_pages_show_only_functions_and_send_costs_to_a_separate_page(): void
+    {
+        [$tenant, $user] = $this->tenant();
+        $tenant->update(['trial_ends_at' => now()->addDays(3)]);
+        $this->actingAs($user);
+
+        foreach (['app.home', 'admin.promos.index', 'admin.promos.create', 'admin.services.index', 'admin.products.index', 'admin.quotes.index', 'admin.orders.index', 'admin.classifieds.index'] as $route) {
+            $response = $this->get(route($route, $tenant))->assertOk();
+            foreach (['per continuare', 'Pacchetto mensile', 'promo incluse', 'Demo inclusa', 'Trattenute di Stripe', 'senza costi extra', 'una volta sola', 'A carico dell\'azienda'] as $text) {
+                $response->assertDontSee($text, false);
+            }
+        }
+
+        $this->get(route('app.home', $tenant))->assertSee('Prova: 3 giorni')->assertSee('class="ui-trial"', false);
+        $this->get(route('admin.services.index', $tenant))->assertSee('Costi e condizioni')->assertSee(route('terms.economic'), false);
+    }
+
     public function test_a_private_account_has_no_website_banner(): void
     {
         [$tenant, $user] = $this->tenant('privato');
