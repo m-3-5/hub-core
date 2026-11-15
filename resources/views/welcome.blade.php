@@ -153,10 +153,11 @@
             <span class="wl-chip"><i>@include('layouts.partials.icon', ['name' => 'check', 'size' => 13])</i> Provala gratis, senza carta</span>
             <h1>Tutto per la tua attività, <em>in un'unica app</em></h1>
             <p class="lead">Promo, servizi, negozio, annunci e sito web. Per <strong>aziende</strong>, <strong>privati</strong> ed <strong>enti</strong> — semplice come le app del telefono.</p>
+            @error('registration')<p class="wl-err">{{ $message }}</p>@enderror
+            @error('guest')<p class="wl-err">{{ $message }}</p>@enderror
             <div class="wl-btns">
-                <a class="wl-btn wl-btn--main" href="{{ route('registration.create') }}">Registrati gratis @include('layouts.partials.icon', ['name' => 'arrow', 'size' => 18])</a>
-                <a class="wl-btn" href="{{ route('admin.login') }}">Accedi</a>
-                <a class="wl-btn" href="{{ route('pricing.show') }}">Prezzi</a>
+                <a class="wl-btn wl-btn--main" href="{{ route('site.start') }}">Sito web a 1 € @include('layouts.partials.icon', ['name' => 'arrow', 'size' => 18])</a>
+                <a class="wl-btn" href="{{ route('app.index') }}">Apri l'app</a>
             </div>
             @include('layouts.partials.install-app')
             <ul class="wl-trust">
@@ -272,22 +273,6 @@
     </div>
 </section>
 
-<section class="wl-cta" id="registrazione">
-    <div class="wl-cta__in">
-        <h2>Registrati su Hub Core</h2>
-        <p>Privato: sempre gratis. Azienda/Ente: <strong>{{ config('services.hub_billing.free_days', 30) }} giorni gratis</strong>, senza carta; dopo la prova gratuita basta <strong>€{{ config('services.hub_billing.launch_offer_price_eur', 1) }}</strong> (tutti i moduli inclusi). Poi un solo abbonamento: Silver €{{ config('services.hub_billing.tiers.silver.monthly', 9) }}/mese o Premium €{{ config('services.hub_billing.tiers.premium.monthly', 19) }}/mese, disdici quando vuoi.</p>
-        @error('registration')
-            <p class="wl-err">{{ $message }}</p>
-        @enderror
-        @error('guest')
-            <p class="wl-err">{{ $message }}</p>
-        @enderror
-        <div class="wl-btns" style="justify-content:center">
-            <a class="wl-btn" href="{{ route('registration.create') }}">Inizia la registrazione @include('layouts.partials.icon', ['name' => 'arrow', 'size' => 18])</a>
-            <a class="wl-btn" href="{{ route('admin.login') }}" style="background:rgba(255,255,255,.16);color:#fff">Hai già un account? Accedi</a>
-        </div>
-    </div>
-</section>
 
 @include('layouts.partials.share-bar', ['shareTitle' => 'Hub Core — piattaforma multiservizi per aziende e privati', 'shareUrl' => route('welcome'), 'shareSection' => true, 'shareLabel' => 'Condividi Hub Core'])
 

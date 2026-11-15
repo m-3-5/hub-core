@@ -245,9 +245,12 @@ class SitiWebLandingTest extends TestCase
         $this->get('/annunci')->assertSee('<link rel="canonical"', false)->assertSee('og:title', false);
     }
 
-    public function test_home_links_to_the_landing_so_google_can_reach_it(): void
+    public function test_the_landing_is_out_of_the_menu_but_google_still_reaches_it_from_the_sitemap(): void
     {
-        $this->get('/')->assertOk()->assertSee(route('landing.web'), false);
+        // dal menu si va al «Sito a 1 €»; la pagina resta online e nella sitemap
+        $this->get('/')->assertOk()->assertDontSee(route('landing.web'), false)->assertSee(route('site.start'), false);
+        $this->get(route('sitemap'))->assertOk()->assertSee(route('landing.web'), false);
+        $this->get(route('landing.web'))->assertOk();
     }
 
     // ---- pannello ----

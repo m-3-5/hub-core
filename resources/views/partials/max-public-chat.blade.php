@@ -68,7 +68,7 @@
     const URL_LOGIN = @json(route('admin.login'));
     const URL_REGISTER = @json(route('registration.create'));
     const URL_PRICES = @json(route('pricing.show'));
-    const URL_WEB = @json(route('landing.web'));
+    const URL_WEB = @json(route('site.start'));
     const $ = (id) => document.getElementById(id);
     const fab = $('pmax-fab'), panel = $('pmax-panel'), log = $('pmax-log'), input = $('pmax-input'), form = $('pmax-form'), send = $('pmax-send');
     const history = [];
@@ -140,7 +140,7 @@
             { label: '📝 Registrati', url: URL_REGISTER },
             { label: '🔑 Accedi', url: URL_LOGIN },
             { label: '💶 Quanto costa?', run: () => ask('Quanto costa Hub Core?') },
-            { label: '🌐 Siti web e app', url: URL_WEB },
+            { label: '🌐 Sito web a 1 €', url: URL_WEB },
         ]);
     }
 

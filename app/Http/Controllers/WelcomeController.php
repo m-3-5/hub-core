@@ -14,7 +14,7 @@ class WelcomeController extends Controller
             $slide['image_url'] = asset($slide['image']);
             $slide['cta_url'] = match ($slide['href']) {
                 'login' => route('admin.login'),
-                'register' => route('welcome').'#registrazione',
+                'register' => route('registration.create'),
                 default => route('admin.login'),
             };
 

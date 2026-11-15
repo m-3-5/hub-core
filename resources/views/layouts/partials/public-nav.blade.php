@@ -3,7 +3,7 @@
     $pubItems = [
         ['Promo', 'promo', route('promo.hub-archive'), request()->routeIs('promo.hub-archive')],
         ['Annunci', 'classifieds', route('classifieds.board'), request()->routeIs('classifieds.board')],
-        ['Siti web', 'globe', route('landing.web'), request()->routeIs('landing.web')],
+        ['Sito a 1 €', 'globe', route('site.start'), request()->routeIs('site.start')],
         ['Prezzi', 'tag', route('pricing.show'), request()->routeIs('pricing.show')],
         ['Guide', 'book', route('guides.index'), request()->routeIs('guides.*') || request()->routeIs('terms.*')],
         ['Cerca', 'search', route('search'), request()->routeIs('search')],

@@ -19,6 +19,7 @@
 <div class="card">
     <div style="margin-bottom:20px">
         <h1 style="margin:0">Preventivi</h1>
+        <div class="fab-bar"><a class="btn" href="{{ $stripeConfigured ? '#nuovo-preventivo' : route('admin.payout.setup', $tenant) }}">+ Nuovo preventivo</a></div>
     </div>
 
     @if (session('status'))
@@ -38,7 +39,7 @@
             </p>
         @endunless
 
-        <h2 style="margin:0 0 12px;font-size:1.1rem">Nuovo preventivo</h2>
+        <h2 id="nuovo-preventivo" style="margin:0 0 12px;font-size:1.1rem;scroll-margin-top:80px">Nuovo preventivo</h2>
         <form method="POST" action="{{ route('admin.quotes.store', $tenant) }}" class="q-form" style="margin-bottom:28px">
             @csrf
             <div>

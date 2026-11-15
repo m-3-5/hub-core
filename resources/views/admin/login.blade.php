@@ -41,6 +41,9 @@
         .links a { color: #6366f1; text-decoration: none; font-weight: 600; }
         .links a:hover { text-decoration: underline; }
         .back { display: block; margin-top: 14px; color: #64748b; }
+        .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; background: #f1f5f9; border-radius: 14px; margin: 0 0 22px; }
+        .seg a, .seg span { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 11px; font-weight: 700; text-decoration: none; color: #475569; }
+        .seg span { background: #fff; color: #4338ca; box-shadow: 0 2px 8px rgba(15,23,42,.08); }
     </style>
 @include('layouts.partials.ui')
 </head>
@@ -48,6 +51,7 @@
 <div class="card">
     <h1>Hub Core</h1>
     <p class="sub">Accedi alla tua attività</p>
+    <nav class="seg" aria-label="Accedi o registrati"><span aria-current="page">Accedi</span><a href="{{ route('registration.create') }}">Registrati</a></nav>
 
     @if (session('status'))
         <p class="success">{{ session('status') }}</p>

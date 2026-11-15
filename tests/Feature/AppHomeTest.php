@@ -76,6 +76,39 @@ class AppHomeTest extends TestCase
         $this->get(route('guest.claim', ['torna' => '//evil.example']))->assertRedirect(route('app.index'));
     }
 
+    public function test_menu_points_to_the_one_euro_site_and_the_home_has_no_register_login_prices_buttons(): void
+    {
+        $html = $this->get(route('welcome'))->assertOk()->getContent();
+        $nav = substr($html, strpos($html, '<nav class="ui-pub"'), 3000);
+
+        $this->assertStringContainsString('Sito a 1 €', $nav);
+        $this->assertStringNotContainsString(route('landing.web'), $html);
+        $this->assertStringNotContainsString('Registrati gratis', $html);
+        $this->assertStringNotContainsString('Hai già un account? Accedi', $html);
+        $this->assertStringNotContainsString('id="registrazione"', $html);
+        $this->assertStringContainsString(route('site.start'), $html);
+    }
+
+    public function test_accedi_page_also_offers_registrati_and_back(): void
+    {
+        $this->get(route('admin.login'))->assertOk()
+            ->assertSee('class="seg"', false)->assertSee(route('registration.create'), false);
+        $this->get(route('registration.create'))->assertOk()->assertSee(route('admin.login'), false);
+    }
+
+    public function test_every_service_list_always_has_its_add_button(): void
+    {
+        [$tenant, $user] = $this->tenant();
+        $this->actingAs($user);
+
+        $this->get(route('admin.classifieds.index', $tenant))->assertSee('+ Nuovo annuncio');
+        $this->get(route('admin.promos.index', $tenant))->assertSee('+ Nuova promo');
+        // anche senza Stripe collegato
+        $this->get(route('admin.services.index', $tenant))->assertSee('class="fab-bar"', false)->assertSee(route('admin.wizard.show', [$tenant, 'service']), false);
+        $this->get(route('admin.products.index', $tenant))->assertSee('class="fab-bar"', false)->assertSee(route('admin.wizard.show', [$tenant, 'product']), false);
+        $this->get(route('admin.quotes.index', $tenant))->assertSee('+ Nuovo preventivo');
+    }
+
     public function test_a_private_account_has_no_website_banner(): void
     {
         [$tenant, $user] = $this->tenant('privato');

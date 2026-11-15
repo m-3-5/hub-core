@@ -127,7 +127,6 @@
         </details>
     </div>
 
-    <p class="ss-alt">Preferisci che lo facciamo noi?<br><a href="{{ route('landing.web') }}">Sito su misura con preventivo gratuito →</a></p>
 </main>
 
 <div class="ss-bar"><a class="ss-btn" href="{{ $startUrl }}">{{ $loggedIn ? 'Crea il mio sito' : 'Crea il mio sito gratis' }} →</a></div>

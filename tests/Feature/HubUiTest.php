@@ -22,7 +22,7 @@ class HubUiTest extends TestCase
         $this->get(route('welcome'))->assertOk()
             ->assertSee('css/hub-ui.css', false)
             ->assertSee('ui-pub', false)
-            ->assertSee('Promo')->assertSee('Annunci')->assertSee('Siti web')->assertSee('Prezzi')->assertSee('Accedi');
+            ->assertSee('Promo')->assertSee('Annunci')->assertSee('Sito a 1 €')->assertSee('Prezzi')->assertSee('Accedi');
 
         $this->get(route('pricing.show'))->assertOk()->assertSee('ui-pub', false);
         $this->get(route('classifieds.board'))->assertOk()->assertSee('ui-pub', false);

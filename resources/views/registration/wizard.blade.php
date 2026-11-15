@@ -54,6 +54,7 @@
                 <button type="button" class="choice" data-type="ente"><span class="ico">🏛️</span><span><b>Ente o associazione</b><small>Eventi, comunicazioni, iniziative</small></span></button>
             </div>
             <div class="err" id="err-type"></div>
+            <p class="hint" style="text-align:center;margin:14px 0 0">Hai già un account? <a href="{{ route('admin.login') }}" style="display:inline-flex;min-height:48px;align-items:center;font-weight:700">Accedi</a></p>
             @if (\App\Http\Controllers\GoogleLoginController::configured())
                 <div style="margin-top:22px">
                     <p class="hint" style="text-align:center;margin:0 0 10px">Più veloce: niente email da confermare</p>

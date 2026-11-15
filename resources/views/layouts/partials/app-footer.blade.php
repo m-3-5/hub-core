@@ -6,7 +6,7 @@
         <nav class="ui-foot__links" aria-label="Link utili">
             <a href="{{ route('promo.hub-archive') }}">Promo</a>
             <a href="{{ route('classifieds.board') }}">Annunci</a>
-            <a href="{{ route('landing.web') }}">Siti web</a>
+            <a href="{{ route('site.start') }}">Sito a 1 €</a>
             <a href="{{ route('pricing.show') }}">Prezzi</a>
             <a href="{{ route('guides.index') }}">Guide</a>
             <a href="{{ route('search') }}">Cerca</a>

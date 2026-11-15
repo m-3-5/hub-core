@@ -112,7 +112,7 @@ SYS;
             'register' => [['label' => '📝 Registrati', 'url' => route('registration.create')]],
             'guest' => [['label' => '👋 Prova come ospite', 'key' => 'guest']],
             'prices' => [['label' => '💶 Vedi i prezzi', 'url' => route('pricing.show')]],
-            'web' => [['label' => '🌐 Siti web e app', 'url' => route('landing.web')]],
+            'web' => [['label' => '🌐 Sito web a 1 €', 'url' => route('site.start')]],
             'promos' => [['label' => '✨ Promo attive', 'url' => route('promo.hub-archive')]],
             'guides' => [['label' => '📖 Guide su come ricevere i soldi', 'url' => route('guides.index')]],
             'whatsapp' => $wa ? [['label' => '💬 Scrivi su WhatsApp', 'url' => 'https://wa.me/'.$wa]] : [],

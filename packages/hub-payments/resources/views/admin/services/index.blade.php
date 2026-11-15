@@ -43,9 +43,8 @@
                     <a class="btn btn-secondary" href="{{ route('admin.services.payment-links', $tenant) }}">Link di pagamento</a>
                 @endif
             </div>
-            @if ($stripeConfigured)
-                <div class="fab-bar"><a class="btn" href="{{ route('admin.wizard.show', [$tenant, $kind['type']]) }}">+ {{ $kind['new'] }}</a></div>
-            @endif
+            {{-- sempre in vista: senza un modo per farsi pagare il wizard porta prima a sceglierlo --}}
+            <div class="fab-bar"><a class="btn" href="{{ route('admin.wizard.show', [$tenant, $kind['type']]) }}">+ {{ $kind['new'] }}</a></div>
         </div>
     </div>
 
