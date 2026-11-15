@@ -406,3 +406,46 @@ img, video, iframe, canvas { max-width: 100%; }
 .ui-install.is-ios { align-items: flex-start; }
 .ui-install__ios b { display: inline; font-size: inherit; }
 .wl-hero .ui-install { margin: 16px 0 6px; }
+/* ───────── 9. HOME DELL'APP PULITA: riquadro «Sito web a 1 €» + griglia di tutti i servizi (solo icona e nome) ───────── */
+.ah-hero { display: flex; align-items: center; gap: 14px; margin: 0 0 6px; padding: 18px 16px; border-radius: 24px; text-decoration: none; color: #fff; background: linear-gradient(135deg, #6366f1, #8b5cf6 55%, #ec4899); box-shadow: 0 14px 34px rgba(99, 102, 241, .35); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+.ah-hero__ic { width: 56px; height: 56px; border-radius: 18px; background: rgba(255,255,255,.2); display: grid; place-items: center; flex: none; }
+.ah-hero__t { flex: 1; min-width: 0; }
+.ah-hero__t b { display: block; font-size: 1.3rem; line-height: 1.15; letter-spacing: -.01em; }
+.ah-hero__t small { display: block; opacity: .9; font-size: .86rem; margin-top: 2px; }
+.ah-hero__go { flex: none; display: inline-flex; align-items: center; gap: 4px; min-height: 48px; padding: 0 16px; border-radius: 14px; background: #fff; color: #4f46e5; font-weight: 800; font-size: .95rem; }
+.ah-hero:hover { transform: translateY(-2px); }
+.ah-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+.ah-gi { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 108px; padding: 14px 6px 12px; border-radius: 22px; background: #fff; border: 1px solid var(--ui-line); box-shadow: var(--ui-shadow); color: var(--ui-ink); text-decoration: none; text-align: center; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ah-gi:hover { transform: translateY(-2px); }
+.ah-gi .ah-ic { width: 50px; height: 50px; border-radius: 17px; }
+.ah-gi b { font-size: .86rem; line-height: 1.2; overflow-wrap: anywhere; }
+.ah-gi em { position: absolute; top: 7px; right: 7px; font-style: normal; font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; padding: 2px 6px; border-radius: 999px; background: #f1f1f4; color: #6b7280; }
+.ah-gi.is-off { background: #fafafd; box-shadow: none; }
+.ah-gi.is-off .ah-ic { background: #cbd5e1; box-shadow: none; }
+.ah-gi.is-off b { color: var(--ui-muted); }
+span.ah-gi.is-off { cursor: default; }
+@media (max-width: 640px) {
+    .ah-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .ah-gi { min-height: 100px; border-radius: 20px; }
+    .ah-hero { padding: 16px 14px; gap: 12px; }
+    .ah-hero__ic { width: 48px; height: 48px; border-radius: 16px; }
+    .ah-hero__t b { font-size: 1.15rem; }
+    .ah-hero__go { padding: 0 12px; }
+}
+@media (max-width: 360px) { .ah-hero__t small { display: none; } }
+/* Scheda «inizia senza account» (app/guest.blade.php) */
+.gs-over { position: fixed; inset: 0; z-index: 80; background: rgba(15, 23, 42, .45); display: flex; align-items: flex-end; justify-content: center; }
+.gs-over[hidden] { display: none; }
+.gs-card { position: relative; width: 100%; max-width: 440px; display: grid; gap: 12px; background: #fff; border-radius: 24px 24px 0 0; padding: 22px 16px calc(18px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 40px rgba(15, 23, 42, .2); }
+@media (min-width: 640px) { .gs-over { align-items: center; } .gs-card { border-radius: 24px; } }
+.gs-card h3 { margin: 0 44px 0 0; font-size: 1.25rem; }
+.gs-x { position: absolute; top: 10px; right: 10px; width: 44px; height: 44px; border: 0; border-radius: 50%; background: #f1f1f4; font-size: 1rem; cursor: pointer; }
+.gs-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.gs-types label { position: relative; }
+.gs-types input { position: absolute; opacity: 0; }
+.gs-types span { display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 14px; border: 2px solid var(--ui-line); font-weight: 700; font-size: .88rem; cursor: pointer; text-align: center; }
+.gs-types input:checked + span { border-color: var(--ui-brand); background: var(--ui-soft); color: var(--ui-brand-dark); }
+.gs-types input:focus-visible + span { outline: 2px solid var(--ui-brand); }
+.gs-card input[type=text] { width: 100%; min-height: 52px; padding: 0 14px; border: 1px solid #d6d9e6; border-radius: 14px; font: inherit; font-size: 16px; }
+.gs-go { min-height: 52px; border: 0; border-radius: 16px; background: var(--ui-brand); color: #fff; font: 800 1.05rem system-ui, -apple-system, "Segoe UI", sans-serif; cursor: pointer; }
+.gs-card small { color: var(--ui-muted); text-align: center; font-size: .8rem; }

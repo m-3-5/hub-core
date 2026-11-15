@@ -6,6 +6,8 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Notifications\TenantWelcomeNotification;
 use App\Services\ContentModerator;
+use App\Support\AppHomeTiles;
+use App\Support\HubModules;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +21,7 @@ class GuestController extends Controller
         $validated = $request->validate([
             'type' => ['required', 'in:azienda,privato,ente'],
             'company_name' => ['required', 'string', 'max:120'],
+            'vai' => ['nullable', 'string', 'in:'.implode(',', AppHomeTiles::startableKeys())],
         ]);
 
         $tenant = Tenant::create([
@@ -41,6 +44,14 @@ class GuestController extends Controller
         $tenant->users()->attach($user->id, ['role' => 'admin']);
 
         Auth::login($user);
+
+        // Dalla home dell'app: dritto al servizio toccato, se va bene per questo tipo di account
+        if (! empty($validated['vai'])) {
+            $module = collect(app(HubModules::class)->forTenant($tenant))->firstWhere('key', $validated['vai']);
+            if ($module && $module['active'] && $module['url']) {
+                return redirect()->to($module['url']);
+            }
+        }
 
         return redirect()->route('app.home', $tenant);
     }

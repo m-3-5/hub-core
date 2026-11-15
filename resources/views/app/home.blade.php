@@ -6,16 +6,7 @@
 @php
     $typeLabels = ['azienda' => 'Azienda', 'privato' => 'Privato', 'ente' => 'Ente'];
     $tenantType = $tenant->type ?: 'azienda';
-    $ownModules = collect($hubModules)->filter(fn ($m) => $m['fits_type']);
-    $activeModules = $ownModules->filter(fn ($m) => $m['active'] && $m['url'])->values();
-    $soonModules = $ownModules->reject(fn ($m) => $m['active'] && $m['url'])->values();
-    $otherModules = collect($hubModules)->reject(fn ($m) => $m['fits_type']);
-    $meta = [
-        'promo' => ['promo', '#8b5cf6'], 'services' => ['services', '#ec4899'], 'products' => ['products', '#6366f1'],
-        'quotes' => ['quotes', '#0ea5e9'], 'shop' => ['orders', '#6366f1'], 'agenda' => ['calendar', '#14b8a6'],
-        'rentals' => ['home', '#14b8a6'], 'website' => ['globe', '#8b5cf6'], 'classifieds' => ['classifieds', '#f59e0b'],
-        'giftcard' => ['gift', '#ef4444'], 'loyalty' => ['card', '#0ea5e9'], 'billing' => ['card', '#64748b'],
-    ];
+    $ownModules = collect($hubModules)->filter(fn ($m) => $m['fits_type']); // usato da Max (max-assistant)
     $logo = app(\App\Services\TenantBrandManager::class)->logoUrl($tenant);
     $todo = [];
     if (($overview['messages_new'] ?? 0) > 0) $todo[] = ['messages', $overview['messages_new'].' '.($overview['messages_new'] === 1 ? 'messaggio nuovo' : 'messaggi nuovi'), 'Rispondi ai tuoi clienti', route('admin.customer-tickets.index', $tenant), '#e65100'];
@@ -47,6 +38,10 @@
 
 @include('layouts.partials.install-app')
 
+@if ($showSite)
+    @include('app.partials.site-hero', ['siteUrl' => $siteUrl, 'hasSite' => $hasSite, 'launchEur' => $launchEur])
+@endif
+
 @if (! empty($todo))
 <section class="ah-sec">
     <h2 class="ah-h">Da fare adesso</h2>
@@ -63,56 +58,13 @@
 @endif
 
 <section class="ah-sec">
-    <h2 class="ah-h">Il tuo lavoro in breve</h2>
-    @include('admin.partials.tenant-kpis', ['tenant' => $tenant, 's' => $overview])
+    <h2 class="ah-h">Cosa vuoi fare?</h2>
+    @include('app.partials.service-grid', ['tiles' => $tiles])
 </section>
 
 <section class="ah-sec">
-    <h2 class="ah-h">Cosa vuoi fare?</h2>
-    <div class="ah-tiles">
-        @foreach ($activeModules as $module)
-            @php [$ic, $col] = $meta[$module['key']] ?? ['promo', '#6366f1']; @endphp
-            <a class="ah-tile" href="{{ $module['url'] }}" style="--c: {{ $col }}">
-                <span class="ah-ic">@include('layouts.partials.icon', ['name' => $ic, 'size' => 24])</span>
-                <b>{{ $module['label'] }}</b>
-                <small>{{ $module['description'] }}</small>
-            </a>
-        @endforeach
-    </div>
-
-    @if ($soonModules->isNotEmpty())
-        <p class="ah-sub">Prossimamente</p>
-        <div class="ah-soon">
-            @foreach ($soonModules as $module)
-                @php [$ic, $col] = $meta[$module['key']] ?? ['promo', '#94a3b8']; @endphp
-                @if (! empty($module['badge']))
-                    <a class="ah-soon__i" href="{{ route('admin.billing.show', $tenant) }}" style="text-decoration:none">
-                        <span class="ah-ic" style="--c: #f59e0b">@include('layouts.partials.icon', ['name' => $ic, 'size' => 18])</span>{{ $module['label'] }} <em>{{ $module['badge'] }}</em>
-                    </a>
-                @else
-                    <button type="button" class="ah-soon__i" data-request-module="{{ $module['label'] }}">
-                        <span class="ah-ic" style="--c: #94a3b8">@include('layouts.partials.icon', ['name' => $ic, 'size' => 18])</span>{{ $module['label'] }}
-                    </button>
-                @endif
-            @endforeach
-        </div>
-    @endif
-
-    @if ($otherModules->isNotEmpty())
-        <details class="ah-other">
-            <summary>Altre possibilità su Hub Core</summary>
-            <p>Funzioni pensate per altri tipi di account — puoi vedere cosa offrono, non sono attivabili da qui.</p>
-            <div class="ah-soon">
-                @foreach ($otherModules as $module)
-                    @php [$ic] = $meta[$module['key']] ?? ['promo']; @endphp
-                    <span class="ah-soon__i" aria-disabled="true">
-                        <span class="ah-ic" style="--c: #94a3b8">@include('layouts.partials.icon', ['name' => $ic, 'size' => 18])</span>{{ $module['label'] }}
-                        <em>Solo per {{ implode('/', array_map(fn ($t) => $typeLabels[$t] ?? $t, $module['for_types'] ?? [])) }}</em>
-                    </span>
-                @endforeach
-            </div>
-        </details>
-    @endif
+    <h2 class="ah-h">Il tuo lavoro in breve</h2>
+    @include('admin.partials.tenant-kpis', ['tenant' => $tenant, 's' => $overview])
 </section>
 
 @if ($recentPromos->isNotEmpty() || $archivedPromos->isNotEmpty())

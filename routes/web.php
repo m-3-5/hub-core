@@ -212,8 +212,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
+// /app è aperta anche senza account: chi non è entrato vede tutti i servizi e prova da ospite.
+Route::get('/app', [AppController::class, 'index'])->name('app.index');
+
 Route::middleware(['auth', 'tenant.access'])->prefix('app')->name('app.')->group(function () {
-    Route::get('/', [AppController::class, 'index'])->name('index');
     Route::get('/{tenant}', [AppController::class, 'home'])->name('home');
 });
 
