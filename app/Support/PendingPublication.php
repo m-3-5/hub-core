@@ -8,6 +8,7 @@ use App\Services\WordPressWebhookDispatcher;
 use Illuminate\Http\RedirectResponse;
 use M35\HubPayments\Models\PayableService;
 use M35\HubSitebuilder\Models\GeneratedSite;
+use M35\HubSitebuilder\Services\SiteTranslations;
 
 /**
  * Una pubblicazione che aspetta il credito: si ricorda cosa stavi pubblicando,
@@ -47,6 +48,21 @@ class PendingPublication
         }
 
         $item = self::item($tenant, $p['kind'], $p['id']);
+
+        // Lingue del sito: con la carta salvata si traducono e si registra 1 € per ognuna riuscita.
+        if ($p['kind'] === 'site_langs') {
+            if (! PayPerUse::exempt($tenant) && ! PayPerUse::hasCard($tenant)) {
+                return null;
+            }
+            session()->forget(self::KEY);
+            $r = app(SiteTranslations::class)->activate($tenant, $item, SiteTranslations::wanted($item));
+            $back = redirect()->route('admin.sitebuilder.show', $tenant);
+
+            return $r['done']
+                ? $back->with('success', 'Fatto! Il tuo sito ora è anche in '.SiteTranslations::names($r['done']).'.')
+                : $back->withErrors(['tagline' => 'L\'IA non è riuscita a tradurre adesso: riprova tra un minuto. Non ti abbiamo addebitato niente.']);
+        }
+
         if (! PayPerUse::charge($tenant, $p['kind'], $p['id'], self::title($tenant, $item))) {
             return null; // ancora poco credito: resta in attesa
         }
@@ -104,13 +120,19 @@ class PendingPublication
 
     private static function title(Tenant $tenant, Promo|PayableService|GeneratedSite $item): string
     {
-        return $item instanceof GeneratedSite ? 'Sito web di '.$tenant->name : (string) $item->title;
+        if ($item instanceof GeneratedSite) {
+            $langs = SiteTranslations::wanted($item);
+
+            return session(self::KEY.'.kind') === 'site_langs' && $langs ? 'Il tuo sito in '.SiteTranslations::names($langs) : 'Sito web di '.$tenant->name;
+        }
+
+        return (string) $item->title;
     }
 
     private static function item(Tenant $tenant, string $kind, int $id): Promo|PayableService|GeneratedSite|null
     {
         return match ($kind) {
-            PayPerUse::SITE => class_exists(GeneratedSite::class) ? GeneratedSite::where('tenant_id', $tenant->id)->whereKey($id)->first() : null,
+            PayPerUse::SITE, 'site_langs' => class_exists(GeneratedSite::class) ? GeneratedSite::where('tenant_id', $tenant->id)->whereKey($id)->first() : null,
             'promo' => $tenant->promos()->whereKey($id)->first(),
             'product', 'service' => PayableService::where('tenant_id', $tenant->id)->where('type', $kind)->whereKey($id)->first(),
             default => null,

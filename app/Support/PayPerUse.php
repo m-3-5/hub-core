@@ -85,15 +85,22 @@ class PayPerUse
     /** Prezzo della prossima pubblicazione di questo tipo, in centesimi (0 = inclusa). */
     public static function priceCents(Tenant $tenant, string $kind): int
     {
-        if ($kind === self::SITE) {
+        if ($kind === self::SITE || str_starts_with($kind, 'lang_')) {
             return max(0, (int) config('services.hub_billing.pay_per_use.site_cents', 100));
+        }
+
+        // Più lingue del sito in attesa della carta: 1 € ciascuna.
+        if ($kind === 'site_langs') {
+            $wanted = class_exists(GeneratedSite::class) ? \M35\HubSitebuilder\Services\SiteTranslations::wanted($tenant->generatedSite) : [];
+
+            return count($wanted) * self::priceCents($tenant, 'lang_x');
         }
 
         if (self::includedLeft($tenant, $kind) > 0) {
             return 0;
         }
 
-        $nth = TenantUsageEntry::where('tenant_id', $tenant->id)->where('reason', 'use')->where('item_type', '!=', self::SITE)
+        $nth = TenantUsageEntry::where('tenant_id', $tenant->id)->where('reason', 'use')->whereIn('item_type', array_keys(self::KINDS))
             ->where('created_at', '>=', now()->startOfMonth())->count() + 1;
 
         $price = 100;
@@ -152,6 +159,10 @@ class PayPerUse
 
     public static function label(string $kind): string
     {
+        if (str_starts_with($kind, 'lang_')) {
+            return 'traduzione del sito';
+        }
+
         return $kind === self::SITE ? 'sito web' : (self::KINDS[$kind] ?? $kind);
     }
 

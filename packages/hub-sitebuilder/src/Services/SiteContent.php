@@ -69,13 +69,13 @@ class SiteContent
     }
 
     /** «Lun-Sab 9:00-13:00 e 16:00-20:00»: riassunto leggibile dell'orario settimanale. */
-    public static function scheduleText(?array $schedule): ?string
+    public static function scheduleText(?array $schedule, string $lang = 'it'): ?string
     {
         if (! $schedule) {
             return null;
         }
 
-        $names = [1 => 'Lun', 2 => 'Mar', 3 => 'Mer', 4 => 'Gio', 5 => 'Ven', 6 => 'Sab', 7 => 'Dom'];
+        $names = SiteTranslations::dayNames($lang);
         $groups = [];
 
         foreach ($schedule['days'] as $d) {
@@ -90,7 +90,7 @@ class SiteContent
 
         $days = collect($groups)->map(fn ($g) => count($g) > 2 ? $names[$g[0]].'-'.$names[end($g)] : implode(', ', array_map(fn ($d) => $names[$d], $g)))->implode(', ');
         $time = fn ($t) => (int) substr($t, 0, 2).':'.substr($t, 3, 2);
-        $hours = collect($schedule['ranges'])->map(fn ($r) => $time($r[0]).'-'.$time($r[1]))->implode(' e ');
+        $hours = collect($schedule['ranges'])->map(fn ($r) => $time($r[0]).'-'.$time($r[1]))->implode(' '.SiteTranslations::ui($lang, 'e').' ');
 
         return $days.' '.$hours;
     }
@@ -325,6 +325,11 @@ class SiteContent
             if (! array_key_exists($key, $answers) && isset($site->answers[$key])) {
                 $answers[$key] = $site->answers[$key];
             }
+        }
+
+        // Le lingue pagate restano sempre (si ritraducono a parte se i testi cambiano).
+        if (isset($site->answers['i18n'])) {
+            $answers['i18n'] = $site->answers['i18n'];
         }
 
         $site->fill([

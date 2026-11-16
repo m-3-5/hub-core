@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="{{ $lang ?? 'it' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     @php
-        $answers = $site->answers ?? [];
+        $lang = $lang ?? 'it';
+        $langs = $langs ?? [];
+        $t = fn (string $it) => \M35\HubSitebuilder\Services\SiteTranslations::ui($lang, $it);
+        $answers = $localAnswers ?? ($site->answers ?? []);
         $extras = $answers['extras'] ?? [];
         $tagline = $answers['tagline'] ?? $tenant->name;
         $services = \M35\HubSitebuilder\Services\SiteContent::servicesFor($answers);
@@ -42,7 +45,7 @@
         }
         $aboutPhoto = $photos[1] ?? null;
         $schedule = $info['schedule'] ?? null;
-        $hoursText = trim(implode(' · ', array_filter([\M35\HubSitebuilder\Services\SiteContent::scheduleText($schedule), $hours])));
+        $hoursText = trim(implode(' · ', array_filter([\M35\HubSitebuilder\Services\SiteContent::scheduleText($schedule, $lang), $hours])));
         // Quello che l'attività pubblica già su Hub Core entra da solo nel sito.
         $promos = \App\Models\Promo::query()->where('tenant_id', $tenant->id)->active()->latest('published_at')->take(6)->get();
         $shop = class_exists(\M35\HubPayments\Models\PayableService::class)
@@ -51,22 +54,28 @@
         $tel = $tenant->phone ? preg_replace('/[^0-9+]/', '', $tenant->phone) : null;
         // WhatsApp solo per i cellulari italiani (3xx) o numeri già con prefisso internazionale.
         $waNumber = $tel ? ltrim(preg_match('/^3\d{8,9}$/', $tel) ? '39'.$tel : (str_starts_with($tel, '+') ? $tel : ''), '+') : '';
-        $waUrl = $waNumber ? 'https://wa.me/'.$waNumber.'?text='.rawurlencode('Ciao '.$tenant->name.', vi scrivo dal vostro sito') : null;
+        $waUrl = $waNumber ? 'https://wa.me/'.$waNumber.'?text='.rawurlencode(str_replace(':name', $tenant->name, $t('Ciao :name, vi scrivo dal vostro sito'))) : null;
         $ctaUrl = $waUrl && str_contains(strtolower($ctaLabel), 'whatsapp') ? $waUrl : ($tel ? 'tel:'.$tel : '#contatti');
         $hasContacts = $tel || $tenant->address;
         $mapsUrl = $tenant->address ? 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($tenant->address) : null;
         $initial = mb_strtoupper(mb_substr(trim($tenant->name), 0, 1));
         $lead = $about ? \Illuminate\Support\Str::limit(\Illuminate\Support\Str::before($about.' ', '. ').'.', 140) : null;
-        $siteUrl = route('site.public.show', $tenant);
+        $siteUrl = $lang === 'it' ? route('site.public.show', $tenant) : route('site.public.lang', [$tenant, $lang]);
+        $langUrl = fn (string $l) => $l === 'it' ? route('site.public.show', $tenant) : route('site.public.lang', [$tenant, $l]);
         $description = \Illuminate\Support\Str::limit($tagline.($about ? ' — '.$about : ''), 160);
     @endphp
     <title>{{ $tenant->name }} — {{ $tagline }}</title>
     <meta name="description" content="{{ $description }}">
     <link rel="canonical" href="{{ $siteUrl }}">
+    @if (count($langs))
+        <link rel="alternate" hreflang="it" href="{{ $langUrl('it') }}">
+        @foreach ($langs as $l)<link rel="alternate" hreflang="{{ $l }}" href="{{ $langUrl($l) }}">@endforeach
+        <link rel="alternate" hreflang="x-default" href="{{ $langUrl('it') }}">
+    @endif
     <meta property="og:title" content="{{ $tenant->name }}">
     <meta property="og:description" content="{{ $description }}">
     <meta property="og:type" content="website">
-    <meta property="og:locale" content="it_IT">
+    <meta property="og:locale" content="{{ $lang === 'it' ? 'it_IT' : (\M35\HubSitebuilder\Services\SiteTranslations::LANGS[$lang][3] ?? 'it_IT') }}">
     <meta property="og:url" content="{{ $siteUrl }}">
     <meta property="og:image" content="{{ $photos[0] ?? asset('images/og-hub-core.png') }}">
     <meta name="twitter:card" content="summary_large_image">
@@ -130,6 +139,10 @@
         /* Sul telefono i tasti sono già nella barra in basso. */
         @media (max-width: 759px) { body.has-dock .top .btn { display: none; } }
         @media (min-width: 860px) { .top nav { display: flex; } }
+        /* Lingue del sito: piccole sigle sempre visibili, anche sul telefono. */
+        .langs { display: flex; gap: 2px; flex: none; font-size: .78rem; font-weight: 700; margin-left: auto; }
+        .langs a { padding: 6px 7px; border-radius: 8px; color: var(--muted); text-decoration: none; }
+        .langs a[aria-current] { background: var(--primary-soft); color: var(--ink); }
 
         /* Hero */
         .hero { position: relative; overflow: hidden; color: #fff; background: linear-gradient(135deg, var(--primary-dark), #0d0f14); }
@@ -293,20 +306,23 @@
     <script>document.documentElement.classList.add('js');</script>
 @include('layouts.partials.ui')
 </head>
-<body class="{{ $tel ? 'has-dock' : '' }}" @if ($schedule) data-schedule='@json($schedule)' @endif>
+<body class="{{ $tel ? 'has-dock' : '' }}" @if ($schedule) data-schedule='@json($schedule)' data-open-labels='@json(\M35\HubSitebuilder\Services\SiteTranslations::openNowLabels($lang))' @endif>
 
 <header class="top">
     <div class="wrap">
         <a class="brand" href="#top">@if ($logo)<img class="mono logo" src="{{ $logo }}" alt="">@else<span class="mono">{{ $initial }}</span>@endif<span>{{ $tenant->name }}</span></a>
-        <nav aria-label="Sezioni">
-            @if (count($services))<a href="#servizi">Servizi</a>@endif
-            @if ($about)<a href="#chi-siamo">Chi siamo</a>@endif
-            @if ($promos->isNotEmpty())<a href="#offerte">Offerte</a>@endif
-            @if ($shop->isNotEmpty())<a href="#acquista">Acquista</a>@endif
-            @if (count($photos) > 1)<a href="#foto">Foto</a>@endif
-            @if (count($faq))<a href="#domande">Domande</a>@endif
-            @if ($hasContacts)<a href="#contatti">Contatti</a>@endif
+        <nav aria-label="{{ $t('Sezioni') }}">
+            @if (count($services))<a href="#servizi">{{ $t('Servizi') }}</a>@endif
+            @if ($about)<a href="#chi-siamo">{{ $t('Chi siamo') }}</a>@endif
+            @if ($promos->isNotEmpty())<a href="#offerte">{{ $t('Offerte') }}</a>@endif
+            @if ($shop->isNotEmpty())<a href="#acquista">{{ $t('Acquista') }}</a>@endif
+            @if (count($photos) > 1)<a href="#foto">{{ $t('Foto') }}</a>@endif
+            @if (count($faq))<a href="#domande">{{ $t('Domande') }}</a>@endif
+            @if ($hasContacts)<a href="#contatti">{{ $t('Contatti') }}</a>@endif
         </nav>
+        @if (count($langs))
+            <div class="langs" aria-label="{{ $t('Lingua') }}">@foreach (['it', ...$langs] as $l)<a href="{{ $langUrl($l) }}" hreflang="{{ $l }}" lang="{{ $l }}" @if ($l === $lang) aria-current="true" @endif>{{ strtoupper($l) }}</a>@endforeach</div>
+        @endif
         @if ($hasContacts)<a class="btn" href="{{ $ctaUrl }}">{{ \Illuminate\Support\Str::limit($ctaLabel, 22) }}</a>@endif
     </div>
 </header>
@@ -325,7 +341,7 @@
         <div class="hero-actions">
             @if ($hasContacts)<a class="btn" href="{{ $ctaUrl }}">{{ $ctaLabel }}</a>@endif
             @if ($waUrl && $ctaUrl !== $waUrl)<a class="btn ghost" href="{{ $waUrl }}" target="_blank" rel="noopener">WhatsApp</a>@endif
-            @if (count($services))<a class="btn ghost" href="#servizi">Cosa offriamo</a>@endif
+            @if (count($services))<a class="btn ghost" href="#servizi">{{ $t('Cosa offriamo') }}</a>@endif
         </div>
         </div>
         @if (count($photos))<img class="hero-shot" src="{{ $photos[0] }}" alt="{{ $tenant->name }}" data-full="{{ $photos[0] }}">@endif
@@ -334,9 +350,9 @@
 </section>
 
 @if (count($strengths))
-<section class="section" style="padding-top:40px" aria-label="Perché sceglierci">
+<section class="section" style="padding-top:40px" aria-label="{{ $t('Perché sceglierci') }}">
     <div class="wrap">
-        <div class="head rv"><span class="kicker">Perché sceglierci</span></div>
+        <div class="head rv"><span class="kicker">{{ $t('Perché sceglierci') }}</span></div>
         <div class="strengths">
             @foreach ($strengths as $s)
                 <div class="strength rv"><div class="ico" aria-hidden="true">{{ $s['icon'] }}</div><h3>{{ $s['title'] }}</h3><p>{{ $s['text'] }}</p></div>
@@ -349,7 +365,7 @@
 @if (count($services))
 <section class="section soft" id="servizi">
     <div class="wrap">
-        <div class="head rv"><span class="kicker">Servizi</span><h2>Cosa offriamo</h2></div>
+        <div class="head rv"><span class="kicker">{{ $t('Servizi') }}</span><h2>{{ $t('Cosa offriamo') }}</h2></div>
         <div class="services">
             @foreach ($services as $service)
                 <div class="service rv">
@@ -366,7 +382,7 @@
 <section class="section" id="chi-siamo">
     <div class="wrap about">
         @if ($aboutPhoto)<div class="about-art photo fit rv" data-full="{{ $aboutPhoto }}" style="--img: url('{{ $aboutPhoto }}')"><img src="{{ $aboutPhoto }}" alt="{{ $tenant->name }}" loading="lazy"></div>@else<div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>@endif
-        <div class="about-text rv"><span class="kicker">Chi siamo</span><h2>{{ $tenant->name }}</h2><p>{{ $about }}</p></div>
+        <div class="about-text rv"><span class="kicker">{{ $t('Chi siamo') }}</span><h2>{{ $tenant->name }}</h2><p>{{ $about }}</p></div>
     </div>
 </section>
 @endif
@@ -374,20 +390,20 @@
 @if ($promos->isNotEmpty())
 <section class="section soft" id="offerte">
     <div class="wrap">
-        <div class="head rv"><span class="kicker">Offerte del momento</span><h2>Approfittane adesso</h2></div>
+        <div class="head rv"><span class="kicker">{{ $t('Offerte del momento') }}</span><h2>{{ $t('Approfittane adesso') }}</h2></div>
         <div class="cards">
             @foreach ($promos as $promo)
                 <a class="card rv" href="{{ route('promo.show', [$tenant, $promo]) }}">
                     <div class="card-img">@if ($promo->imageUrl())<img src="{{ $promo->imageUrl() }}" alt="{{ $promo->title }}" loading="lazy">@else<span>{{ \Illuminate\Support\Str::limit($promo->title, 40) }}</span>@endif<em>Promo</em></div>
                     <div class="card-body">
                         <h3>{{ $promo->title }}</h3>
-                        @if (! $promo->always_active && $promo->ends_at)<p>Fino al {{ $promo->ends_at->format('d/m') }}</p>@endif
-                        <span class="card-cta">Scopri →</span>
+                        @if (! $promo->always_active && $promo->ends_at)<p>{{ $t('Fino al') }} {{ $promo->ends_at->format('d/m') }}</p>@endif
+                        <span class="card-cta">{{ $t('Scopri') }} →</span>
                     </div>
                 </a>
             @endforeach
         </div>
-        <p class="more rv"><a href="{{ route('promo.archive', $tenant) }}">Tutte le offerte</a></p>
+        <p class="more rv"><a href="{{ route('promo.archive', $tenant) }}">{{ $t('Tutte le offerte') }}</a></p>
     </div>
 </section>
 @endif
@@ -395,20 +411,20 @@
 @if ($shop->isNotEmpty())
 <section class="section" id="acquista">
     <div class="wrap">
-        <div class="head rv"><span class="kicker">Acquista online</span><h2>Paghi subito, in sicurezza</h2></div>
+        <div class="head rv"><span class="kicker">{{ $t('Acquista online') }}</span><h2>{{ $t('Paghi subito, in sicurezza') }}</h2></div>
         <div class="cards">
             @foreach ($shop as $item)
                 <a class="card rv" href="{{ route('services.public.show', [$tenant, $item]) }}">
-                    <div class="card-img">@if ($item->coverImageUrl())<img src="{{ $item->coverImageUrl() }}" alt="{{ $item->title }}" loading="lazy">@else<span>{{ \Illuminate\Support\Str::limit($item->title, 40) }}</span>@endif @if ($item->onPromo())<em>In promo</em>@endif</div>
+                    <div class="card-img">@if ($item->coverImageUrl())<img src="{{ $item->coverImageUrl() }}" alt="{{ $item->title }}" loading="lazy">@else<span>{{ \Illuminate\Support\Str::limit($item->title, 40) }}</span>@endif @if ($item->onPromo())<em>{{ $t('In promo') }}</em>@endif</div>
                     <div class="card-body">
                         <h3>{{ $item->title }}</h3>
                         <p class="price">{{ $item->amountEuros() }} €</p>
-                        <span class="card-cta">{{ $item->type === 'product' ? 'Compra' : 'Prenota e paga' }} →</span>
+                        <span class="card-cta">{{ $t($item->type === 'product' ? 'Compra' : 'Prenota e paga') }} →</span>
                     </div>
                 </a>
             @endforeach
         </div>
-        <p class="more rv"><a href="{{ route('services.public.archive', $tenant) }}">Vedi tutto</a></p>
+        <p class="more rv"><a href="{{ route('services.public.archive', $tenant) }}">{{ $t('Vedi tutto') }}</a></p>
     </div>
 </section>
 @endif
@@ -416,10 +432,10 @@
 @if (count($photos) > 1)
 <section class="section soft" id="foto">
     <div class="wrap">
-        <div class="head rv"><span class="kicker">Foto</span><h2>Dai un'occhiata</h2></div>
+        <div class="head rv"><span class="kicker">{{ $t('Foto') }}</span><h2>{{ $t("Dai un'occhiata") }}</h2></div>
         <div class="gallery">
             @foreach ($photos as $i => $p)
-                <button type="button" class="shot fit rv" data-full="{{ $p }}" style="--img: url('{{ $p }}')" aria-label="Apri foto {{ $i + 1 }}"><img src="{{ $p }}" alt="{{ $tenant->name }} — foto {{ $i + 1 }}" loading="lazy"></button>
+                <button type="button" class="shot fit rv" data-full="{{ $p }}" style="--img: url('{{ $p }}')" aria-label="{{ $t('Apri foto') }} {{ $i + 1 }}"><img src="{{ $p }}" alt="{{ $tenant->name }} — {{ $t('foto') }} {{ $i + 1 }}" loading="lazy"></button>
             @endforeach
         </div>
     </div>
@@ -427,9 +443,9 @@
 @endif
 
 @if (count($reviews))
-<section class="section" aria-label="Cosa dicono i clienti">
+<section class="section" aria-label="{{ $t('Cosa dicono i clienti') }}">
     <div class="wrap">
-        <div class="head rv"><span class="kicker">Dicono di noi</span><h2>Parola ai clienti</h2></div>
+        <div class="head rv"><span class="kicker">{{ $t('Dicono di noi') }}</span><h2>{{ $t('Parola ai clienti') }}</h2></div>
         <div class="reviews">
             @foreach ($reviews as $r)
                 <figure class="review rv"><div class="stars" aria-hidden="true">★★★★★</div><blockquote>«{{ $r['text'] }}»</blockquote>@if ($r['name'])<figcaption>{{ $r['name'] }}</figcaption>@endif</figure>
@@ -442,7 +458,7 @@
 @if (count($faq))
 <section class="section soft" id="domande">
     <div class="wrap">
-        <div class="head rv"><span class="kicker">Domande frequenti</span><h2>Le risposte che cerchi</h2></div>
+        <div class="head rv"><span class="kicker">{{ $t('Domande frequenti') }}</span><h2>{{ $t('Le risposte che cerchi') }}</h2></div>
         <div class="faq">
             @foreach ($faq as $i => $f)
                 <details class="rv" @if ($i === 0) open @endif><summary>{{ $f['q'] }}</summary><p>{{ $f['a'] }}</p></details>
@@ -456,40 +472,40 @@
 <section class="section" id="contatti">
     <div class="wrap">
         <div class="band rv">
-            <h2>{{ $closing ?: 'Scrivici o chiamaci: ti rispondiamo presto' }}</h2>
+            <h2>{{ $closing ?: $t('Scrivici o chiamaci: ti rispondiamo presto') }}</h2>
             <div class="hero-actions">
-                @if ($waUrl)<a class="btn light" href="{{ $waUrl }}" target="_blank" rel="noopener">Scrivici su WhatsApp</a>@endif
-                @if ($tel)<a class="btn ghost" href="tel:{{ $tel }}">Chiama {{ $tenant->phone }}</a>@endif
+                @if ($waUrl)<a class="btn light" href="{{ $waUrl }}" target="_blank" rel="noopener">{{ $t('Scrivici su WhatsApp') }}</a>@endif
+                @if ($tel)<a class="btn ghost" href="tel:{{ $tel }}">{{ $t('Chiama') }} {{ $tenant->phone }}</a>@endif
             </div>
         </div>
 
         @if ($tenant->address || $hoursText)
         <div class="where rv">
             <div class="where-text">
-                <h3>Dove e quando</h3>
+                <h3>{{ $t('Dove e quando') }}</h3>
                 @if ($tenant->address)<p>📍 {{ $tenant->address }}</p>@endif
                 @if ($schedule)<p class="open-now" data-open-now></p>@endif
                 @if ($hoursText)<p>🕒 {{ $hoursText }}</p>@endif
             </div>
             @if ($tenant->address)
                 <div class="map" id="map" data-src="https://www.google.com/maps?q={{ rawurlencode($tenant->address) }}&output=embed">
-                    <button type="button" class="btn light" id="map-btn">🗺️ Mostra la mappa</button>
-                    <small>La mappa è di Google: si carica solo se la apri.</small>
+                    <button type="button" class="btn light" id="map-btn">🗺️ {{ $t('Mostra la mappa') }}</button>
+                    <small>{{ $t('La mappa è di Google: si carica solo se la apri.') }}</small>
                 </div>
             @endif
         </div>
         @endif
 
         <div class="contacts" style="margin-top:22px">
-            @if ($tel)<a class="contact rv" href="tel:{{ $tel }}"><span class="ico" aria-hidden="true">📞</span><span><small>Telefono</small><b>{{ $tenant->phone }}</b></span></a>@endif
-            @if ($waUrl)<a class="contact rv" href="{{ $waUrl }}" target="_blank" rel="noopener"><span class="ico" aria-hidden="true">💬</span><span><small>WhatsApp</small><b>Scrivici ora</b></span></a>@endif
-            @if ($tenant->address)<a class="contact rv" href="{{ $mapsUrl }}" target="_blank" rel="noopener"><span class="ico" aria-hidden="true">📍</span><span><small>Dove siamo</small><b>{{ $tenant->address }}</b></span></a>@endif
+            @if ($tel)<a class="contact rv" href="tel:{{ $tel }}"><span class="ico" aria-hidden="true">📞</span><span><small>{{ $t('Telefono') }}</small><b>{{ $tenant->phone }}</b></span></a>@endif
+            @if ($waUrl)<a class="contact rv" href="{{ $waUrl }}" target="_blank" rel="noopener"><span class="ico" aria-hidden="true">💬</span><span><small>WhatsApp</small><b>{{ $t('Scrivici ora') }}</b></span></a>@endif
+            @if ($tenant->address)<a class="contact rv" href="{{ $mapsUrl }}" target="_blank" rel="noopener"><span class="ico" aria-hidden="true">📍</span><span><small>{{ $t('Dove siamo') }}</small><b>{{ $tenant->address }}</b></span></a>@endif
         </div>
     </div>
 </section>
 @endif
 
-@include('layouts.partials.share-bar', ['shareTitle' => $tenant->name, 'shareUrl' => $siteUrl, 'shareSection' => true, 'shareLabel' => 'Condividi questo sito'])
+@include('layouts.partials.share-bar', ['shareTitle' => $tenant->name, 'shareUrl' => $siteUrl, 'shareSection' => true, 'shareLabel' => $t('Condividi questo sito')])
 
 <footer>
     <div class="wrap">
@@ -500,7 +516,7 @@
             </div>
             @if ($hasContacts || $hoursText || $socials)
             <div>
-                <h4>Contatti</h4>
+                <h4>{{ $t('Contatti') }}</h4>
                 <ul>
                     @if ($tel)<li><a href="tel:{{ $tel }}">{{ $tenant->phone }}</a></li>@endif
                     @if ($waUrl)<li><a href="{{ $waUrl }}" target="_blank" rel="noopener">WhatsApp</a></li>@endif
@@ -511,31 +527,31 @@
             </div>
             @endif
             <div>
-                <h4>Pagina</h4>
+                <h4>{{ $t('Pagina') }}</h4>
                 <ul>
-                    <li><a href="#top">Inizio</a></li>
-                    @if (count($services))<li><a href="#servizi">Servizi</a></li>@endif
-                    @if ($about)<li><a href="#chi-siamo">Chi siamo</a></li>@endif
-                    @if (count($faq))<li><a href="#domande">Domande frequenti</a></li>@endif
-                    @if ($hasContacts)<li><a href="#contatti">Contatti</a></li>@endif
+                    <li><a href="#top">{{ $t('Inizio') }}</a></li>
+                    @if (count($services))<li><a href="#servizi">{{ $t('Servizi') }}</a></li>@endif
+                    @if ($about)<li><a href="#chi-siamo">{{ $t('Chi siamo') }}</a></li>@endif
+                    @if (count($faq))<li><a href="#domande">{{ $t('Domande frequenti') }}</a></li>@endif
+                    @if ($hasContacts)<li><a href="#contatti">{{ $t('Contatti') }}</a></li>@endif
                 </ul>
             </div>
         </div>
         <div class="legal">
-            <span>© {{ now()->year }} {{ $tenant->name }}@if ($vat) · P.IVA {{ $vat }}@endif · <a href="{{ route('privacy') }}">Privacy</a> · <a href="{{ route('privacy') }}#cookie">Cookie</a></span>
-            <a class="made" href="{{ route('site.start', ['ref' => 'sito-'.$tenant->slug]) }}">Sito creato con l'IA di <b>Hub Core</b> · crea il tuo</a>
+            <span>© {{ now()->year }} {{ $tenant->name }}@if ($vat) · {{ $t('P.IVA') }} {{ $vat }}@endif · <a href="{{ route('privacy') }}">Privacy</a> · <a href="{{ route('privacy') }}#cookie">Cookie</a></span>
+            <a class="made" href="{{ route('site.start', ['ref' => 'sito-'.$tenant->slug]) }}">{{ $t("Sito creato con l'IA di") }} <b>Hub Core</b> · {{ $t('crea il tuo') }}</a>
         </div>
     </div>
 </footer>
 
 @if ($tel)
 <div class="dock">
-    <a class="btn" href="tel:{{ $tel }}">📞 Chiama</a>
+    <a class="btn" href="tel:{{ $tel }}">📞 {{ $t('Chiama') }}</a>
     @if ($waUrl)<a class="btn wa" href="{{ $waUrl }}" target="_blank" rel="noopener">💬 WhatsApp</a>@endif
 </div>
 @endif
 
-<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto"><button type="button" aria-label="Chiudi">✕</button><img alt=""></div>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="{{ $t('Foto') }}"><button type="button" aria-label="{{ $t('Chiudi') }}">✕</button><img alt=""></div>
 
 <script>
 (function () {
@@ -545,7 +561,8 @@
     var sch; try { sch = JSON.parse(raw); } catch (e) { return; }
     var toMin = function (t) { var p = t.split(':'); return (+p[0]) * 60 + (+p[1]); };
     var fmt = function (m) { m = m % 1440; return Math.floor(m / 60) + ':' + ('0' + (m % 60)).slice(-2); };
-    var names = ['', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
+    var L = {}; try { L = JSON.parse(document.body.getAttribute('data-open-labels') || '{}'); } catch (e) {}
+    var names = (L.days && L.days.length > 1) ? L.days : ['', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'];
     var parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Rome', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
     var get = function (t) { return (parts.find(function (p) { return p.type === t; }) || {}).value; };
     var day = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 }[get('weekday')];
@@ -563,12 +580,13 @@
     var current = spans.find(function (s) { return (t >= s[0] && t < s[1]) || (t + week >= s[0] && t + week < s[1]); });
     if (current) {
         open = true;
-        text = 'Aperto ora · chiude alle ' + fmt(current[1]);
+        text = (L.open || 'Aperto ora · chiude alle') + ' ' + fmt(current[1]);
     } else {
         var next = spans.map(function (s) { return s[0] > t ? s[0] : s[0] + week; }).sort(function (a, b) { return a - b; })[0];
         if (next !== undefined) {
             var nd = Math.floor((next % week) / 1440) + 1, diff = Math.floor(next / 1440) - Math.floor(t / 1440);
-            text = 'Chiuso · apre ' + (diff === 0 ? 'alle ' : diff === 1 ? 'domani alle ' : names[nd] + ' alle ') + fmt(next % 1440);
+            var at = L.at || 'alle', tom = L.tomorrow || 'domani alle';
+            text = (L.closed || 'Chiuso · apre') + ' ' + (diff === 0 ? at + ' ' : diff === 1 ? tom + ' ' : names[nd] + ' ' + at + ' ') + fmt(next % 1440);
         }
     }
     document.querySelectorAll('[data-open-now]').forEach(function (el) { el.textContent = text || ''; el.classList.toggle('is-open', open); });
@@ -586,7 +604,7 @@
     var map = document.getElementById('map');
     if (map) {
         document.getElementById('map-btn').addEventListener('click', function () {
-            map.innerHTML = '<iframe src="' + map.dataset.src + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mappa"></iframe>';
+            map.innerHTML = '<iframe src="' + map.dataset.src + '" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="{{ $t('Mappa') }}"></iframe>';
             map.classList.add('on');
         });
     }

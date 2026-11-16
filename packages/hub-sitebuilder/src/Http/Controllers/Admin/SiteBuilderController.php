@@ -18,6 +18,7 @@ use M35\HubSitebuilder\Services\SiteContent;
 use M35\HubSitebuilder\Services\SiteCopyWriter;
 use M35\HubSitebuilder\Services\SiteGuard;
 use M35\HubSitebuilder\Services\SiteOwners;
+use M35\HubSitebuilder\Services\SiteTranslations;
 
 class SiteBuilderController extends Controller
 {
@@ -36,7 +37,7 @@ class SiteBuilderController extends Controller
         ]);
     }
 
-    public function generate(Request $request, Tenant $tenant, SiteBuilderHeroGenerator $heroGenerator, SiteGuard $guard): RedirectResponse
+    public function generate(Request $request, Tenant $tenant, SiteBuilderHeroGenerator $heroGenerator, SiteGuard $guard, SiteTranslations $translations): RedirectResponse
     {
         if ($locked = $this->premiumOnly($tenant)) {
             return $locked;
@@ -108,6 +109,9 @@ class SiteBuilderController extends Controller
             return PendingPublication::redirect($tenant, PayPerUse::SITE, $site->id);
         }
 
+        // Lingue già pagate: si ritraducono da sole (gratis) se i testi sono cambiati.
+        $translations->refresh($site->fresh());
+
         // Il link segreto per modificare il sito parte alla prima pubblicazione, solo se c'è una email vera.
         $linkSent = false;
 
@@ -154,6 +158,51 @@ class SiteBuilderController extends Controller
         }
 
         return response()->json(['ok' => true, ...$copy]);
+    }
+
+    /** «Il tuo sito in altre lingue»: 1 € per lingua, una volta sola. Senza carta si chiede la carta e poi si traduce da solo. */
+    public function languages(Request $request, Tenant $tenant, SiteTranslations $translations): RedirectResponse
+    {
+        $site = $tenant->generatedSite;
+
+        abort_unless($site && $site->isPublished(), 404);
+
+        $validated = $request->validate([
+            'langs' => ['required', 'array', 'min:1'],
+            'langs.*' => ['string', 'in:'.implode(',', array_keys(SiteTranslations::LANGS))],
+        ], ['langs.required' => 'Scegli almeno una lingua.']);
+
+        $new = array_values(array_diff(array_unique($validated['langs']), SiteTranslations::active($site)));
+
+        if (! $new) {
+            return back()->with('success', 'Queste lingue sono già online.');
+        }
+
+        if (function_exists('set_time_limit')) {
+            set_time_limit(180);
+        }
+
+        // Manca la carta: si ricordano le lingue scelte e si va a «Pagamenti».
+        if (! PayPerUse::exempt($tenant) && ! PayPerUse::hasCard($tenant)) {
+            $answers = $site->answers;
+            $answers['i18n']['wanted'] = $new;
+            $site->forceFill(['answers' => $answers])->save();
+
+            return PendingPublication::redirect($tenant, 'site_langs', $site->id);
+        }
+
+        $r = $translations->activate($tenant, $site, $new);
+
+        if (! $r['done']) {
+            return back()->withErrors(['tagline' => 'L\'IA non è riuscita a tradurre adesso: riprova tra un minuto. Non ti abbiamo addebitato niente.']);
+        }
+
+        $msg = 'Fatto! Il tuo sito ora è anche in '.SiteTranslations::names($r['done']).'.';
+        if ($r['failed']) {
+            $msg .= ' Non è riuscita la traduzione in '.SiteTranslations::names($r['failed']).': riprova tra un minuto (non è addebitata).';
+        }
+
+        return back()->with('success', $msg);
     }
 
     /** Nuovo link segreto per modificare il sito (il precedente smette di funzionare). */

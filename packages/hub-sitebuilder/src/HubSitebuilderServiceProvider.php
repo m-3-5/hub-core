@@ -28,6 +28,7 @@ class HubSitebuilderServiceProvider extends ServiceProvider
                 Route::get('/sitebuilder', [SiteBuilderController::class, 'show'])->name('sitebuilder.show');
                 Route::post('/sitebuilder', [SiteBuilderController::class, 'generate'])->middleware('throttle:10,1')->name('sitebuilder.generate');
                 Route::post('/sitebuilder/scrivi', [SiteBuilderController::class, 'suggest'])->middleware('throttle:8,1')->name('sitebuilder.suggest');
+                Route::post('/sitebuilder/lingue', [SiteBuilderController::class, 'languages'])->middleware('throttle:6,1')->name('sitebuilder.languages');
                 Route::post('/sitebuilder/link', [SiteBuilderController::class, 'editLink'])->middleware('throttle:5,10')->name('sitebuilder.edit-link');
             });
 
@@ -43,6 +44,10 @@ class HubSitebuilderServiceProvider extends ServiceProvider
         Route::middleware('web')
             ->get('/site/{tenant}', [SiteController::class, 'show'])
             ->name('site.public.show');
+        Route::middleware('web')
+            ->get('/site/{tenant}/{lang}', [SiteController::class, 'show'])
+            ->where('lang', 'en|de|fr|es')
+            ->name('site.public.lang');
 
         // Modifica con il link segreto arrivato per email (nessun account).
         Route::middleware(['web', 'throttle:60,1'])->group(function () {

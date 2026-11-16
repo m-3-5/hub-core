@@ -41,7 +41,9 @@ class SiteEditController extends Controller
                 : 'Non posso pubblicare questo sito: '.$check['reason']]);
         }
 
-        SiteContent::save($tenant, $answers);
+        $site = SiteContent::save($tenant, $answers);
+        // Lingue già pagate: si ritraducono da sole (gratis).
+        app(\M35\HubSitebuilder\Services\SiteTranslations::class)->refresh($site->fresh());
 
         return redirect()->route('site.edit.show', $token)->with('saved', true);
     }

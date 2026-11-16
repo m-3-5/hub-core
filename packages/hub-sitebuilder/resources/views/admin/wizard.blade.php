@@ -68,6 +68,15 @@
         .stack .btn, .stack a.btn { display: flex; align-items: center; justify-content: center; text-decoration: none; text-align: center; }
         .box { border: 2px solid #eceef3; border-radius: 18px; padding: 16px; margin-top: 18px; }
         .box p { margin: 0 0 10px; color: #444; font-size: .95rem; line-height: 1.45; }
+        .lang-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .lang { position: relative; display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; padding: 12px; border: 2px solid #eceef3; border-radius: 14px; cursor: pointer; text-decoration: none; color: inherit; min-height: 56px; }
+        .lang input { position: absolute; opacity: 0; pointer-events: none; }
+        .lang span { grid-row: span 2; font-size: 1.6rem; }
+        .lang b { font-size: 1rem; }
+        .lang small { color: var(--muted); font-size: .82rem; }
+        .lang:has(input:checked) { border-color: var(--c); background: var(--c-soft); }
+        .lang.on { border-color: #b7e1bf; background: #f1faf3; cursor: default; }
+        .lang.on small { color: #2e7d32; font-weight: 600; }
         .ok { background: #e8f5e9; color: #2e7d32; padding: 12px 16px; border-radius: 14px; margin: 6px 0 10px; font-size: .95rem; }
         @media (prefers-color-scheme: dark) {
             body { background: #121218; color: #ececf1; }
@@ -135,6 +144,28 @@
                 <button type="button" class="btn alt" id="b-copy">Copia il link</button>
                 <a class="btn ghost" href="https://wa.me/?text={{ rawurlencode($tenant->name.' — '.$siteUrl) }}" target="_blank" rel="noopener">Invia su WhatsApp</a>
                 <button type="button" class="btn ghost" data-goto="describe">✨ Rifallo con l'IA</button>
+            </div>
+            <div class="box langs-box">
+                @php
+                    $Tr = \M35\HubSitebuilder\Services\SiteTranslations::class;
+                    $activeLangs = $Tr::active($site);
+                    $langCents = \App\Support\PayPerUse::priceCents($tenant, 'lang_x');
+                    $langEur = \App\Support\PayPerUse::euro($langCents);
+                @endphp
+                <p><b>🌍 Il tuo sito in altre lingue</b> · {{ $langEur }} per lingua, una volta sola. Lo traduce l'IA e si aggiorna da solo quando cambi i testi.</p>
+                <div class="lang-grid">
+                    @foreach ($Tr::LANGS as $code => [$native, $flag, $itName])
+                        @if (in_array($code, $activeLangs, true))
+                            <a class="lang on" href="{{ route('site.public.lang', [$tenant, $code]) }}" target="_blank" rel="noopener"><span>{{ $flag }}</span><b>{{ ucfirst($itName) }}</b><small>✓ Online · Vedi</small></a>
+                        @else
+                            <label class="lang"><input type="checkbox" name="langs[]" value="{{ $code }}" form="f-langs" data-lang><span>{{ $flag }}</span><b>{{ ucfirst($itName) }}</b><small>{{ $langEur }}</small></label>
+                        @endif
+                    @endforeach
+                </div>
+                @if (count($activeLangs) < count($Tr::LANGS))
+                    <button type="submit" class="btn main" style="width:100%;margin-top:12px" form="f-langs" id="b-langs" disabled data-cents="{{ $langCents }}">Scegli una o più lingue</button>
+                    <p style="margin:8px 0 0;font-size:.85rem">Non paghi niente adesso: l'addebito arriva dopo {{ (int) config('services.hub_billing.pay_per_use.bill_after_days', 30) }} giorni.</p>
+                @endif
             </div>
             <div class="box">
                 <p><b>Cambiare i testi dal telefono, senza password:</b> ti mandiamo un link segreto per email.</p>
@@ -289,6 +320,7 @@
             <p class="hint">Prima di andare online l'IA controlla che i testi siano seri (niente spam o cose vietate).</p>
         </section>
     </form>
+    <form id="f-langs" method="POST" action="{{ route('admin.sitebuilder.languages', $tenant) }}" hidden>@csrf</form>
     <form id="f-link" method="POST" action="{{ route('admin.sitebuilder.edit-link', $tenant) }}" hidden>@csrf</form>
     <form id="f-pro" method="POST" action="{{ route('admin.tickets.store', $tenant) }}" hidden>
         @csrf
@@ -543,6 +575,18 @@
         try { await navigator.clipboard.writeText(SITE_URL); $('b-copy').textContent = 'Link copiato ✓'; }
         catch (e) { window.prompt('Copia il link:', SITE_URL); }
     });
+    // Lingue: il tasto mostra quante e quanto (1 € l'una), e la rotellina mentre l'IA traduce.
+    const bLangs = $('b-langs');
+    if (bLangs) {
+        const eur = (c) => (c / 100).toLocaleString('it-IT', { minimumFractionDigits: c % 100 ? 2 : 0 }) + ' €';
+        const sync = () => {
+            const n = document.querySelectorAll('[data-lang]:checked').length;
+            bLangs.disabled = n === 0;
+            bLangs.textContent = n === 0 ? 'Scegli una o più lingue' : 'Aggiungi ' + (n === 1 ? '1 lingua' : n + ' lingue') + ' · ' + eur(n * (+bLangs.dataset.cents));
+        };
+        document.querySelectorAll('[data-lang]').forEach((c) => c.addEventListener('change', sync));
+        $('f-langs').addEventListener('submit', () => { bLangs.disabled = true; bLangs.textContent = 'L\'IA sta traducendo…'; });
+    }
     form.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); current === 'describe' ? askAi() : next(); }
     });

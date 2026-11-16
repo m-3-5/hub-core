@@ -245,7 +245,7 @@ class SiteWithAiJourneyTest extends TestCase
 
         auth()->logout();
         $this->get(route('site.public.show', $tenant))->assertOk()
-            ->assertSee('Dai un\'occhiata', false)->assertSee('Parola ai clienti')->assertSee('Bravissime!')
+            ->assertSee('Dai un\'occhiata')->assertSee('Parola ai clienti')->assertSee('Bravissime!')
             ->assertSee('Lun-Sab 9-19')->assertSee('Mostra la mappa')->assertSee('P.IVA 01234567890')
             ->assertSee('https://www.instagram.com/saloneanna', false)->assertSee($answers['media']['logo'], false);
 
