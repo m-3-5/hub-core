@@ -3,6 +3,8 @@
 namespace M35\HubSitebuilder\Http\Controllers\Admin;
 
 use App\Models\Tenant;
+use App\Support\PayPerUse;
+use App\Support\PendingPublication;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -88,6 +90,8 @@ class SiteBuilderController extends Controller
         $hero = empty($answers['media']['photos'] ?? ($tenant->generatedSite?->answers['media']['photos'] ?? []))
             ? $heroGenerator->generate($tenant, SiteContent::heroDir($tenant), $answers['extras']['style'] ?? null)
             : null;
+        // «Paghi quello che pubblichi»: il sito costa 1 € una volta sola, alla prima messa online (le modifiche no).
+        $firstTime = ! $tenant->generatedSite?->published_at;
         $site = SiteContent::save($tenant, $answers, $hero);
 
         // Foto e logo sostituiti o tolti: via dal disco.
@@ -95,6 +99,13 @@ class SiteBuilderController extends Controller
             $kept = array_filter([$answers['media']['logo'] ?? null, ...($answers['media']['photos'] ?? [])]);
             $gone = array_diff(array_filter([$oldMedia['logo'] ?? null, ...($oldMedia['photos'] ?? [])]), $kept);
             \Illuminate\Support\Facades\Storage::disk('public')->delete(array_values($gone));
+        }
+
+        // Manca la carta: il sito resta salvato ma non online; dopo aver salvato la carta va online da solo.
+        if ($firstTime && ! PayPerUse::charge($tenant, PayPerUse::SITE, $site->id, 'Sito web di '.$tenant->name)) {
+            $site->update(['status' => 'awaiting_card', 'published_at' => null]);
+
+            return PendingPublication::redirect($tenant, PayPerUse::SITE, $site->id);
         }
 
         // Il link segreto per modificare il sito parte alla prima pubblicazione, solo se c'è una email vera.

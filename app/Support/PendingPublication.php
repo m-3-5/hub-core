@@ -7,6 +7,7 @@ use App\Models\Tenant;
 use App\Services\WordPressWebhookDispatcher;
 use Illuminate\Http\RedirectResponse;
 use M35\HubPayments\Models\PayableService;
+use M35\HubSitebuilder\Models\GeneratedSite;
 
 /**
  * Una pubblicazione che aspetta il credito: si ricorda cosa stavi pubblicando,
@@ -34,7 +35,7 @@ class PendingPublication
 
         $item = self::item($tenant, (string) $p['kind'], (int) $p['id']);
 
-        return $item ? ['kind' => (string) $p['kind'], 'id' => (int) $p['id'], 'title' => (string) $item->title] : null;
+        return $item ? ['kind' => (string) $p['kind'], 'id' => (int) $p['id'], 'title' => self::title($tenant, $item)] : null;
     }
 
     /** Dopo la ricarica: prova a pubblicare. Restituisce dove andare, o null se non c'era niente in attesa. */
@@ -46,14 +47,18 @@ class PendingPublication
         }
 
         $item = self::item($tenant, $p['kind'], $p['id']);
-        if (! PayPerUse::charge($tenant, $p['kind'], $p['id'], $item->title)) {
+        if (! PayPerUse::charge($tenant, $p['kind'], $p['id'], self::title($tenant, $item))) {
             return null; // ancora poco credito: resta in attesa
         }
 
         session()->forget(self::KEY);
         self::publish($tenant, $item);
 
-        return redirect()->to(self::showUrl($tenant, $item))->with('success', 'Fatto! «'.$item->title.'» è online.');
+        $done = $item instanceof GeneratedSite
+            ? 'Fatto! Il tuo sito è online: '.route('site.public.show', $tenant)
+            : 'Fatto! «'.$item->title.'» è online.';
+
+        return redirect()->to(self::showUrl($tenant, $item))->with('success', $done);
     }
 
     public static function forget(): void
@@ -61,8 +66,14 @@ class PendingPublication
         session()->forget(self::KEY);
     }
 
-    public static function publish(Tenant $tenant, Promo|PayableService $item): void
+    public static function publish(Tenant $tenant, Promo|PayableService|GeneratedSite $item): void
     {
+        if ($item instanceof GeneratedSite) {
+            $item->update(['status' => 'published', 'published_at' => $item->published_at ?? now()]);
+
+            return;
+        }
+
         if ($item instanceof Promo) {
             if ($item->isDraft()) {
                 $item->markPublished();
@@ -78,8 +89,12 @@ class PendingPublication
         app(WordPressWebhookDispatcher::class)->servicesSync($tenant);
     }
 
-    public static function showUrl(Tenant $tenant, Promo|PayableService $item): string
+    public static function showUrl(Tenant $tenant, Promo|PayableService|GeneratedSite $item): string
     {
+        if ($item instanceof GeneratedSite) {
+            return route('admin.sitebuilder.show', $tenant);
+        }
+
         if ($item instanceof Promo) {
             return route('admin.promos.show', [$tenant, $item]);
         }
@@ -87,9 +102,15 @@ class PendingPublication
         return route('admin.'.($item->type === 'product' ? 'products' : 'services').'.show', [$tenant, $item]);
     }
 
-    private static function item(Tenant $tenant, string $kind, int $id): Promo|PayableService|null
+    private static function title(Tenant $tenant, Promo|PayableService|GeneratedSite $item): string
+    {
+        return $item instanceof GeneratedSite ? 'Sito web di '.$tenant->name : (string) $item->title;
+    }
+
+    private static function item(Tenant $tenant, string $kind, int $id): Promo|PayableService|GeneratedSite|null
     {
         return match ($kind) {
+            PayPerUse::SITE => class_exists(GeneratedSite::class) ? GeneratedSite::where('tenant_id', $tenant->id)->whereKey($id)->first() : null,
             'promo' => $tenant->promos()->whereKey($id)->first(),
             'product', 'service' => PayableService::where('tenant_id', $tenant->id)->where('type', $kind)->whereKey($id)->first(),
             default => null,

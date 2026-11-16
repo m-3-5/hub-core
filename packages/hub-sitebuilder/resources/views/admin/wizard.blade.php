@@ -5,7 +5,9 @@
     $siteUrl = route('site.public.show', $tenant);
     // Dopo un errore del server si riparte dal riepilogo, con quello che aveva scritto.
     $hasOld = old('tagline') !== null;
-    $start = $hasOld ? 'review' : ($published && ! request()->boolean('rifai') ? 'done' : 'describe');
+    // Sito pronto ma non ancora online perché manca la carta: si riparte dal riepilogo.
+    $awaitingCard = $site && $site->status === 'awaiting_card';
+    $start = ($hasOld || $awaitingCard) ? 'review' : ($published && ! request()->boolean('rifai') ? 'done' : 'describe');
     $ctaChoices = ['Chiamaci', 'Scrivici su WhatsApp', 'Prenota ora', 'Richiedi un preventivo', 'Vieni a trovarci'];
     $media = $answers['media'] ?? [];
     $info = $answers['info'] ?? [];
@@ -103,6 +105,9 @@
         @endphp
         @if ($okMessage)
             <div class="ok">{{ $okMessage }}</div>
+        @endif
+        @if ($awaitingCard && ! $errors->any())
+            <div class="banner bad">Il tuo sito è pronto ma non è ancora online: manca la carta. Non paghi niente adesso, 1 € dopo {{ (int) config('services.hub_billing.pay_per_use.bill_after_days', 30) }} giorni.<br><a href="{{ route('admin.credit.show', $tenant) }}" style="color:inherit;font-weight:700">Salva la carta e metti online →</a></div>
         @endif
         @if (session('upgrade_sent'))
             <div class="ok">Richiesta inviata! Ti contattiamo per il sito Pro.</div>

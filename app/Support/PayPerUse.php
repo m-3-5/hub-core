@@ -20,6 +20,9 @@ class PayPerUse
 {
     public const KINDS = ['promo' => 'promo', 'product' => 'prodotto', 'service' => 'servizio'];
 
+    /** Il sito con l'IA: prezzo fisso a parte (non entra nei listini né negli scaglioni del mese). */
+    public const SITE = 'site';
+
     public static function enabled(): bool
     {
         return (bool) config('services.hub_billing.pay_per_use.enabled', true);
@@ -82,11 +85,15 @@ class PayPerUse
     /** Prezzo della prossima pubblicazione di questo tipo, in centesimi (0 = inclusa). */
     public static function priceCents(Tenant $tenant, string $kind): int
     {
+        if ($kind === self::SITE) {
+            return max(0, (int) config('services.hub_billing.pay_per_use.site_cents', 100));
+        }
+
         if (self::includedLeft($tenant, $kind) > 0) {
             return 0;
         }
 
-        $nth = TenantUsageEntry::where('tenant_id', $tenant->id)->where('reason', 'use')
+        $nth = TenantUsageEntry::where('tenant_id', $tenant->id)->where('reason', 'use')->where('item_type', '!=', self::SITE)
             ->where('created_at', '>=', now()->startOfMonth())->count() + 1;
 
         $price = 100;
@@ -135,12 +142,17 @@ class PayPerUse
                 'item_type' => $kind,
                 'item_id' => $itemId,
                 'bill_after' => $price > 0 ? now()->addDays((int) config('services.hub_billing.pay_per_use.bill_after_days', 30)) : null,
-                'description' => ucfirst(self::KINDS[$kind] ?? $kind).' «'.mb_strimwidth($title, 0, 120, '…').'»',
+                'description' => ucfirst(self::label($kind)).' «'.mb_strimwidth($title, 0, 120, '…').'»',
                 'user_id' => auth()->id(),
             ]);
 
             return true;
         });
+    }
+
+    public static function label(string $kind): string
+    {
+        return $kind === self::SITE ? 'sito web' : (self::KINDS[$kind] ?? $kind);
     }
 
     /** Totale ancora da addebitare (pubblicazioni dell'ultimo mese). */

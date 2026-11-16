@@ -92,6 +92,8 @@ return [
             'enabled' => (bool) env('HUB_PAY_PER_USE', true),
             'included_with_site' => (int) env('HUB_PPU_INCLUDED_WITH_SITE', 3), // per tipo: promo, prodotti, servizi
             'bill_after_days' => (int) env('HUB_PPU_BILL_AFTER_DAYS', 30),
+            // Sito con l'IA: prezzo fisso, una volta sola alla prima pubblicazione (le modifiche non costano).
+            'site_cents' => (int) env('HUB_PPU_SITE_CENTS', 100),
             // [da quante pubblicazioni pagate nel mese => centesimi]
             'steps' => [1 => 100, 6 => 80, 21 => 50],
         ],

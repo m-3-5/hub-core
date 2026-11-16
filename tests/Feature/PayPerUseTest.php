@@ -261,4 +261,82 @@ class PayPerUseTest extends TestCase
         $this->assertTrue(PayPerUse::charge($tenant->fresh(), 'promo', 2, 'y'));
         $this->assertSame(0, TenantUsageEntry::count());
     }
+
+    private function makeSite(Tenant $tenant, User $user)
+    {
+        $this->mock(\App\Services\ContentModerator::class, fn ($m) => $m->shouldReceive('check')->andReturn(['allowed' => true, 'unavailable' => false, 'category' => 'ok', 'reason' => '']));
+        $this->mock(\M35\HubSitebuilder\Services\SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate')->andReturn(null));
+        \Illuminate\Support\Facades\Notification::fake();
+
+        return $this->actingAs($user)->post(route('admin.sitebuilder.generate', $tenant), [
+            'tagline' => 'Tutto per la casa, a due passi da te', 'services' => 'Utensili, Vernici', 'cta_label' => 'Chiamaci', 'phone' => '333 123 4567',
+        ]);
+    }
+
+    public function test_the_ai_website_costs_one_euro_once_and_waits_for_the_card(): void
+    {
+        [$tenant, $user] = $this->business();
+
+        // Senza carta: il sito è salvato ma non online, e si chiede la carta.
+        $this->makeSite($tenant, $user)->assertRedirect(route('admin.credit.show', $tenant));
+        $site = GeneratedSite::sole();
+        $this->assertSame('awaiting_card', $site->status);
+        $this->assertNull($site->published_at);
+        $this->assertSame(0, TenantUsageEntry::count());
+        $this->assertSame(0, PayPerUse::includedLeft($tenant, 'promo')); // niente inclusi finché il sito non è online
+        $this->get(route('admin.credit.show', $tenant))->assertOk()->assertSee('«Sito web di Ferramenta Rossi»', false)->assertSee('1 €');
+        $this->get(route('admin.sitebuilder.show', $tenant))->assertOk()->assertSee('manca la carta');
+        auth()->logout();
+        $this->get(route('site.public.show', $tenant))->assertNotFound();
+
+        // Salvata la carta: il sito va online da solo, 1 € da addebitare tra un mese.
+        Http::fake([
+            'api.stripe.com/v1/customers/cus_9' => Http::response(['id' => 'cus_9']),
+            'api.stripe.com/v1/checkout/sessions/cs_setup*' => Http::response([
+                'id' => 'cs_setup', 'mode' => 'setup', 'status' => 'complete', 'customer' => 'cus_9',
+                'metadata' => ['tenant_id' => (string) $tenant->id, 'ppu_setup' => '1'],
+                'setup_intent' => ['status' => 'succeeded', 'payment_method' => ['id' => 'pm_9', 'card' => ['brand' => 'visa', 'last4' => '4242']]],
+            ]),
+        ]);
+        $this->actingAs($user)->get(route('admin.credit.return', [$tenant, 'session_id' => 'cs_setup']))
+            ->assertRedirect(route('admin.sitebuilder.show', $tenant));
+
+        $site->refresh();
+        $this->assertSame('published', $site->status);
+        $this->assertNotNull($site->published_at);
+        $entry = TenantUsageEntry::sole();
+        $this->assertSame([100, 'site', 'pending'], [$entry->amount_cents, $entry->item_type, $entry->status]);
+        $this->assertSame('Sito web «Sito web di Ferramenta Rossi»', $entry->description);
+        $this->assertSame(3, PayPerUse::includedLeft($tenant, 'promo'));
+        auth()->logout();
+        $this->get(route('site.public.show', $tenant))->assertOk();
+
+        // Modificarlo non costa più niente; e il sito non conta negli scaglioni del mese.
+        $this->makeSite($tenant, $user)->assertRedirect(route('admin.sitebuilder.show', $tenant));
+        $this->assertSame(1, TenantUsageEntry::count());
+        $this->assertSame(0, PayPerUse::priceCents($tenant, 'promo')); // col sito le prime promo sono incluse
+    }
+
+    public function test_with_a_card_the_ai_website_goes_online_at_once(): void
+    {
+        [$tenant, $user] = $this->business(card: true);
+
+        $this->makeSite($tenant, $user)->assertRedirect(route('admin.sitebuilder.show', $tenant));
+        $this->assertSame('published', GeneratedSite::sole()->status);
+        $this->assertSame(100, PayPerUse::pendingCents($tenant));
+    }
+
+    public function test_sites_already_online_and_staff_do_not_pay_for_the_website(): void
+    {
+        [$tenant, $user] = $this->business();
+        GeneratedSite::create(['tenant_id' => $tenant->id, 'answers' => ['tagline' => 'Vecchio', 'services' => ['Utensili']], 'status' => 'published', 'published_at' => now()->subMonth()]);
+        $this->makeSite($tenant, $user)->assertRedirect(route('admin.sitebuilder.show', $tenant));
+        $this->assertSame(0, TenantUsageEntry::count());
+
+        [$other] = [Tenant::create(['name' => 'Bar Sport', 'slug' => 'bar-sport', 'type' => 'azienda', 'plan' => 'demo', 'guest_verified_at' => now()])];
+        $staff = User::factory()->create(['is_super_admin' => true]);
+        $this->makeSite($other, $staff)->assertRedirect(route('admin.sitebuilder.show', $other));
+        $this->assertSame('published', $other->fresh()->generatedSite->status);
+        $this->assertSame(0, TenantUsageEntry::count());
+    }
 }
