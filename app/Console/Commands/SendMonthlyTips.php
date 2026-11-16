@@ -7,17 +7,19 @@ use App\Notifications\MonthlyTipsNotification;
 use App\Support\MarketingEmails;
 use Illuminate\Console\Command;
 
-/** Una volta al mese: idee su misura per ogni cliente (solo chi non si è disiscritto, mai due volte nello stesso mese). */
+/** Un'idea a settimana per ogni cliente, a ciclo su tutto quello che offre inm35.it (solo chi non si è disiscritto). */
 class SendMonthlyTips extends Command
 {
-    protected $signature = 'hub:monthly-tips {--dry : Mostra a chi andrebbe, senza inviare} {--tenant= : Solo questa attività (slug), come prova: non conta per il giro del mese}';
+    protected $signature = 'hub:weekly-tips {--dry : Mostra a chi andrebbe, senza inviare} {--tenant= : Solo questa attività (slug), come prova: non conta per il giro}';
 
-    protected $description = 'Manda le email «idee del mese» ai clienti (con link per disiscriversi)';
+    /** Il vecchio nome continua a funzionare. */
+    protected $aliases = ['hub:monthly-tips'];
+
+    protected $description = 'Manda l\'email «idea della settimana» ai clienti (con link per disiscriversi)';
 
     public function handle(): int
     {
         $sent = 0;
-
         $only = $this->option('tenant');
         $query = Tenant::query()->orderBy('id');
         if ($only) {
@@ -27,7 +29,8 @@ class SendMonthlyTips extends Command
         foreach ($query->cursor() as $tenant) {
             $last = $tenant->settings['marketing']['last_tips_at'] ?? null;
 
-            if (MarketingEmails::optedOut($tenant) || (! $only && $last && now()->diffInDays($last, true) < 25)) {
+            // Al massimo una a settimana (6 giorni di margine per il giro del martedì).
+            if (MarketingEmails::optedOut($tenant) || (! $only && $last && now()->diffInDays($last, true) < 6)) {
                 continue;
             }
 
@@ -38,7 +41,7 @@ class SendMonthlyTips extends Command
                 continue;
             }
 
-            $this->line($tenant->name.' → '.$to->pluck('email')->implode(', ').' ('.count($tips).' idee)');
+            $this->line($tenant->name.' → '.$to->pluck('email')->implode(', ').' ('.$tips[0][0].')');
 
             if ($this->option('dry')) {
                 continue;
@@ -48,15 +51,9 @@ class SendMonthlyTips extends Command
                 $user->notify(new MonthlyTipsNotification($tenant, $tips));
             }
 
-            if ($only) {
-                $sent++;
-
-                continue; // prova: il giro del mese resta com'è
+            if (! $only) {
+                MarketingEmails::remember($tenant, $tips); // prova: il giro resta com'è
             }
-
-            $settings = $tenant->settings ?? [];
-            $settings['marketing']['last_tips_at'] = now()->toIso8601String();
-            $tenant->forceFill(['settings' => $settings])->save();
             $sent++;
         }
 

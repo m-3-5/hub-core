@@ -35,7 +35,7 @@ return [
         'unverified_days' => (int) env('HUB_SITE_UNVERIFIED_DAYS', 30),
     ],
 
-    // Email «consigli del mese» ai clienti (sempre con il link per non riceverle più).
+    // Email «un'idea a settimana» ai clienti (sempre con il link per non riceverle più).
     // HUB_MARKETING_OFFER: frase dell'offerta del momento da aggiungere (vuota = nessuna offerta).
     'marketing' => [
         'enabled' => (bool) env('HUB_MARKETING_EMAILS', false), // spente finché Max non le accende

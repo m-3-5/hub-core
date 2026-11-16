@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Notification;
 use M35\HubSitebuilder\Models\GeneratedSite;
 use Tests\TestCase;
 
-/** Idee del mese: su misura, una al mese, mai allo staff né a chi si è disiscritto. */
+/** Un'idea a settimana: a ciclo su tutte le funzioni, testi che cambiano, mai allo staff né a chi si è disiscritto. */
 class MonthlyTipsTest extends TestCase
 {
     use RefreshDatabase;
@@ -25,29 +25,46 @@ class MonthlyTipsTest extends TestCase
         return [$tenant, $user];
     }
 
-    public function test_tips_are_tailored_and_sent_once_a_month(): void
+    public function test_one_email_a_week_cycling_through_topics_with_changing_texts(): void
     {
         Notification::fake();
         [$tenant, $user] = $this->client();
         $staff = User::factory()->create(['is_super_admin' => true]);
         $staff->tenants()->attach($tenant, ['role' => 'admin']);
 
-        $tips = MarketingEmails::tips($tenant);
-        $this->assertStringContainsString('sito con l', $tips[0][0]);
+        $first = MarketingEmails::tips($tenant);
+        $this->assertCount(2, $first);
+        $this->assertSame('site', $first[0][3]);
 
-        $this->artisan('hub:monthly-tips')->assertSuccessful();
+        $this->artisan('hub:weekly-tips')->assertSuccessful();
         Notification::assertSentTo($user, MonthlyTipsNotification::class);
         Notification::assertNotSentTo($staff, MonthlyTipsNotification::class);
 
-        // Una sola volta al mese.
-        $this->artisan('hub:monthly-tips')->assertSuccessful();
+        // Non due volte nella stessa settimana.
+        $this->artisan('hub:weekly-tips')->assertSuccessful();
         Notification::assertSentToTimes($user, MonthlyTipsNotification::class, 1);
 
-        // Con il sito online le idee cambiano: lingue e «fatti trovare».
+        // La settimana dopo: argomento diverso.
+        $this->travel(7)->days();
+        $second = MarketingEmails::tips($tenant->fresh());
+        $this->assertNotSame($first[0][3], $second[0][3]);
+
+        // Dopo un giro intero l'argomento torna, con un testo diverso.
+        $seen = [];
+        $tenant = $tenant->fresh();
+        for ($i = 0; $i < 30; $i++) {
+            $tips = MarketingEmails::tips($tenant);
+            $seen[$tips[0][3]][] = $tips[0][0];
+            MarketingEmails::remember($tenant, [$tips[0]]);
+            $tenant = $tenant->fresh();
+        }
+        $this->assertGreaterThan(1, count(array_unique($seen['site'])));
+
+        // Con il sito online non si propone più il sito, ma le lingue sì.
         GeneratedSite::create(['tenant_id' => $tenant->id, 'status' => 'published', 'published_at' => now(), 'answers' => ['tagline' => 'x', 'services' => ['Caffè']]]);
-        $titles = array_column(MarketingEmails::tips($tenant->fresh()), 0);
-        $this->assertNotContains('🌐 Il tuo sito con l\'IA a 1 €', $titles);
-        $this->assertContains('🌍 Il tuo sito in altre lingue', $titles);
+        $keys = array_keys(array_filter(MarketingEmails::catalog($tenant->fresh()), fn ($t) => $t[2]));
+        $this->assertNotContains('site', $keys);
+        $this->assertContains('langs', $keys);
     }
 
     public function test_the_email_has_an_unsubscribe_link_that_works_without_login(): void
@@ -55,9 +72,12 @@ class MonthlyTipsTest extends TestCase
         [$tenant, $user] = $this->client();
         config(['hub.marketing.offer' => 'Primo mese di promo a metà prezzo']);
 
-        $mail = (new MonthlyTipsNotification($tenant, MarketingEmails::tips($tenant)))->toMail($user)->render();
-        $this->assertStringContainsString('Non mandatemele più', (string) $mail);
-        $this->assertStringContainsString('Primo mese di promo a metà prezzo', (string) $mail);
+        $mail = (new MonthlyTipsNotification($tenant, MarketingEmails::tips($tenant)))->toMail($user);
+        $this->assertStringEndsWith('— Bar Sport', $mail->subject);
+        $html = (string) $mail->render();
+        $this->assertStringContainsString('Non mandatemele più', $html);
+        $this->assertStringContainsString('Lo sapevi?', $html);
+        $this->assertStringContainsString('Primo mese di promo a metà prezzo', $html);
 
         $url = MarketingEmails::unsubscribeUrl($tenant);
         $this->get($url)->assertOk()->assertSee('Non mandatemele più');
@@ -65,7 +85,7 @@ class MonthlyTipsTest extends TestCase
         $this->assertTrue(MarketingEmails::optedOut($tenant->fresh()));
 
         Notification::fake();
-        $this->artisan('hub:monthly-tips')->assertSuccessful();
+        $this->artisan('hub:weekly-tips')->assertSuccessful();
         Notification::assertNothingSent();
 
         // Si può tornare indietro; un link senza firma non funziona.
@@ -74,7 +94,7 @@ class MonthlyTipsTest extends TestCase
         $this->get(route('email.unsubscribe', $tenant))->assertForbidden();
     }
 
-    public function test_a_single_tenant_test_send_does_not_count_for_the_month(): void
+    public function test_a_single_tenant_test_send_does_not_count_and_the_old_name_still_works(): void
     {
         Notification::fake();
         [$tenant, $user] = $this->client();

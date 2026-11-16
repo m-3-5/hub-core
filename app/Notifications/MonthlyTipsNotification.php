@@ -7,10 +7,10 @@ use App\Support\MarketingEmails;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-/** «Consigli del mese» per far crescere l'attività con Hub Core, con il link per non riceverli più. */
+/** «L'idea della settimana» per far crescere l'attività con Hub Core, con il link per non riceverle più. */
 class MonthlyTipsNotification extends Notification
 {
-    /** @param  array<int, array{0: string, 1: string, 2: string}>  $tips */
+    /** @param  array<int, array{0: string, 1: string, 2: string, 3?: string}>  $tips  la prima è la principale */
     public function __construct(private readonly Tenant $tenant, private readonly array $tips) {}
 
     /** @return array<int, string> */
@@ -22,14 +22,19 @@ class MonthlyTipsNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $unsubscribe = MarketingEmails::unsubscribeUrl($this->tenant);
+        [$title, $text, $url] = $this->tips[0];
+        // Oggetto: il titolo senza emoji iniziale, con il nome dell'attività.
+        $subject = trim(preg_replace('/^[^\p{L}\p{N}]+/u', '', $title) ?? $title).' — '.$this->tenant->name;
 
         $mail = (new MailMessage)
-            ->subject('Idee per '.$this->tenant->name.' questo mese')
+            ->subject($subject)
             ->greeting('Ciao, '.$notifiable->name.'!')
-            ->line('Ecco qualche idea per farti trovare da più clienti con Hub Core:');
+            ->line('**'.$title.'**')
+            ->line($text)
+            ->action('Provalo ora', $url);
 
-        foreach ($this->tips as [$title, $text, $url]) {
-            $mail->line('**'.$title.'** — '.$text.' [Vai →]('.$url.')');
+        if ($extra = $this->tips[1] ?? null) {
+            $mail->line('**Lo sapevi?** '.$extra[0].' — '.$extra[1].' [Scopri →]('.$extra[2].')');
         }
 
         if ($offer = config('hub.marketing.offer')) {
@@ -37,8 +42,7 @@ class MonthlyTipsNotification extends Notification
         }
 
         return $mail
-            ->action('Apri Hub Core', route('app.home', $this->tenant))
-            ->line('Ricevi questa email perché usi Hub Core. Non vuoi più queste idee? [Non mandatemele più]('.$unsubscribe.') — le email su pagamenti e accesso continuano ad arrivare.')
+            ->line('Ricevi un\'idea a settimana perché usi Hub Core. Non vuoi più queste email? [Non mandatemele più]('.$unsubscribe.') — le email su pagamenti e accesso continuano ad arrivare.')
             ->salutation('A presto, il team Hub Core')
             ->withSymfonyMessage(fn ($m) => $m->getHeaders()->addTextHeader('List-Unsubscribe', '<'.$unsubscribe.'>'));
     }
