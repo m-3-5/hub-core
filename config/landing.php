@@ -22,7 +22,7 @@ return [
     // Gruppo Facebook della community (il nome si cambia qui o con LANDING_FB_GROUP_NAME quando verrà rinominato).
     'facebook_group' => [
         'url' => env('LANDING_FB_GROUP_URL', 'https://www.facebook.com/groups/1851508502319600'),
-        'name' => env('LANDING_FB_GROUP_NAME', 'Il nostro gruppo Facebook'),
+        'name' => env('LANDING_FB_GROUP_NAME', 'Il Mercato di inm35 · Offerte, servizi e annunci'),
     ],
 
     // Promo «1 € per partire»: il cliente paga davvero start_eur, ha trial_days giorni per provare e configurare il sito
