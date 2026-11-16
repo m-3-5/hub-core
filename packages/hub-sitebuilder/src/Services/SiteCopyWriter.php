@@ -46,26 +46,31 @@ Rispondi SOLO con un JSON con queste chiavi:
 Regole: italiano semplice; niente link, email, numeri di telefono, indirizzi; non inventare anni di attività, premi, numeri, recensioni o certificazioni.
 PROMPT;
 
-        try {
-            $raw = $this->gemini->generate($prompt, json: true, temperature: 0.7, timeout: 25, maxModels: 3);
-        } catch (Throwable $e) {
-            report($e);
+        // Gemini a volte risponde a metà o senza JSON valido: si riprova da soli una volta, prima di arrendersi.
+        // (Tempi: 3 modelli × 20 s + 2 × 20 s restano dentro i 120 s concessi alla richiesta.)
+        $data = null;
+        foreach ([[0.7, 3], [0.5, 2]] as [$temperature, $models]) {
+            try {
+                $raw = $this->gemini->generate($prompt, json: true, temperature: $temperature, timeout: 20, maxModels: $models);
+            } catch (Throwable $e) {
+                report($e);
 
-            return null;
+                continue;
+            }
+
+            $try = json_decode($this->stripFences($raw), true);
+            if (is_array($try) && self::clean($try['tagline'] ?? '', 200) !== '' && SiteContent::serviceDetails($try['services'] ?? []) !== []) {
+                $data = $try;
+                break;
+            }
         }
 
-        $data = json_decode($this->stripFences($raw), true);
-
-        if (! is_array($data)) {
+        if ($data === null) {
             return null;
         }
 
         $tagline = self::clean($data['tagline'] ?? '', 200);
         $details = SiteContent::serviceDetails($data['services'] ?? []);
-
-        if ($tagline === '' || $details === []) {
-            return null;
-        }
 
         return [
             'tagline' => $tagline,
