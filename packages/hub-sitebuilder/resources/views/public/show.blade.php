@@ -69,6 +69,13 @@
             : collect();
         // Annunci pubblicati (case, auto, oggetti, lavoro…): anche loro entrano da soli.
         $ads = \App\Models\ClassifiedAd::query()->where('tenant_id', $tenant->id)->published()->latest('published_at')->take(6)->get();
+        // Novità, eventi e articoli pubblicati su Facebook con #novita, #evento, #blog.
+        $news = collect($answers['news'] ?? [])->take(6)->map(function ($n) use ($disk) {
+            $n['image_url'] = ! empty($n['image']) && $disk->exists($n['image']) ? $disk->url($n['image']) : null;
+            $n['when'] = ! empty($n['event_at']) ? \Illuminate\Support\Carbon::parse($n['event_at'])->timezone(config('app.timezone')) : null;
+
+            return $n;
+        });
         $tel = $tenant->phone ? preg_replace('/[^0-9+]/', '', $tenant->phone) : null;
         // WhatsApp solo per i cellulari italiani (3xx) o numeri già con prefisso internazionale.
         $waNumber = $tel ? ltrim(preg_match('/^3\d{8,9}$/', $tel) ? '39'.$tel : (str_starts_with($tel, '+') ? $tel : ''), '+') : '';
@@ -321,6 +328,8 @@
         .card-body p { color: var(--muted); font-size: .92rem; }
         .card-body .price { color: var(--ink); font-weight: 800; font-size: 1.15rem; }
         .card-cta { margin-top: auto; padding-top: 8px; color: var(--primary); font-weight: 800; }
+        .card.news details { margin: 4px 0; } .card.news summary { cursor: pointer; color: var(--primary); font-weight: 700; }
+        .card.news .news-text { margin-top: 8px; color: var(--muted, #555); font-size: .95rem; line-height: 1.55; }
         .more { text-align: center; margin-top: 18px; }
         .more a { display: inline-flex; align-items: center; min-height: 48px; font-weight: 700; color: var(--primary); }
         .open-now { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
@@ -353,6 +362,7 @@
             @if ($about)<a href="#chi-siamo">{{ $t('Chi siamo') }}</a>@endif
             @if ($promos->isNotEmpty())<a href="#offerte">{{ $t('Offerte') }}</a>@endif
             @if ($ads->isNotEmpty())<a href="#annunci">{{ $t('Annunci') }}</a>@endif
+            @if ($news->isNotEmpty())<a href="#novita">{{ $t('Novità') }}</a>@endif
             @if ($shop->isNotEmpty())<a href="#acquista">{{ $t('Acquista') }}</a>@endif
             @if (count($photos) > 1)<a href="#foto">{{ $t('Foto') }}</a>@endif
             @if (count($faq))<a href="#domande">{{ $t('Domande') }}</a>@endif
@@ -484,6 +494,29 @@
             @endforeach
         </div>
         <p class="more rv"><a href="{{ route('classifieds.tenant-board', $tenant) }}">{{ $t('Tutti gli annunci') }}</a></p>
+    </div>
+</section>
+@endif
+
+@if ($news->isNotEmpty())
+<section class="section" id="novita">
+    <div class="wrap">
+        <div class="head rv"><span class="kicker">{{ $t('Novità ed eventi') }}</span><h2>{{ $t('Le ultime da noi') }}</h2></div>
+        <div class="cards">
+            @foreach ($news as $n)
+                <article class="card news rv">
+                    <div class="card-img">@if ($n['image_url'])<img src="{{ $n['image_url'] }}" alt="{{ $n['title'] }}" loading="lazy">@else<span>{{ \Illuminate\Support\Str::limit($n['title'], 40) }}</span>@endif<em>{{ $t($n['type'] === 'event' ? 'Evento' : ($n['type'] === 'blog' ? 'Articolo' : 'Novità')) }}</em></div>
+                    <div class="card-body">
+                        <h3>{{ $n['title'] }}</h3>
+                        @if ($n['when'])<p class="price">📅 {{ $n['when']->format('d/m') }}@if ($n['when']->format('H:i') !== '00:00') · {{ $n['when']->format('H:i') }}@endif</p>@endif
+                        @if (! empty($n['text']))
+                            <details><summary>{{ $t('Leggi') }}</summary><p class="news-text">{!! nl2br(e($n['text'])) !!}</p></details>
+                        @endif
+                        @if (! empty($n['url']))<a class="card-cta" href="{{ $n['url'] }}" target="_blank" rel="noopener">{{ $t('Vedi su Facebook') }} →</a>@endif
+                    </div>
+                </article>
+            @endforeach
+        </div>
     </div>
 </section>
 @endif

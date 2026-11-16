@@ -152,6 +152,17 @@ class PromoDraftImporter
      */
     private function downloadImage(Tenant $tenant, string $url): array
     {
+        return [$this->downloadPhoto($tenant, $url, 'promos/'.$tenant->slug)];
+    }
+
+    /**
+     * Scarica una foto da Facebook/Instagram nella cartella indicata (disco public). Usata anche per
+     * prodotti, servizi, novità e galleria pubblicati da Facebook.
+     *
+     * @throws RuntimeException se l'indirizzo non è consentito o la foto non è valida
+     */
+    public function downloadPhoto(Tenant $tenant, string $url, string $directory): string
+    {
         if (! self::imageUrlAllowed($url)) {
             throw new RuntimeException('Indirizzo della foto non consentito (solo https da fbcdn.net, cdninstagram.com, facebook.com).');
         }
@@ -181,10 +192,10 @@ class PromoDraftImporter
             throw new RuntimeException('Il file scaricato non è una foto valida.');
         }
 
-        $path = 'promos/'.$tenant->slug.'/'.Str::uuid().'.'.$extensions[$info['mime']];
+        $path = trim($directory, '/').'/'.Str::uuid().'.'.$extensions[$info['mime']];
         Storage::disk('public')->put($path, $bytes);
 
-        return [$path];
+        return $path;
     }
 
     private function notifyOwners(Tenant $tenant, Promo $promo): void

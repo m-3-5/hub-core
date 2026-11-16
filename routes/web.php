@@ -71,6 +71,7 @@ Route::get('/guide/pagamenti/{slug}', [\App\Http\Controllers\GuideController::cl
 Route::get('/condizioni-economiche', [\App\Http\Controllers\GuideController::class, 'economicTerms'])->name('terms.economic');
 Route::get('/condizioni-acquisto', [\App\Http\Controllers\GuideController::class, 'buyerTerms'])->name('terms.buyer');
 Route::view('/privacy', 'guides.privacy')->name('privacy');
+Route::view('/guida/facebook', 'guides.facebook')->name('guides.facebook');
 // Ritorno dal collegamento Facebook (l'attività viaggia cifrata nello «state»).
 Route::get('/facebook/ritorno', [\App\Http\Controllers\FacebookController::class, 'callback'])->middleware(['auth', 'throttle:20,1'])->name('facebook.callback');
 

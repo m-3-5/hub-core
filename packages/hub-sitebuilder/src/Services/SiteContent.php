@@ -328,7 +328,8 @@ class SiteContent
         }
 
         // Le lingue pagate restano sempre (si ritraducono a parte se i testi cambiano).
-        foreach (['i18n', 'addons'] as $key) {
+        // Così come le novità e i lavori arrivati da Facebook (#novita, #evento, #blog, #lavori).
+        foreach (['i18n', 'addons', 'news', 'facebook_works'] as $key) {
             if (isset($site->answers[$key])) {
                 $answers[$key] = $site->answers[$key];
             }

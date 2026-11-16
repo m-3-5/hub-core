@@ -131,8 +131,12 @@ class FacebookPages
             ->first(fn (Tenant $t) => (self::connection($t)['page_id'] ?? null) === $pageId);
     }
 
-    /** Un nuovo post sulla pagina: se ha l'hashtag diventa una promo. Restituisce la promo creata (o null). */
-    public function handlePost(Tenant $tenant, string $postId): ?\App\Models\Promo
+    /**
+     * Un nuovo post sulla pagina: con #promo (o gli hashtag del cliente) diventa una promo; con gli altri
+     * hashtag (#prodotto, #servizio, #novita, #evento, #blog, #lavori) va nella sezione giusta (FacebookSections).
+     * Restituisce quello che è stato creato (o null).
+     */
+    public function handlePost(Tenant $tenant, string $postId): mixed
     {
         $fb = self::connection($tenant);
         if (! $fb) {
@@ -148,8 +152,14 @@ class FacebookPages
         $lower = mb_strtolower($message);
         $tagged = collect(self::hashtags($tenant))->contains(fn ($tag) => preg_match('/(^|\s)'.preg_quote($tag, '/').'(\b|$)/u', $lower));
 
-        if (! $tagged || empty($post['full_picture'])) {
-            return null; // senza hashtag o senza foto non è una promo
+        if (! $tagged) {
+            $section = FacebookSections::typeOf($message);
+
+            return $section ? app(FacebookSections::class)->handle($tenant, $section, $postId, $post) : null;
+        }
+
+        if (empty($post['full_picture'])) {
+            return null; // una promo senza foto non si crea
         }
 
         // Titolo: la prima riga senza hashtag.

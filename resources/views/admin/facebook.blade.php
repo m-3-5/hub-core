@@ -52,7 +52,20 @@
             </ul>
         </div>
         <div class="fb-card">
-            <h2>Hashtag</h2>
+            <h2>Gli hashtag e dove va il post</h2>
+            <ul class="fb-steps">
+                <li><b>{{ implode(' ', $hashtags) }}</b> → promo (1 €, con foto)</li>
+                <li><b>#prodotto</b> → prodotto in vetrina (1 €). Scrivi il prezzo, es. «25 €».</li>
+                <li><b>#servizio</b> → servizio in vetrina (1 €). Scrivi il prezzo, es. «40 €».</li>
+                <li><b>#novita</b> → «Novità ed eventi» del tuo sito (gratis)</li>
+                <li><b>#evento</b> → come evento, con la data se la scrivi: «24 ottobre alle 18:30» (gratis)</li>
+                <li><b>#blog</b> → un articolo: prima riga il titolo, poi il testo (gratis)</li>
+                <li><b>#lavori</b> → la foto va nella galleria del tuo sito (gratis)</li>
+            </ul>
+            <p style="margin-top:10px">Senza prezzo, senza carta o se il testo va controllato, prodotti e servizi restano da completare nel pannello. Novità, eventi, blog e lavori vanno nel sito se ce l'hai. <a href="{{ route('guides.facebook') }}" target="_blank">Leggi la guida completa</a></p>
+        </div>
+        <div class="fb-card">
+            <h2>Hashtag delle promo</h2>
             <form method="POST" action="{{ route('admin.facebook.hashtags', $tenant) }}">
                 @csrf
                 <input class="fb-field" name="hashtags" value="{{ old('hashtags', implode(' ', $hashtags)) }}" placeholder="#promo #offerta" maxlength="120">
@@ -69,14 +82,14 @@
             <ol class="fb-steps">
                 <li>Premi «Collega Facebook» ed entra con il tuo Facebook.</li>
                 <li>Scegli la pagina della tua attività.</li>
-                <li>Fatto. Da ora un post con <b>#promo</b> e una foto diventa una promo.</li>
+                <li>Fatto. Da ora un post con <b>#promo</b> e una foto diventa una promo; con <b>#prodotto</b>, <b>#servizio</b>, <b>#novita</b>, <b>#evento</b>, <b>#blog</b> o <b>#lavori</b> va nella sezione giusta.</li>
             </ol>
         </div>
         <form method="POST" action="{{ route('admin.facebook.connect', $tenant) }}">
             @csrf
             <button type="submit" class="fb-btn">Collega Facebook</button>
         </form>
-        <p style="font-size:.85rem;color:#6b6b7b;margin-top:10px">Leggiamo solo i post della pagina che scegli, per trasformarli in promo. Non pubblichiamo niente su Facebook al posto tuo. Puoi scollegare quando vuoi.</p>
+        <p style="font-size:.85rem;color:#6b6b7b;margin-top:10px">Leggiamo solo i post della pagina che scegli, per trasformarli in promo, prodotti, servizi, novità e foto del sito. Non pubblichiamo niente su Facebook al posto tuo. Puoi scollegare quando vuoi.</p>
     @endif
 </div>
 @endsection
