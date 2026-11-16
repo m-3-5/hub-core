@@ -73,4 +73,16 @@ class MonthlyTipsTest extends TestCase
         $this->assertFalse(MarketingEmails::optedOut($tenant->fresh()));
         $this->get(route('email.unsubscribe', $tenant))->assertForbidden();
     }
+
+    public function test_a_single_tenant_test_send_does_not_count_for_the_month(): void
+    {
+        Notification::fake();
+        [$tenant, $user] = $this->client();
+        [, $other] = $this->client('pizzeria');
+
+        $this->artisan('hub:monthly-tips', ['--tenant' => 'bar-sport'])->assertSuccessful();
+        Notification::assertSentTo($user, MonthlyTipsNotification::class);
+        Notification::assertNotSentTo($other, MonthlyTipsNotification::class);
+        $this->assertArrayNotHasKey('last_tips_at', $tenant->fresh()->settings['marketing'] ?? []);
+    }
 }
