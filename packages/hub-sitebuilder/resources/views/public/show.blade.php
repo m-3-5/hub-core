@@ -37,13 +37,11 @@
         $heroVisual = $photos[0] ?? ($site->hero_video_path
             ? $disk->url($site->hero_video_path)
             : ($site->hero_svg_path ? $disk->url($site->hero_svg_path) : null));
-        // Foto in alto sempre intera, in cornice accanto al titolo (la stessa foto sfocata fa da sfondo): mai tagliata.
-        // Le foto larghe hanno una cornice più larga, così restano grandi.
-        $heroFramed = ! empty($media['photos'][0]);
-        $heroWide = false;
-        if ($heroFramed && $disk->exists($media['photos'][0])) {
+        // Foto in alto non abbastanza larga (verticale, quadrata, volantino): si mostra intera in cornice, sfocata dietro.
+        $heroFramed = false;
+        if (! empty($media['photos'][0]) && $disk->exists($media['photos'][0])) {
             $size = @getimagesize($disk->path($media['photos'][0]));
-            $heroWide = $size && $size[1] > 0 && $size[0] / $size[1] >= 1.3;
+            $heroFramed = $size && $size[1] > 0 && $size[0] / $size[1] < 1.6;
         }
         $aboutPhoto = $photos[1] ?? null;
         $schedule = $info['schedule'] ?? null;
@@ -177,8 +175,6 @@
             .hero.has-photo:not(.framed) .hero-shot { display: none; }
             .hero.framed .hero-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 48px; align-items: center; }
             .hero.framed .hero-shot { margin: 0; max-width: 380px; max-height: 460px; }
-            .hero.framed.wide .hero-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
-            .hero.framed.wide .hero-shot { max-width: 100%; max-height: 420px; justify-self: end; }
         }
         .wave { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 70px; z-index: 3; display: block; }
 
@@ -345,7 +341,7 @@
     </div>
 </header>
 
-<section class="hero{{ count($photos) ? ' has-photo' : '' }}{{ $heroFramed ? ' framed' : '' }}{{ $heroWide ? ' wide' : '' }}" id="top">
+<section class="hero{{ count($photos) ? ' has-photo' : '' }}{{ $heroFramed ? ' framed' : '' }}" id="top">
     @if ($heroVisual)
         <img class="hero-bg" src="{{ $heroVisual }}" alt="">
     @endif
