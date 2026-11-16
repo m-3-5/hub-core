@@ -66,8 +66,18 @@
         $langUrl = fn (string $l) => $l === 'it' ? route('site.public.show', $tenant) : route('site.public.lang', [$tenant, $l]);
         $description = \Illuminate\Support\Str::limit($tagline.($about ? ' — '.$about : ''), 160);
     @endphp
-    <title>{{ $tenant->name }} — {{ $tagline }}</title>
+    @php
+        // Opzioni a 1 €: SEO (titolo, descrizione, parole, testi delle foto) e «Fatti trovare dall'IA».
+        $seo = $lang === 'it' ? \M35\HubSitebuilder\Services\SiteAddons::data($site, 'seo') : [];
+        $aiOn = \M35\HubSitebuilder\Services\SiteAddons::active($site, 'ai');
+        $alts = $seo['alts'] ?? [];
+        $alt = fn (int $i) => $alts[$i] ?? ($tenant->name.($i ? ' — '.$t('foto').' '.($i + 1) : ''));
+        if (! empty($seo['description'])) { $description = $seo['description']; }
+    @endphp
+    <title>{{ $seo['title'] ?? ($tenant->name.' — '.$tagline) }}</title>
     <meta name="description" content="{{ $description }}">
+    @if (! empty($seo['keywords']))<meta name="keywords" content="{{ implode(', ', $seo['keywords']) }}">@endif
+    @if ($aiOn)<link rel="alternate" type="text/plain" title="llms.txt" href="{{ route('site.public.llms', $tenant) }}">@endif
     <link rel="canonical" href="{{ $siteUrl }}">
     @if (count($langs))
         <link rel="alternate" hreflang="it" href="{{ $langUrl('it') }}">
@@ -96,7 +106,8 @@
         'logo' => $logo,
         'vatID' => $vat,
         'sameAs' => array_values($socials) ?: null,
-    ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+    ] + ($aiOn ? array_diff_key(\M35\HubSitebuilder\Services\SiteAddons::structuredData($tenant, $site, $answers), ['faq' => 1]) : [])), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+    @if ($aiOn && ($faqLd = \M35\HubSitebuilder\Services\SiteAddons::structuredData($tenant, $site, $answers)['faq'] ?? null))<script type="application/ld+json">{!! json_encode($faqLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>@endif
     <link href="{{ \App\Support\BrandFonts::cssUrl($brandFont) }}" rel="stylesheet">
     <style>
         :root {
@@ -347,7 +358,7 @@
             @if (count($services))<a class="btn ghost" href="#servizi">{{ $t('Cosa offriamo') }}</a>@endif
         </div>
         </div>
-        @if (count($photos))<img class="hero-shot" src="{{ $photos[0] }}" alt="{{ $tenant->name }}" data-full="{{ $photos[0] }}">@endif
+        @if (count($photos))<img class="hero-shot" src="{{ $photos[0] }}" alt="{{ $alt(0) }}" data-full="{{ $photos[0] }}">@endif
     </div>
     <svg class="wave" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path fill="{{ count($strengths) ? ($dark ? '#0d0f14' : '#ffffff') : ($dark ? '#0d0f14' : '#ffffff') }}" d="M0,40 C240,80 480,0 720,24 C960,48 1200,70 1440,30 L1440,70 L0,70 Z"/></svg>
 </section>
@@ -384,7 +395,7 @@
 @if ($about)
 <section class="section" id="chi-siamo">
     <div class="wrap about">
-        @if ($aboutPhoto)<div class="about-art photo fit rv" data-full="{{ $aboutPhoto }}" style="--img: url('{{ $aboutPhoto }}')"><img src="{{ $aboutPhoto }}" alt="{{ $tenant->name }}" loading="lazy"></div>@else<div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>@endif
+        @if ($aboutPhoto)<div class="about-art photo fit rv" data-full="{{ $aboutPhoto }}" style="--img: url('{{ $aboutPhoto }}')"><img src="{{ $aboutPhoto }}" alt="{{ $alt(1) }}" loading="lazy"></div>@else<div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>@endif
         <div class="about-text rv"><span class="kicker">{{ $t('Chi siamo') }}</span><h2>{{ $tenant->name }}</h2><p>{{ $about }}</p></div>
     </div>
 </section>
@@ -459,7 +470,7 @@
         <div class="head rv"><span class="kicker">{{ $t('Foto') }}</span><h2>{{ $t("Dai un'occhiata") }}</h2></div>
         <div class="gallery">
             @foreach ($photos as $i => $p)
-                <button type="button" class="shot fit rv" data-full="{{ $p }}" style="--img: url('{{ $p }}')" aria-label="{{ $t('Apri foto') }} {{ $i + 1 }}"><img src="{{ $p }}" alt="{{ $tenant->name }} — {{ $t('foto') }} {{ $i + 1 }}" loading="lazy"></button>
+                <button type="button" class="shot fit rv" data-full="{{ $p }}" style="--img: url('{{ $p }}')" aria-label="{{ $t('Apri foto') }} {{ $i + 1 }}"><img src="{{ $p }}" alt="{{ $alt($i) }}" loading="lazy"></button>
             @endforeach
         </div>
     </div>

@@ -9,6 +9,16 @@ use Illuminate\View\View;
 
 class SiteController extends Controller
 {
+    /** Scheda per gli assistenti con l'IA (solo con l'opzione «Fatti trovare dall'IA»). */
+    public function llms(Tenant $tenant): \Illuminate\Http\Response
+    {
+        $site = $tenant->generatedSite;
+
+        abort_unless($site && $site->isLive() && \M35\HubSitebuilder\Services\SiteAddons::active($site, 'ai'), 404);
+
+        return response(\M35\HubSitebuilder\Services\SiteAddons::llmsText($tenant, $site), 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
+    }
+
     public function show(Tenant $tenant, ?string $lang = null): View
     {
         $site = $tenant->generatedSite;

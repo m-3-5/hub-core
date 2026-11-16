@@ -85,7 +85,7 @@ class PayPerUse
     /** Prezzo della prossima pubblicazione di questo tipo, in centesimi (0 = inclusa). */
     public static function priceCents(Tenant $tenant, string $kind): int
     {
-        if ($kind === self::SITE || str_starts_with($kind, 'lang_')) {
+        if ($kind === self::SITE || str_starts_with($kind, 'lang_') || str_starts_with($kind, 'addon_')) {
             return max(0, (int) config('services.hub_billing.pay_per_use.site_cents', 100));
         }
 
@@ -161,6 +161,9 @@ class PayPerUse
     {
         if (str_starts_with($kind, 'lang_')) {
             return 'traduzione del sito';
+        }
+        if (str_starts_with($kind, 'addon_')) {
+            return 'opzione del sito';
         }
 
         return $kind === self::SITE ? 'sito web' : (self::KINDS[$kind] ?? $kind);

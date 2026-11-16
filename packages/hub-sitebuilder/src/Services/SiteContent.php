@@ -328,8 +328,10 @@ class SiteContent
         }
 
         // Le lingue pagate restano sempre (si ritraducono a parte se i testi cambiano).
-        if (isset($site->answers['i18n'])) {
-            $answers['i18n'] = $site->answers['i18n'];
+        foreach (['i18n', 'addons'] as $key) {
+            if (isset($site->answers[$key])) {
+                $answers[$key] = $site->answers[$key];
+            }
         }
 
         $site->fill([

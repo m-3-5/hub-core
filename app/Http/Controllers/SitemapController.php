@@ -99,6 +99,19 @@ class SitemapController extends Controller
             }
         }
 
+        // Siti fatti con l'IA con l'opzione «Indicizza il sito» (e le loro lingue).
+        if (class_exists(\M35\HubSitebuilder\Models\GeneratedSite::class)) {
+            $sites = \M35\HubSitebuilder\Models\GeneratedSite::query()->where('status', 'published')->with('tenant')->get()
+                ->filter(fn ($site) => $site->isLive() && \M35\HubSitebuilder\Services\SiteAddons::active($site, 'index'));
+
+            foreach ($sites as $site) {
+                $urls[] = ['loc' => route('site.public.show', $site->tenant), 'lastmod' => $site->updated_at, 'priority' => '0.8'];
+                foreach (\M35\HubSitebuilder\Services\SiteTranslations::active($site) as $lang) {
+                    $urls[] = ['loc' => route('site.public.lang', [$site->tenant, $lang]), 'lastmod' => $site->updated_at, 'priority' => '0.6'];
+                }
+            }
+        }
+
         return $urls;
     }
 

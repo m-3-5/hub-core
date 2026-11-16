@@ -77,6 +77,14 @@
         .lang:has(input:checked) { border-color: var(--c); background: var(--c-soft); }
         .lang.on { border-color: #b7e1bf; background: #f1faf3; cursor: default; }
         .lang.on small { color: #2e7d32; font-weight: 600; }
+        .addons { display: grid; gap: 8px; }
+        .addon { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border: 2px solid #eceef3; border-radius: 14px; }
+        .addon-ico { font-size: 1.5rem; }
+        .addon b { display: block; font-size: .98rem; }
+        .addon small { display: block; color: var(--muted); font-size: .82rem; line-height: 1.35; }
+        .addon .btn { min-height: 44px; padding: 0 14px; white-space: nowrap; }
+        .addon em { font-style: normal; color: #2e7d32; font-weight: 700; font-size: .88rem; white-space: nowrap; }
+        .addon.on { border-color: #b7e1bf; background: #f1faf3; }
         .ok { background: #e8f5e9; color: #2e7d32; padding: 12px 16px; border-radius: 14px; margin: 6px 0 10px; font-size: .95rem; }
         @media (prefers-color-scheme: dark) {
             body { background: #121218; color: #ececf1; }
@@ -166,6 +174,24 @@
                     <button type="submit" class="btn main" style="width:100%;margin-top:12px" form="f-langs" id="b-langs" disabled data-cents="{{ $langCents }}">Scegli una o più lingue</button>
                     <p style="margin:8px 0 0;font-size:.85rem">Non paghi niente adesso: l'addebito arriva dopo {{ (int) config('services.hub_billing.pay_per_use.bill_after_days', 30) }} giorni.</p>
                 @endif
+            </div>
+            <div class="box">
+                <p><b>⚡ Fatti trovare</b> · {{ $langEur }} per opzione, una volta sola. Tutto automatico.</p>
+                <div class="addons">
+                    @foreach (\M35\HubSitebuilder\Services\SiteAddons::ADDONS as $addonKey => [$addonIco, $addonTitle, $addonText])
+                        @php $addonOn = \M35\HubSitebuilder\Services\SiteAddons::active($site, $addonKey); @endphp
+                        <div class="addon {{ $addonOn ? 'on' : '' }}">
+                            <span class="addon-ico" aria-hidden="true">{{ $addonIco }}</span>
+                            <div><b>{{ $addonTitle }}</b><small>{{ $addonText }}</small></div>
+                            @if ($addonOn)
+                                <em>✓ Attiva</em>
+                            @else
+                                <button type="submit" class="btn alt" form="f-addon" formaction="{{ route('admin.sitebuilder.addon', [$tenant, $addonKey]) }}" data-addon>{{ $langEur }}</button>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+                <p style="margin:10px 0 0;font-size:.85rem">Nessuno può garantire il primo posto su Google: noi prepariamo il sito bene e lo segnaliamo. Google di solito arriva in qualche giorno o settimana.</p>
             </div>
             <div class="box">
                 <p><b>Cambiare i testi dal telefono, senza password:</b> ti mandiamo un link segreto per email.</p>
@@ -320,6 +346,7 @@
             <p class="hint">Prima di andare online l'IA controlla che i testi siano seri (niente spam o cose vietate).</p>
         </section>
     </form>
+    <form id="f-addon" method="POST" action="{{ route('admin.sitebuilder.show', $tenant) }}" hidden>@csrf</form>
     <form id="f-langs" method="POST" action="{{ route('admin.sitebuilder.languages', $tenant) }}" hidden>@csrf</form>
     <form id="f-link" method="POST" action="{{ route('admin.sitebuilder.edit-link', $tenant) }}" hidden>@csrf</form>
     <form id="f-pro" method="POST" action="{{ route('admin.tickets.store', $tenant) }}" hidden>
@@ -585,6 +612,9 @@
             bLangs.textContent = n === 0 ? 'Scegli una o più lingue' : 'Aggiungi ' + (n === 1 ? '1 lingua' : n + ' lingue') + ' · ' + eur(n * (+bLangs.dataset.cents));
         };
         document.querySelectorAll('[data-lang]').forEach((c) => c.addEventListener('change', sync));
+    }
+    document.querySelectorAll('[data-addon]').forEach((b) => b.addEventListener('click', () => { setTimeout(() => { b.disabled = true; b.textContent = 'Un attimo…'; }, 0); }));
+    if (bLangs) {
         $('f-langs').addEventListener('submit', () => { bLangs.disabled = true; bLangs.textContent = 'L\'IA sta traducendo…'; });
     }
     form.addEventListener('keydown', (e) => {

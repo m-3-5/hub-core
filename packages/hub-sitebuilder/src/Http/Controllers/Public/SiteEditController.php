@@ -44,6 +44,7 @@ class SiteEditController extends Controller
         $site = SiteContent::save($tenant, $answers);
         // Lingue già pagate: si ritraducono da sole (gratis).
         app(\M35\HubSitebuilder\Services\SiteTranslations::class)->refresh($site->fresh());
+        app(\M35\HubSitebuilder\Services\SiteAddons::class)->refresh($tenant, $site->fresh());
 
         return redirect()->route('site.edit.show', $token)->with('saved', true);
     }

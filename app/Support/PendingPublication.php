@@ -8,6 +8,7 @@ use App\Services\WordPressWebhookDispatcher;
 use Illuminate\Http\RedirectResponse;
 use M35\HubPayments\Models\PayableService;
 use M35\HubSitebuilder\Models\GeneratedSite;
+use M35\HubSitebuilder\Services\SiteAddons;
 use M35\HubSitebuilder\Services\SiteTranslations;
 
 /**
@@ -61,6 +62,20 @@ class PendingPublication
             return $r['done']
                 ? $back->with('success', 'Fatto! Il tuo sito ora è anche in '.SiteTranslations::names($r['done']).'.')
                 : $back->withErrors(['tagline' => 'L\'IA non è riuscita a tradurre adesso: riprova tra un minuto. Non ti abbiamo addebitato niente.']);
+        }
+
+        // Opzioni del sito (SEO, IA, indicizza): con la carta salvata si attivano da sole.
+        if (str_starts_with($p['kind'], 'addon_')) {
+            if (! PayPerUse::exempt($tenant) && ! PayPerUse::hasCard($tenant)) {
+                return null;
+            }
+            session()->forget(self::KEY);
+            $name = substr($p['kind'], 6);
+            $back = redirect()->route('admin.sitebuilder.show', $tenant);
+
+            return app(SiteAddons::class)->activate($tenant, $item, $name)
+                ? $back->with('success', 'Fatto! «'.SiteAddons::ADDONS[$name][1].'» è attiva sul tuo sito.')
+                : $back->withErrors(['tagline' => 'L\'IA non è riuscita adesso: riprova tra un minuto. Non ti abbiamo addebitato niente.']);
         }
 
         if (! PayPerUse::charge($tenant, $p['kind'], $p['id'], self::title($tenant, $item))) {
@@ -121,6 +136,10 @@ class PendingPublication
     private static function title(Tenant $tenant, Promo|PayableService|GeneratedSite $item): string
     {
         if ($item instanceof GeneratedSite) {
+            $kind = (string) session(self::KEY.'.kind');
+            if (str_starts_with($kind, 'addon_') && isset(SiteAddons::ADDONS[substr($kind, 6)])) {
+                return SiteAddons::ADDONS[substr($kind, 6)][1].' per il tuo sito';
+            }
             $langs = SiteTranslations::wanted($item);
 
             return session(self::KEY.'.kind') === 'site_langs' && $langs ? 'Il tuo sito in '.SiteTranslations::names($langs) : 'Sito web di '.$tenant->name;
@@ -132,7 +151,7 @@ class PendingPublication
     private static function item(Tenant $tenant, string $kind, int $id): Promo|PayableService|GeneratedSite|null
     {
         return match ($kind) {
-            PayPerUse::SITE, 'site_langs' => class_exists(GeneratedSite::class) ? GeneratedSite::where('tenant_id', $tenant->id)->whereKey($id)->first() : null,
+            PayPerUse::SITE, 'site_langs', 'addon_seo', 'addon_ai', 'addon_index' => class_exists(GeneratedSite::class) ? GeneratedSite::where('tenant_id', $tenant->id)->whereKey($id)->first() : null,
             'promo' => $tenant->promos()->whereKey($id)->first(),
             'product', 'service' => PayableService::where('tenant_id', $tenant->id)->where('type', $kind)->whereKey($id)->first(),
             default => null,

@@ -17,6 +17,7 @@ use M35\HubSitebuilder\Services\SiteBuilderHeroGenerator;
 use M35\HubSitebuilder\Services\SiteContent;
 use M35\HubSitebuilder\Services\SiteCopyWriter;
 use M35\HubSitebuilder\Services\SiteGuard;
+use M35\HubSitebuilder\Services\SiteAddons;
 use M35\HubSitebuilder\Services\SiteOwners;
 use M35\HubSitebuilder\Services\SiteTranslations;
 
@@ -111,6 +112,7 @@ class SiteBuilderController extends Controller
 
         // Lingue già pagate: si ritraducono da sole (gratis) se i testi sono cambiati.
         $translations->refresh($site->fresh());
+        app(SiteAddons::class)->refresh($tenant, $site->fresh());
 
         // Il link segreto per modificare il sito parte alla prima pubblicazione, solo se c'è una email vera.
         $linkSent = false;
@@ -203,6 +205,30 @@ class SiteBuilderController extends Controller
         }
 
         return back()->with('success', $msg);
+    }
+
+    /** Opzioni del sito a 1 € l'una (SEO, IA, indicizza): automatiche. Senza carta si chiede la carta e poi si attiva da sola. */
+    public function addon(Tenant $tenant, string $name, SiteAddons $addons): RedirectResponse
+    {
+        $site = $tenant->generatedSite;
+
+        abort_unless($site && $site->isPublished() && isset(SiteAddons::ADDONS[$name]), 404);
+
+        if (SiteAddons::active($site, $name)) {
+            return back()->with('success', 'Questa opzione è già attiva.');
+        }
+
+        if (! PayPerUse::exempt($tenant) && ! PayPerUse::hasCard($tenant)) {
+            return PendingPublication::redirect($tenant, 'addon_'.$name, $site->id);
+        }
+
+        if (function_exists('set_time_limit')) {
+            set_time_limit(120);
+        }
+
+        return $addons->activate($tenant, $site, $name)
+            ? back()->with('success', 'Fatto! «'.SiteAddons::ADDONS[$name][1].'» è attiva sul tuo sito.')
+            : back()->withErrors(['tagline' => 'L\'IA non è riuscita adesso: riprova tra un minuto. Non ti abbiamo addebitato niente.']);
     }
 
     /** Nuovo link segreto per modificare il sito (il precedente smette di funzionare). */
