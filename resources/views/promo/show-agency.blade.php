@@ -24,9 +24,7 @@
         $tagline = $tenant->settings['tagline'] ?? null;
         $flyer = $promo->variantUrl('video') ?? $promo->variantUrl('flyer') ?? $promo->imageUrl();
     @endphp
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?{{ $brandFont['google_fonts'] }}&display=swap" rel="stylesheet">
+    <link href="{{ \App\Support\BrandFonts::cssUrl($brandFont) }}" rel="stylesheet">
     <script type="application/ld+json">
     {!! json_encode([
         '@context' => 'https://schema.org',

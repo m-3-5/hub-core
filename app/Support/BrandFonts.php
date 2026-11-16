@@ -56,6 +56,23 @@ class BrandFonts
         ],
     ];
 
+    /** Foglio dei caratteri ospitato su inm35.it (niente Google Fonts: nessun dato del visitatore a Google). */
+    public static function cssUrl(array|string|null $preset): string
+    {
+        $key = is_string($preset) && isset(self::PRESETS[$preset]) ? $preset : null;
+
+        if (is_array($preset)) {
+            foreach (self::PRESETS as $k => $p) {
+                if (($p['google_fonts'] ?? null) === ($preset['google_fonts'] ?? '')) {
+                    $key = $k;
+                    break;
+                }
+            }
+        }
+
+        return asset('fonts/'.($key ?? self::default()).'.css');
+    }
+
     public static function default(): string
     {
         return 'elegante';

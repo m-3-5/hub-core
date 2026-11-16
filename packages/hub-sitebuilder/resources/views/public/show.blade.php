@@ -86,9 +86,7 @@
         'vatID' => $vat,
         'sameAs' => array_values($socials) ?: null,
     ]), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?{{ $brandFont['google_fonts'] }}&display=swap" rel="stylesheet">
+    <link href="{{ \App\Support\BrandFonts::cssUrl($brandFont) }}" rel="stylesheet">
     <style>
         :root {
             --primary: {{ $primary }};
@@ -524,7 +522,7 @@
             </div>
         </div>
         <div class="legal">
-            <span>© {{ now()->year }} {{ $tenant->name }}@if ($vat) · P.IVA {{ $vat }}@endif · <a href="{{ route('privacy') }}">Privacy</a></span>
+            <span>© {{ now()->year }} {{ $tenant->name }}@if ($vat) · P.IVA {{ $vat }}@endif · <a href="{{ route('privacy') }}">Privacy</a> · <a href="{{ route('privacy') }}#cookie">Cookie</a></span>
             <a class="made" href="{{ route('site.start', ['ref' => 'sito-'.$tenant->slug]) }}">Sito creato con l'IA di <b>Hub Core</b> · crea il tuo</a>
         </div>
     </div>

@@ -57,7 +57,18 @@ Non abbiamo nominato un Responsabile della protezione dei dati (DPO), perché no
 <h2>6. I tuoi diritti</h2>
 <p>Puoi chiedere in ogni momento di vedere, correggere, cancellare o portare via i tuoi dati, limitarne l'uso o opporti (articoli 15-22 GDPR). Scrivi a <a href="mailto:{{ $co['email'] }}">{{ $co['email'] }}</a> o via PEC a {{ $co['pec'] }}. Puoi anche fare reclamo al Garante per la protezione dei dati personali (<a href="https://www.garanteprivacy.it" target="_blank" rel="noopener">garanteprivacy.it</a>).</p>
 
-<h2>7. Modifiche</h2>
-<p>Aggiorniamo questa pagina quando il servizio cambia. Ultimo aggiornamento: 4 novembre 2026. Vedi anche le <a href="{{ route('terms.economic') }}">Condizioni economiche</a>.</p>
+<h2 id="cookie">7. Cookie</h2>
+<p>Su inm35.it e sui siti, le promo e le pagine dei clienti usiamo <strong>solo cookie tecnici</strong>, quelli che servono a far funzionare le pagine. Per questo non ti chiediamo il consenso con un banner, come prevedono le linee guida del Garante.</p>
+<ul>
+    <li><strong>{{ config('session.cookie') }}</strong> e <strong>XSRF-TOKEN</strong>: tengono aperto il tuo accesso e proteggono i moduli. Si cancellano quando esci o dopo qualche ora.</li>
+    <li><strong>remember_web_…</strong>: solo se scegli «Ricordami» all'accesso, per non dover rientrare ogni volta.</li>
+    <li><strong>Memoria del browser</strong> (localStorage): piccole preferenze, ad esempio se hai già chiuso l'avviso «Installa l'app». Resta sul tuo telefono o computer e non ci viene inviata.</li>
+</ul>
+<p>Non usiamo statistiche, pixel pubblicitari né cookie di profilazione. I caratteri delle pagine sono ospitati sul nostro server, quindi aprendo una pagina il tuo browser non contatta Google.</p>
+<p><strong>Servizi esterni solo se li apri tu:</strong> la mappa di Google nei siti si carica solo quando premi «Mostra la mappa»; le pagine di pagamento sono di Stripe; i tasti «Condividi» aprono WhatsApp, Facebook o gli altri social. Da quel momento valgono i cookie e le regole privacy di quei servizi.</p>
+<p>Puoi cancellare i cookie quando vuoi dalle impostazioni del browser. Senza i cookie tecnici, però, non riesci a restare collegato.</p>
+
+<h2>8. Modifiche</h2>
+<p>Aggiorniamo questa pagina quando il servizio cambia. Ultimo aggiornamento: 16 novembre 2026. Vedi anche le <a href="{{ route('terms.economic') }}">Condizioni economiche</a>.</p>
 <p style="color:#6b6b7b;font-size:.9rem">Informativa scritta in buona fede su come il sito funziona oggi. Non sostituisce una consulenza legale: per esigenze specifiche rivolgiti a un consulente privacy.</p>
 @endsection

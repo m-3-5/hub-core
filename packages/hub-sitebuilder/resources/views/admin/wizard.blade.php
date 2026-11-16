@@ -285,7 +285,7 @@
                     <button type="button" class="chip" data-style="{{ $key }}" style="font-family: {{ $preset['display'] }}">{{ $preset['label'] }}</button>
                 @endforeach
             </div>
-            @foreach (\App\Support\BrandFonts::PRESETS as $preset)<link rel="stylesheet" href="https://fonts.googleapis.com/css2?{{ $preset['google_fonts'] }}&display=swap" media="print" onload="this.media='all'">@endforeach
+            @foreach (array_keys(\App\Support\BrandFonts::PRESETS) as $presetKey)<link rel="stylesheet" href="{{ \App\Support\BrandFonts::cssUrl($presetKey) }}" media="print" onload="this.media='all'">@endforeach
             <p class="hint">Prima di andare online l'IA controlla che i testi siano seri (niente spam o cose vietate).</p>
         </section>
     </form>

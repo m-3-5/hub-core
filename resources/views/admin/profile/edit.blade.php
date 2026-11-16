@@ -81,7 +81,7 @@
 </style>
 
 @php
-    $fontLink = 'https://fonts.googleapis.com/css2?'.($fontPresets[$brandFont]['google_fonts'] ?? '').'&display=swap';
+    $fontLink = \App\Support\BrandFonts::cssUrl($brandFont);
 @endphp
 <link rel="stylesheet" href="{{ $fontLink }}" id="font-link">
 
@@ -172,7 +172,7 @@
                     <div class="font-grid">
                         @foreach ($fontPresets as $key => $preset)
                             <label class="font-option">
-                                <input type="radio" name="brand_font" value="{{ $key }}" data-display="{{ $preset['display'] }}" data-body="{{ $preset['body'] }}" data-fonts="{{ $preset['google_fonts'] }}" @checked(old('brand_font', $brandFont) === $key)>
+                                <input type="radio" name="brand_font" value="{{ $key }}" data-display="{{ $preset['display'] }}" data-body="{{ $preset['body'] }}" data-fonts="{{ \App\Support\BrandFonts::cssUrl($key) }}" @checked(old('brand_font', $brandFont) === $key)>
                                 <strong>{{ $preset['label'] }}</strong>
                                 <p>{{ $preset['description'] }}</p>
                             </label>
@@ -235,7 +235,7 @@
             if (!radio.checked) return;
             previewCard.style.setProperty('--pv-display', radio.dataset.display);
             previewCard.style.setProperty('--pv-body', radio.dataset.body);
-            fontLink.href = 'https://fonts.googleapis.com/css2?' + radio.dataset.fonts + '&display=swap';
+            fontLink.href = radio.dataset.fonts;
         });
     });
 
