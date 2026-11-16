@@ -49,7 +49,7 @@ return [
         'app_id' => env('FACEBOOK_APP_ID'),
         'app_secret' => env('FACEBOOK_APP_SECRET'),
         'verify_token' => env('FACEBOOK_VERIFY_TOKEN'),
-        'graph_version' => env('FACEBOOK_GRAPH_VERSION', 'v21.0'),
+        'graph_version' => env('FACEBOOK_GRAPH_VERSION', 'v27.0'),
         'hashtag' => env('FACEBOOK_HASHTAG', '#promo'),
     ],
 

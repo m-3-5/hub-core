@@ -41,12 +41,12 @@ class FacebookPages
 
     private function graph(string $path): string
     {
-        return 'https://graph.facebook.com/'.config('services.facebook.graph_version', 'v21.0').'/'.ltrim($path, '/');
+        return 'https://graph.facebook.com/'.config('services.facebook.graph_version', 'v27.0').'/'.ltrim($path, '/');
     }
 
     public function loginUrl(string $state, string $redirect): string
     {
-        return 'https://www.facebook.com/'.config('services.facebook.graph_version', 'v21.0').'/dialog/oauth?'.http_build_query([
+        return 'https://www.facebook.com/'.config('services.facebook.graph_version', 'v27.0').'/dialog/oauth?'.http_build_query([
             'client_id' => config('services.facebook.app_id'),
             'redirect_uri' => $redirect,
             'state' => $state,

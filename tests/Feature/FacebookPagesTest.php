@@ -75,16 +75,16 @@ class FacebookPagesTest extends TestCase
 
         $this->actingAs($user)->get(route('admin.facebook.show', $tenant))->assertOk()->assertSee('Collega Facebook');
         $this->post(route('admin.facebook.connect', $tenant))
-            ->assertRedirect()->assertRedirectContains('facebook.com/v21.0/dialog/oauth')->assertRedirectContains('pages_read_engagement');
+            ->assertRedirect()->assertRedirectContains('facebook.com/v27.0/dialog/oauth')->assertRedirectContains('pages_read_engagement');
     }
 
     public function test_the_callback_connects_the_only_page_and_subscribes_it(): void
     {
         [$tenant, $user] = $this->owner();
         Http::fake([
-            'graph.facebook.com/v21.0/oauth/access_token*' => Http::response(['access_token' => 'user-token']),
-            'graph.facebook.com/v21.0/me/accounts*' => Http::response(['data' => [['id' => '555', 'name' => 'Pizzeria Rocco', 'access_token' => 'page-token']]]),
-            'graph.facebook.com/v21.0/555/subscribed_apps' => Http::response(['success' => true]),
+            'graph.facebook.com/v27.0/oauth/access_token*' => Http::response(['access_token' => 'user-token']),
+            'graph.facebook.com/v27.0/me/accounts*' => Http::response(['data' => [['id' => '555', 'name' => 'Pizzeria Rocco', 'access_token' => 'page-token']]]),
+            'graph.facebook.com/v27.0/555/subscribed_apps' => Http::response(['success' => true]),
         ]);
 
         $this->actingAs($user)->post(route('admin.facebook.connect', $tenant));
