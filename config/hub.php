@@ -35,6 +35,13 @@ return [
         'unverified_days' => (int) env('HUB_SITE_UNVERIFIED_DAYS', 30),
     ],
 
+    // Email «consigli del mese» ai clienti (sempre con il link per non riceverle più).
+    // HUB_MARKETING_OFFER: frase dell'offerta del momento da aggiungere (vuota = nessuna offerta).
+    'marketing' => [
+        'enabled' => (bool) env('HUB_MARKETING_EMAILS', true),
+        'offer' => env('HUB_MARKETING_OFFER'),
+    ],
+
     'default_password' => env('HUB_DEFAULT_PASSWORD', 'HubCore2026!'),
 
     // Immagini promo via Gemini (richiede billing). Se false: volantino + SVG tematici.

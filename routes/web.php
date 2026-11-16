@@ -71,6 +71,9 @@ Route::get('/guide/pagamenti/{slug}', [\App\Http\Controllers\GuideController::cl
 Route::get('/condizioni-economiche', [\App\Http\Controllers\GuideController::class, 'economicTerms'])->name('terms.economic');
 Route::get('/condizioni-acquisto', [\App\Http\Controllers\GuideController::class, 'buyerTerms'])->name('terms.buyer');
 Route::view('/privacy', 'guides.privacy')->name('privacy');
+// Link «Non mandatemele più» delle email promozionali: firmato, senza accesso.
+Route::get('/email/idee/{tenant}', [\App\Http\Controllers\EmailUnsubscribeController::class, 'show'])->middleware('signed')->name('email.unsubscribe');
+Route::post('/email/idee/{tenant}', [\App\Http\Controllers\EmailUnsubscribeController::class, 'update'])->middleware(['signed', 'throttle:20,1'])->name('email.unsubscribe.update');
 
 Route::post('/max/chat', [\App\Http\Controllers\MaxChatController::class, 'ask'])
     ->middleware('throttle:20,1')
