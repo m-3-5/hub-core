@@ -44,6 +44,13 @@
             $heroFramed = $size && $size[1] > 0 && $size[0] / $size[1] < 1.6;
         }
         $aboutPhoto = $photos[1] ?? null;
+        // Forma di ogni foto (verticale, larga o quadrata): la card la segue, così la foto la riempie tagliata il meno possibile.
+        $shapes = array_map(function ($p) use ($disk) {
+            $size = $disk->exists($p) ? @getimagesize($disk->path($p)) : null;
+            $r = $size && $size[1] > 0 ? $size[0] / $size[1] : 1;
+
+            return $r < 0.85 ? 'tall' : ($r > 1.45 ? 'wide' : 'square');
+        }, $media['photos'] ?? []);
         $schedule = $info['schedule'] ?? null;
         $hoursText = trim(implode(' · ', array_filter([\M35\HubSitebuilder\Services\SiteContent::scheduleText($schedule, $lang), $hours])));
         // Quello che l'attività pubblica già su Hub Core entra da solo nel sito.
@@ -252,16 +259,18 @@
         .about-art.photo { background: var(--soft); }
         .about-art.photo::before, .about-art.photo::after { display: none; }
         /* Foto sempre intere e tutte della stessa misura: lo spazio che avanza è la stessa foto, sfocata. */
-        .fit { position: relative; overflow: hidden; background: var(--soft); }
-        .fit::before { content: ''; position: absolute; inset: -24px; background: var(--img) center / cover no-repeat; filter: blur(18px) saturate(1.1); opacity: .55; }
-        .fit img { position: relative; width: 100%; height: 100%; object-fit: contain; }
+        /* Foto piene nella card. La card segue la forma della foto (mosaico sfalsato): grandi e poco tagliate. */
         .about-art.photo { cursor: zoom-in; }
-        .about-art.fit::before { display: block; width: auto; height: auto; inset: -24px; border: 0; border-radius: 0; }
-        .gallery { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
-        .shot { border: 0; padding: 0; cursor: zoom-in; border-radius: var(--radius); aspect-ratio: 1; }
-        .shot img { transition: transform .4s; }
-        .shot:hover img { transform: scale(1.05); }
-        @media (min-width: 760px) { .gallery { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
+        .about-art.photo img { width: 100%; height: 100%; object-fit: cover; }
+        .about-art.photo.wide { aspect-ratio: 4 / 3; max-width: min(480px, 100%); }
+        .about-art.photo.tall { aspect-ratio: 3 / 4; max-width: min(360px, 80vw); }
+        .gallery { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; grid-auto-flow: dense; }
+        .shot { border: 0; padding: 0; cursor: zoom-in; border-radius: var(--radius); overflow: hidden; background: var(--soft); }
+        .shot img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s; }
+        .shot:hover img { transform: scale(1.04); }
+        .shot.wide { grid-column: span 2; }
+        .shot.tall { grid-row: span 2; }
+        @media (min-width: 760px) { .gallery { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 300px; gap: 14px; } }
         .reviews { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
         .review { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; position: relative; }
         .review::before { content: '“'; position: absolute; right: 18px; top: -6px; font-size: 5rem; line-height: 1; color: var(--primary-soft); font-family: Georgia, serif; }
@@ -395,7 +404,7 @@
 @if ($about)
 <section class="section" id="chi-siamo">
     <div class="wrap about">
-        @if ($aboutPhoto)<div class="about-art photo fit rv" data-full="{{ $aboutPhoto }}" style="--img: url('{{ $aboutPhoto }}')"><img src="{{ $aboutPhoto }}" alt="{{ $alt(1) }}" loading="lazy"></div>@else<div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>@endif
+        @if ($aboutPhoto)<div class="about-art photo {{ $shapes[1] ?? 'square' }} rv" data-full="{{ $aboutPhoto }}"><img src="{{ $aboutPhoto }}" alt="{{ $alt(1) }}" loading="lazy"></div>@else<div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>@endif
         <div class="about-text rv"><span class="kicker">{{ $t('Chi siamo') }}</span><h2>{{ $tenant->name }}</h2><p>{{ $about }}</p></div>
     </div>
 </section>
@@ -470,7 +479,7 @@
         <div class="head rv"><span class="kicker">{{ $t('Foto') }}</span><h2>{{ $t("Dai un'occhiata") }}</h2></div>
         <div class="gallery">
             @foreach ($photos as $i => $p)
-                <button type="button" class="shot fit rv" data-full="{{ $p }}" style="--img: url('{{ $p }}')" aria-label="{{ $t('Apri foto') }} {{ $i + 1 }}"><img src="{{ $p }}" alt="{{ $alt($i) }}" loading="lazy"></button>
+                <button type="button" class="shot {{ $shapes[$i] ?? 'square' }} rv" data-full="{{ $p }}" aria-label="{{ $t('Apri foto') }} {{ $i + 1 }}"><img src="{{ $p }}" alt="{{ $alt($i) }}" loading="lazy"></button>
             @endforeach
         </div>
     </div>
