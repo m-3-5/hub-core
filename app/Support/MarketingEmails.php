@@ -67,7 +67,7 @@ class MarketingEmails
                 ['🌐 Il tuo sito con l\'IA a 1 €', 'Scrivi due righe su cosa fai: l\'IA prepara il sito, pronto per il telefono, con i tasti per chiamare e WhatsApp. Lo paghi dopo 30 giorni.'],
                 ['🌐 Un sito tuo in 5 minuti', 'Niente programmi da imparare: rispondi a poche domande, l\'IA scrive i testi e tu premi «Metti online». 1 €, niente abbonamento.'],
                 ['🌐 I clienti ti cercano su internet', 'Con il sito a 1 € ti trovano con orari, servizi, foto e il tasto per chiamarti. Lo crei dal telefono in pochi minuti.'],
-            ], $sitePage, ! $online],
+            ], $sitePage, ! $online && blank($tenant->website)], // chi ha già un sito suo (es. Beauty) non riceve questa idea
             'promo' => [[
                 ['📣 Pubblica una promo', 'Volantino, pagina e link da mandare su WhatsApp, pronti in un minuto.'.($online ? ' Compare da sola anche nel tuo sito.' : '')],
                 ['📣 Hai un\'offerta questa settimana?', 'Trasformala in una promo: l\'IA ti aiuta con il testo e il volantino, e la condividi subito sui social.'],

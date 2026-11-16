@@ -105,4 +105,12 @@ class MonthlyTipsTest extends TestCase
         Notification::assertNotSentTo($other, MonthlyTipsNotification::class);
         $this->assertArrayNotHasKey('last_tips_at', $tenant->fresh()->settings['marketing'] ?? []);
     }
+
+    public function test_who_already_has_a_website_does_not_get_the_one_euro_site_idea(): void
+    {
+        [$tenant] = $this->client();
+        $tenant->update(['website' => 'https://www.barsport.it']);
+
+        $this->assertNotContains('site', array_column(MarketingEmails::tips($tenant->fresh()), 3));
+    }
 }
