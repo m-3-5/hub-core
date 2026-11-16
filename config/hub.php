@@ -38,7 +38,7 @@ return [
     // Email «consigli del mese» ai clienti (sempre con il link per non riceverle più).
     // HUB_MARKETING_OFFER: frase dell'offerta del momento da aggiungere (vuota = nessuna offerta).
     'marketing' => [
-        'enabled' => (bool) env('HUB_MARKETING_EMAILS', true),
+        'enabled' => (bool) env('HUB_MARKETING_EMAILS', false), // spente finché Max non le accende
         'offer' => env('HUB_MARKETING_OFFER'),
     ],
 
