@@ -51,6 +51,8 @@
         $shop = class_exists(\M35\HubPayments\Models\PayableService::class)
             ? \M35\HubPayments\Models\PayableService::query()->where('tenant_id', $tenant->id)->where('status', 'active')->where('published_to_site', true)->latest()->take(6)->get()
             : collect();
+        // Annunci pubblicati (case, auto, oggetti, lavoro…): anche loro entrano da soli.
+        $ads = \App\Models\ClassifiedAd::query()->where('tenant_id', $tenant->id)->published()->latest('published_at')->take(6)->get();
         $tel = $tenant->phone ? preg_replace('/[^0-9+]/', '', $tenant->phone) : null;
         // WhatsApp solo per i cellulari italiani (3xx) o numeri già con prefisso internazionale.
         $waNumber = $tel ? ltrim(preg_match('/^3\d{8,9}$/', $tel) ? '39'.$tel : (str_starts_with($tel, '+') ? $tel : ''), '+') : '';
@@ -315,6 +317,7 @@
             @if (count($services))<a href="#servizi">{{ $t('Servizi') }}</a>@endif
             @if ($about)<a href="#chi-siamo">{{ $t('Chi siamo') }}</a>@endif
             @if ($promos->isNotEmpty())<a href="#offerte">{{ $t('Offerte') }}</a>@endif
+            @if ($ads->isNotEmpty())<a href="#annunci">{{ $t('Annunci') }}</a>@endif
             @if ($shop->isNotEmpty())<a href="#acquista">{{ $t('Acquista') }}</a>@endif
             @if (count($photos) > 1)<a href="#foto">{{ $t('Foto') }}</a>@endif
             @if (count($faq))<a href="#domande">{{ $t('Domande') }}</a>@endif
@@ -425,6 +428,27 @@
             @endforeach
         </div>
         <p class="more rv"><a href="{{ route('services.public.archive', $tenant) }}">{{ $t('Vedi tutto') }}</a></p>
+    </div>
+</section>
+@endif
+
+@if ($ads->isNotEmpty())
+<section class="section soft" id="annunci">
+    <div class="wrap">
+        <div class="head rv"><span class="kicker">{{ $t('Annunci') }}</span><h2>{{ $t('I nostri annunci') }}</h2></div>
+        <div class="cards">
+            @foreach ($ads as $ad)
+                <a class="card rv" href="{{ route('classifieds.show', [$tenant, $ad]) }}">
+                    <div class="card-img">@if ($ad->coverUrl())<img src="{{ $ad->coverUrl() }}" alt="{{ $ad->title }}" loading="lazy">@else<span>{{ $ad->categoryIcon() }} {{ \Illuminate\Support\Str::limit($ad->title, 40) }}</span>@endif<em>{{ $ad->categoryIcon() }}</em></div>
+                    <div class="card-body">
+                        <h3>{{ $ad->title }}</h3>
+                        @if ($ad->priceLabel())<p class="price">{{ $ad->priceLabel() }}</p>@endif
+                        <span class="card-cta">{{ $t('Scopri') }} →</span>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+        <p class="more rv"><a href="{{ route('classifieds.tenant-board', $tenant) }}">{{ $t('Tutti gli annunci') }}</a></p>
     </div>
 </section>
 @endif

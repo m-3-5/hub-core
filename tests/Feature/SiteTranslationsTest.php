@@ -145,4 +145,15 @@ class SiteTranslationsTest extends TestCase
         $this->assertSame('New tools every week', $site->fresh()->answers['i18n']['texts']['en']['tagline']);
         $this->assertSame(1, TenantUsageEntry::count());
     }
+
+    public function test_published_classified_ads_appear_on_the_site_drafts_do_not(): void
+    {
+        [$tenant] = $this->siteOnline();
+        \App\Models\ClassifiedAd::create(['tenant_id' => $tenant->id, 'slug' => 'bilocale', 'zone' => 'Rossano', 'title' => 'Bilocale al lago', 'category' => 'affitto', 'price' => 450, 'price_unit' => 'mese', 'status' => 'published', 'published_at' => now(), 'description' => 'Luminoso']);
+        \App\Models\ClassifiedAd::create(['tenant_id' => $tenant->id, 'slug' => 'bozza', 'zone' => 'Rossano', 'title' => 'Garage in bozza', 'category' => 'affitto', 'status' => 'draft', 'description' => 'x']);
+
+        $this->get(route('site.public.show', $tenant))->assertOk()
+            ->assertSee('I nostri annunci')->assertSee('Bilocale al lago')->assertSee('href="#annunci"', false)
+            ->assertDontSee('Garage in bozza');
+    }
 }
