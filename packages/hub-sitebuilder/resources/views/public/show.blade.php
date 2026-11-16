@@ -34,6 +34,12 @@
         $heroVisual = $photos[0] ?? ($site->hero_video_path
             ? $disk->url($site->hero_video_path)
             : ($site->hero_svg_path ? $disk->url($site->hero_svg_path) : null));
+        // Foto in alto non abbastanza larga (verticale, quadrata, volantino): si mostra intera in cornice, sfocata dietro.
+        $heroFramed = false;
+        if (! empty($media['photos'][0]) && $disk->exists($media['photos'][0])) {
+            $size = @getimagesize($disk->path($media['photos'][0]));
+            $heroFramed = $size && $size[1] > 0 && $size[0] / $size[1] < 1.6;
+        }
         $aboutPhoto = $photos[1] ?? null;
         $schedule = $info['schedule'] ?? null;
         $hoursText = trim(implode(' · ', array_filter([\M35\HubSitebuilder\Services\SiteContent::scheduleText($schedule), $hours])));
@@ -137,6 +143,15 @@
         .hero h1 { font-size: clamp(2.1rem, 6.4vw, 3.6rem); margin-bottom: 16px; }
         .hero p.lead { font-size: 1.08rem; opacity: .92; max-width: 560px; margin-bottom: 26px; }
         .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+        /* Foto in alto sempre intera: sul telefono in cornice sotto il titolo; al computer anche come sfondo se è larga. */
+        .hero.has-photo .hero-bg { filter: blur(26px) saturate(1.1); transform: scale(1.15); opacity: .75; }
+        .hero-shot { position: relative; display: block; margin: 30px auto 0; width: auto; height: auto; max-width: 100%; max-height: 380px; border-radius: 22px; border: 4px solid rgba(255,255,255,.85); box-shadow: 0 24px 60px rgba(0,0,0,.35); cursor: zoom-in; }
+        @media (min-width: 900px) {
+            .hero.has-photo:not(.framed) .hero-bg { filter: none; transform: none; opacity: .9; }
+            .hero.has-photo:not(.framed) .hero-shot { display: none; }
+            .hero.framed .hero-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 48px; align-items: center; }
+            .hero.framed .hero-shot { margin: 0; max-width: 380px; max-height: 460px; }
+        }
         .wave { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 70px; z-index: 3; display: block; }
 
         /* Sezioni */
@@ -212,10 +227,15 @@
         .mono.logo { object-fit: contain; background: #fff; padding: 3px; border: 1px solid var(--line); }
         .about-art.photo { background: var(--soft); }
         .about-art.photo::before, .about-art.photo::after { display: none; }
-        .about-art.photo img { width: 100%; height: 100%; object-fit: cover; }
+        /* Foto sempre intere e tutte della stessa misura: lo spazio che avanza è la stessa foto, sfocata. */
+        .fit { position: relative; overflow: hidden; background: var(--soft); }
+        .fit::before { content: ''; position: absolute; inset: -24px; background: var(--img) center / cover no-repeat; filter: blur(18px) saturate(1.1); opacity: .55; }
+        .fit img { position: relative; width: 100%; height: 100%; object-fit: contain; }
+        .about-art.photo { cursor: zoom-in; }
+        .about-art.fit::before { display: block; width: auto; height: auto; inset: -24px; border: 0; border-radius: 0; }
         .gallery { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
-        .shot { border: 0; padding: 0; background: none; cursor: zoom-in; border-radius: var(--radius); overflow: hidden; aspect-ratio: 4/3; }
-        .shot img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
+        .shot { border: 0; padding: 0; cursor: zoom-in; border-radius: var(--radius); aspect-ratio: 1; }
+        .shot img { transition: transform .4s; }
         .shot:hover img { transform: scale(1.05); }
         @media (min-width: 760px) { .gallery { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
         .reviews { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
@@ -293,12 +313,13 @@
     </div>
 </header>
 
-<section class="hero" id="top">
+<section class="hero{{ count($photos) ? ' has-photo' : '' }}{{ $heroFramed ? ' framed' : '' }}" id="top">
     @if ($heroVisual)
         <img class="hero-bg" src="{{ $heroVisual }}" alt="">
     @endif
     <div class="hero-scrim"></div>
     <div class="wrap hero-inner">
+        <div class="hero-text">
         <span class="eyebrow">{{ $tenant->name }}</span>
         @if ($schedule)<span class="open-now hero-open" data-open-now></span>@endif
         <h1>{{ $tagline }}</h1>
@@ -308,6 +329,8 @@
             @if ($waUrl && $ctaUrl !== $waUrl)<a class="btn ghost" href="{{ $waUrl }}" target="_blank" rel="noopener">WhatsApp</a>@endif
             @if (count($services))<a class="btn ghost" href="#servizi">Cosa offriamo</a>@endif
         </div>
+        </div>
+        @if (count($photos))<img class="hero-shot" src="{{ $photos[0] }}" alt="{{ $tenant->name }}" data-full="{{ $photos[0] }}">@endif
     </div>
     <svg class="wave" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path fill="{{ count($strengths) ? ($dark ? '#0d0f14' : '#ffffff') : ($dark ? '#0d0f14' : '#ffffff') }}" d="M0,40 C240,80 480,0 720,24 C960,48 1200,70 1440,30 L1440,70 L0,70 Z"/></svg>
 </section>
@@ -344,7 +367,7 @@
 @if ($about)
 <section class="section" id="chi-siamo">
     <div class="wrap about">
-        @if ($aboutPhoto)<div class="about-art photo rv"><img src="{{ $aboutPhoto }}" alt="{{ $tenant->name }}" loading="lazy"></div>@else<div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>@endif
+        @if ($aboutPhoto)<div class="about-art photo fit rv" data-full="{{ $aboutPhoto }}" style="--img: url('{{ $aboutPhoto }}')"><img src="{{ $aboutPhoto }}" alt="{{ $tenant->name }}" loading="lazy"></div>@else<div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>@endif
         <div class="about-text rv"><span class="kicker">Chi siamo</span><h2>{{ $tenant->name }}</h2><p>{{ $about }}</p></div>
     </div>
 </section>
@@ -398,7 +421,7 @@
         <div class="head rv"><span class="kicker">Foto</span><h2>Dai un'occhiata</h2></div>
         <div class="gallery">
             @foreach ($photos as $i => $p)
-                <button type="button" class="shot rv" data-full="{{ $p }}" aria-label="Apri foto {{ $i + 1 }}"><img src="{{ $p }}" alt="{{ $tenant->name }} — foto {{ $i + 1 }}" loading="lazy"></button>
+                <button type="button" class="shot fit rv" data-full="{{ $p }}" style="--img: url('{{ $p }}')" aria-label="Apri foto {{ $i + 1 }}"><img src="{{ $p }}" alt="{{ $tenant->name }} — foto {{ $i + 1 }}" loading="lazy"></button>
             @endforeach
         </div>
     </div>
@@ -555,7 +578,7 @@
 (function () {
     // Foto a schermo intero.
     var box = document.getElementById('lightbox');
-    document.querySelectorAll('.shot').forEach(function (b) {
+    document.querySelectorAll('[data-full]').forEach(function (b) {
         b.addEventListener('click', function () { box.querySelector('img').src = b.dataset.full; box.classList.add('on'); });
     });
     box.addEventListener('click', function () { box.classList.remove('on'); });
