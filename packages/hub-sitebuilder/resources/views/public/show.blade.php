@@ -51,6 +51,15 @@
 
             return $r < 0.85 ? 'tall' : ($r > 1.45 ? 'wide' : 'square');
         }, $media['photos'] ?? []);
+        // Galleria: le foto larghe si alternano grande/piccola (G P, P G…), così le righe sono piene e sfalsate.
+        $wideCount = 0;
+        $galleryShapes = array_map(function ($shape) use (&$wideCount) {
+            if ($shape !== 'wide') {
+                return $shape;
+            }
+
+            return in_array($wideCount++ % 4, [0, 3], true) ? 'wide' : 'square';
+        }, $shapes);
         $schedule = $info['schedule'] ?? null;
         $hoursText = trim(implode(' · ', array_filter([\M35\HubSitebuilder\Services\SiteContent::scheduleText($schedule, $lang), $hours])));
         // Quello che l'attività pubblica già su Hub Core entra da solo nel sito.
@@ -265,9 +274,15 @@
         .about-art.photo.wide { aspect-ratio: 4 / 3; max-width: min(480px, 100%); }
         .about-art.photo.tall { aspect-ratio: 3 / 4; max-width: min(360px, 80vw); }
         .gallery { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; grid-auto-flow: dense; }
-        .shot { border: 0; padding: 0; cursor: zoom-in; border-radius: var(--radius); overflow: hidden; background: var(--soft); }
-        .shot img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s; }
-        .shot:hover img { transform: scale(1.04); }
+        .shot { position: relative; border: 0; padding: 0; cursor: zoom-in; border-radius: var(--radius); overflow: hidden; background: var(--soft); box-shadow: 0 10px 28px rgba(15, 20, 30, .12); }
+        .shot img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s ease; }
+        .shot:hover img { transform: scale(1.06); }
+        /* Tocco elegante: sfumatura in basso e icona «ingrandisci», così si capisce che la foto si apre intera. */
+        .shot::after { content: ''; position: absolute; inset: auto 0 0 0; height: 45%; background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .38)); pointer-events: none; transition: opacity .3s; }
+        .shot::before { content: '⤢'; position: absolute; right: 10px; bottom: 10px; z-index: 1; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .9); color: #14161a; font-size: 1rem; box-shadow: 0 4px 12px rgba(0, 0, 0, .2); transition: transform .3s; }
+        .shot:hover::before { transform: scale(1.1); }
+        /* La foto piccola si stringe un po' verso il centro, dove di solito c'è il soggetto. */
+        .shot.square img { object-position: center 40%; }
         .shot.wide { grid-column: span 2; }
         .shot.tall { grid-row: span 2; }
         @media (min-width: 760px) { .gallery { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 300px; gap: 14px; } }
@@ -479,7 +494,7 @@
         <div class="head rv"><span class="kicker">{{ $t('Foto') }}</span><h2>{{ $t("Dai un'occhiata") }}</h2></div>
         <div class="gallery">
             @foreach ($photos as $i => $p)
-                <button type="button" class="shot {{ $shapes[$i] ?? 'square' }} rv" data-full="{{ $p }}" aria-label="{{ $t('Apri foto') }} {{ $i + 1 }}"><img src="{{ $p }}" alt="{{ $alt($i) }}" loading="lazy"></button>
+                <button type="button" class="shot {{ $galleryShapes[$i] ?? 'square' }} rv" data-full="{{ $p }}" aria-label="{{ $t('Apri foto') }} {{ $i + 1 }}"><img src="{{ $p }}" alt="{{ $alt($i) }}" loading="lazy"></button>
             @endforeach
         </div>
     </div>
