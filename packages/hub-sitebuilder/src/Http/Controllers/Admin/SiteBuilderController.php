@@ -152,6 +152,11 @@ class SiteBuilderController extends Controller
             return response()->json(['ok' => false, 'message' => $validator->errors()->first()], 422);
         }
 
+        // Fino a 3 modelli di Gemini, uno dopo l'altro se il primo è lento: servono più dei 30 secondi predefiniti.
+        if (function_exists('set_time_limit')) {
+            set_time_limit(120);
+        }
+
         $data = $validator->validated();
         $copy = $writer->write($tenant, strip_tags($data['description']), isset($data['city']) ? strip_tags($data['city']) : null);
 

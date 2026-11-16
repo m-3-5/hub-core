@@ -47,7 +47,7 @@ Regole: italiano semplice; niente link, email, numeri di telefono, indirizzi; no
 PROMPT;
 
         try {
-            $raw = $this->gemini->generate($prompt, json: true, temperature: 0.7, timeout: 30, maxModels: 3);
+            $raw = $this->gemini->generate($prompt, json: true, temperature: 0.7, timeout: 25, maxModels: 3);
         } catch (Throwable $e) {
             report($e);
 

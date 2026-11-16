@@ -52,10 +52,17 @@ class GeminiTextClient
         $lastError = null;
 
         foreach (array_slice($this->models->textModels(), 0, $maxModels) as $model) {
-            $response = Http::timeout($timeout)->post(
-                rtrim((string) config('services.gemini.base_url'), '/')."/v1beta/models/{$model}:generateContent?key={$apiKey}",
-                $body,
-            );
+            try {
+                $response = Http::timeout($timeout)->post(
+                    rtrim((string) config('services.gemini.base_url'), '/')."/v1beta/models/{$model}:generateContent?key={$apiKey}",
+                    $body,
+                );
+            } catch (\Illuminate\Http\Client\ConnectionException) {
+                // Modello lento (tempo scaduto) o rete instabile: provo il successivo invece di fermarmi.
+                $lastError = "Modello {$model} non ha risposto in tempo.";
+
+                continue;
+            }
 
             // 404 modello inesistente, 429 quota finita, 500/503 modello sovraccarico: provo il successivo.
             if (in_array($response->status(), [404, 429, 500, 503], true)) {
