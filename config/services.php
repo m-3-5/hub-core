@@ -85,6 +85,16 @@ return [
         // tutti i moduli inclusi nel canone, nessuna attivazione per modulo. I privati
         // restano sempre gratis (subscription_status=free), non toccati da questa offerta.
         'launch_offer_price_eur' => (int) env('HUB_LAUNCH_OFFER_PRICE_EUR', 1),
+        // Paghi quello che pubblichi (spento finché HUB_PAY_PER_USE=true): annunci gratis; promo, prodotti e servizi
+        // 1 € l'uno, che scende con l'uso nel mese; chi ha il sito ne ha alcuni inclusi. Si pubblica subito con la
+        // carta salvata e si addebita dopo bill_after_days giorni, tutto insieme (una sola commissione Stripe).
+        'pay_per_use' => [
+            'enabled' => (bool) env('HUB_PAY_PER_USE', false),
+            'included_with_site' => (int) env('HUB_PPU_INCLUDED_WITH_SITE', 3), // per tipo: promo, prodotti, servizi
+            'bill_after_days' => (int) env('HUB_PPU_BILL_AFTER_DAYS', 30),
+            // [da quante pubblicazioni pagate nel mese => centesimi]
+            'steps' => [1 => 100, 6 => 80, 21 => 50],
+        ],
         // Un solo abbonamento, due livelli. Silver = tutto il necessario; Premium = in più sito web con Max, quote molto più alte, assistenza prioritaria.
         // Durante prova gratuita e lancio ogni cliente ha tutto (anche il sito web).
         'tiers' => [

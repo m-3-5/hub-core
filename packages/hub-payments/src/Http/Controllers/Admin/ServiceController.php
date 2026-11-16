@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\TenantModuleCharge;
 use App\Services\WordPressWebhookDispatcher;
+use App\Support\PayPerUse;
+use App\Support\PendingPublication;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -72,7 +74,8 @@ class ServiceController extends Controller
     public function store(Request $request, Tenant $tenant): RedirectResponse
     {
         $kind = $this->kind();
-        $overQuota = $kind['quota'] && ! TenantServiceQuota::hasIncludedSlot($tenant);
+        // Col «paghi quello che pubblichi» niente quote né extra a fine mese.
+        $overQuota = PayPerUse::exempt($tenant) && $kind['quota'] && ! TenantServiceQuota::hasIncludedSlot($tenant);
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:120'],
@@ -125,6 +128,13 @@ class ServiceController extends Controller
             'published_to_site' => $request->boolean('published_to_site'),
             'metadata' => $this->extraMetadata($request, $validated, []),
         ]);
+
+        // Pubblicare costa (paghi quello che pubblichi): senza carta resta nascosto e si chiede la carta.
+        if ($service->published_to_site && ! PayPerUse::charge($tenant, $kind['type'], $service->id, $service->title)) {
+            $service->update(['published_to_site' => false]);
+
+            return PendingPublication::redirect($tenant, $kind['type'], $service->id);
+        }
 
         if ($service->published_to_site) {
             app(WordPressWebhookDispatcher::class)->servicesSync($tenant);
@@ -199,6 +209,9 @@ class ServiceController extends Controller
 
         $stripeImageUrl = $this->stripeImage($coverImagePath);
         $stripeOn = TenantStripeConfig::isConfigured($tenant);
+        $publish = $request->boolean('published_to_site');
+        $needsCard = $publish && ! $service->published_to_site && ! PayPerUse::charge($tenant, $service->type, $service->id, $validated['title']);
+        $publish = $publish && ! $needsCard;
 
         try {
             $stripe = $stripeOn ? new StripePaymentLinkService(TenantStripeConfig::secretKey($tenant)) : null;
@@ -251,13 +264,17 @@ class ServiceController extends Controller
                 'cover_image_path' => $coverImagePath,
                 'amount_cents' => $amountCents,
                 'stripe_price_id' => $newPriceId,
-                'published_to_site' => $request->boolean('published_to_site'),
+                'published_to_site' => $publish,
                 'metadata' => $this->extraMetadata($request, $validated, $service->metadata ?? []),
             ]);
         } catch (RuntimeException $e) {
             return back()
                 ->withInput()
                 ->withErrors(['stripe' => $e->getMessage()]);
+        }
+
+        if ($needsCard) {
+            return PendingPublication::redirect($tenant, $service->type, $service->id);
         }
 
         if ($service->published_to_site) {
@@ -325,6 +342,10 @@ class ServiceController extends Controller
     public function togglePublish(Tenant $tenant, PayableService $service): RedirectResponse
     {
         abort_unless($service->tenant_id === $tenant->id && $service->type === $this->kind()['type'], 404);
+
+        if (! $service->published_to_site && ! PayPerUse::charge($tenant, $service->type, $service->id, $service->title)) {
+            return PendingPublication::redirect($tenant, $service->type, $service->id);
+        }
 
         $service->update(['published_to_site' => ! $service->published_to_site]);
 

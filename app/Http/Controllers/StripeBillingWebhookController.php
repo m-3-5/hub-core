@@ -50,6 +50,13 @@ class StripeBillingWebhookController extends Controller
     /** @param  array<string, mixed>  $session */
     private function handleCheckoutCompleted(array $session): void
     {
+        // Paghi quello che pubblichi: la carta è stata salvata (niente addebito adesso).
+        if (($session['metadata']['ppu_setup'] ?? null) === '1') {
+            \App\Support\CardSetup::fromStripe((string) ($session['id'] ?? ''));
+
+            return;
+        }
+
         // Pagamento protetto di un cliente finale: arriva sul conto di M 3.5 e resta trattenuto fino alla consegna.
         if (($session['metadata']['hub_flow'] ?? null) === 'protected') {
             $tenant = Tenant::where('slug', $session['metadata']['hub_tenant'] ?? '')->first();

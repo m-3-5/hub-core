@@ -76,6 +76,9 @@ class GuestClaimController extends Controller
 
         if ($promo) {
             $result = $accounts->publishPromo($tenant, $promo);
+            if (! empty($result['payment'])) {
+                return \App\Support\PendingPublication::redirect($tenant, 'promo', $promo->id)->with('success', $result['message']);
+            }
             $redirect = redirect()->route('admin.promos.show', [$tenant, $promo]);
 
             return $result['published'] ? $redirect->with('success', $result['message']) : $redirect->withErrors(['moderation' => $result['message']]);

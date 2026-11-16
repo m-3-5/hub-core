@@ -101,6 +101,10 @@ class GuestAccount
                 : 'Registrazione fatta, ma non posso pubblicare questa promo: '.$check['reason'].' Modificala e riprova.'];
         }
 
+        if (! \App\Support\PayPerUse::charge($tenant, 'promo', $promo->id, $promo->title)) {
+            return ['published' => false, 'payment' => true, 'message' => 'Registrazione fatta! Ultimo tocco: il credito per pubblicare.'];
+        }
+
         $promo->markPublished();
         app(WordPressWebhookDispatcher::class)->promoPublished($tenant, $promo->fresh());
 

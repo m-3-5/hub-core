@@ -11,6 +11,8 @@ Artisan::command('inspire', function () {
 // Richiede il toggle "Scheduled Tasks" attivo su Plesk (Laravel Toolkit) —
 // altrimenti il cron di sistema non chiama mai "php artisan schedule:run".
 Schedule::command('hub:charge-pending-module-charges')->daily();
+// Paghi quello che pubblichi: addebito dopo un mese, tutto insieme.
+Schedule::command('hub:bill-usage')->dailyAt('09:00')->withoutOverlapping();
 
 // Finita la prima settimana gratuita: una email che chiede l'euro dell'offerta di lancio.
 Schedule::command('hub:launch-offer-reminders')->dailyAt('10:00');

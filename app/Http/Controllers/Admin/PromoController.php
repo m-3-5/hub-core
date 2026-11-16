@@ -16,6 +16,8 @@ use App\Services\GeminiSvgFlyerGenerator;
 use App\Services\PromoVisualBuilder;
 use App\Services\TenantBrandManager;
 use App\Services\WordPressWebhookDispatcher;
+use App\Support\PayPerUse;
+use App\Support\PendingPublication;
 use App\Support\TenantPromoQuota;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -188,7 +190,8 @@ class PromoController extends Controller
 
         $hashtags = $this->generateHashtags($tenant, $title, $description);
 
-        $overQuota = ! TenantPromoQuota::hasIncludedSlot($tenant);
+        // Col credito (paghi quello che pubblichi) non ci sono più quote né extra a fine mese.
+        $overQuota = PayPerUse::exempt($tenant) && ! TenantPromoQuota::hasIncludedSlot($tenant);
 
         $alwaysActive = $request->boolean('always_active');
         $offers = $generated['offers'] ?? [];
@@ -279,6 +282,9 @@ class PromoController extends Controller
 
         // Creazione guidata: «Pubblica» crea e pubblica in un colpo solo (salvo account ospite, che deve prima confermare l'email).
         if ($request->boolean('publish_now') && ! $tenant->isGuestPending()) {
+            if (! PayPerUse::charge($tenant, 'promo', $promo->id, $promo->title)) {
+                return PendingPublication::redirect($tenant, 'promo', $promo->id);
+            }
             $promo->update(['status' => 'published', 'published_at' => now()]);
             app(WordPressWebhookDispatcher::class)->promoPublished($tenant, $promo->fresh());
 
@@ -556,6 +562,9 @@ class PromoController extends Controller
         }
 
         if ($promo->isDraft()) {
+            if (! PayPerUse::charge($tenant, 'promo', $promo->id, $promo->title)) {
+                return PendingPublication::redirect($tenant, 'promo', $promo->id);
+            }
             $promo->markPublished();
         }
 

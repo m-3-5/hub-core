@@ -175,6 +175,60 @@ class HubBillingService
         ])['id'];
     }
 
+    /**
+     * Paghi quello che pubblichi: salva la carta (niente addebito adesso). Il primo prelievo arriva dopo un mese.
+     *
+     * @return array{id: string, url: string}
+     */
+    public function createCardSetupSession(Tenant $tenant, string $successUrl, string $cancelUrl): array
+    {
+        $customerId = $tenant->stripe_customer_id ?? $this->createCustomer($tenant)['id'];
+
+        if (! $tenant->stripe_customer_id) {
+            $tenant->forceFill(['stripe_customer_id' => $customerId])->save();
+        }
+
+        return $this->post('/v1/checkout/sessions', [
+            'mode' => 'setup',
+            'currency' => 'eur',
+            'customer' => $customerId,
+            'payment_method_types[0]' => 'card',
+            'success_url' => $successUrl.(str_contains($successUrl, '?') ? '&' : '?').'session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => $cancelUrl,
+            'client_reference_id' => (string) $tenant->id,
+            'metadata[tenant_id]' => (string) $tenant->id,
+            'metadata[ppu_setup]' => '1',
+            'setup_intent_data[metadata][tenant_id]' => (string) $tenant->id,
+        ]);
+    }
+
+    /**
+     * Chiude il salvataggio della carta: la rende predefinita per il cliente (così gli addebiti mensili la usano).
+     *
+     * @return array{tenant_id: string, customer: string, payment_method: string, brand: ?string, last4: ?string}|null
+     */
+    public function finishCardSetup(string $sessionId): ?array
+    {
+        $session = $this->get('/v1/checkout/sessions/'.rawurlencode($sessionId).'?expand[]=setup_intent.payment_method');
+        $intent = $session['setup_intent'] ?? null;
+        $pm = is_array($intent) ? ($intent['payment_method'] ?? null) : null;
+
+        if (($session['mode'] ?? null) !== 'setup' || ($session['status'] ?? null) !== 'complete'
+            || ! is_array($intent) || ($intent['status'] ?? null) !== 'succeeded' || ! is_array($pm) || empty($session['customer'])) {
+            return null;
+        }
+
+        $this->post('/v1/customers/'.$session['customer'], ['invoice_settings[default_payment_method]' => $pm['id']]);
+
+        return [
+            'tenant_id' => (string) ($session['metadata']['tenant_id'] ?? ''),
+            'customer' => (string) $session['customer'],
+            'payment_method' => (string) $pm['id'],
+            'brand' => $pm['card']['brand'] ?? null,
+            'last4' => $pm['card']['last4'] ?? null,
+        ];
+    }
+
     public function cancelSubscription(string $subscriptionId): void
     {
         $this->post('/v1/subscriptions/'.$subscriptionId, ['cancel_at_period_end' => 'true']);

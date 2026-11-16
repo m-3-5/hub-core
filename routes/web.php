@@ -180,6 +180,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/tenants/{tenant}/promos/{promo}/image-pack', [PromoController::class, 'generateImagePack'])->name('promos.generate-image-pack');
         Route::delete('/tenants/{tenant}/promos/{promo}', [PromoController::class, 'destroy'])->name('promos.destroy');
 
+        // Carta: paghi quello che pubblichi, addebito dopo un mese
+        Route::get('/tenants/{tenant}/carta', [\App\Http\Controllers\Admin\CreditController::class, 'show'])->name('credit.show');
+        Route::post('/tenants/{tenant}/carta/aggiungi', [\App\Http\Controllers\Admin\CreditController::class, 'checkout'])->name('credit.checkout')->middleware('throttle:10,1');
+        Route::get('/tenants/{tenant}/carta/fatto', [\App\Http\Controllers\Admin\CreditController::class, 'return'])->name('credit.return');
+        Route::post('/tenants/{tenant}/carta/pubblica', [\App\Http\Controllers\Admin\CreditController::class, 'publishPending'])->name('credit.publish');
+
         Route::get('/tenants/{tenant}/billing', [BillingController::class, 'show'])->name('billing.show');
         Route::post('/tenants/{tenant}/billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');
         Route::post('/tenants/{tenant}/billing/launch', [BillingController::class, 'launchCheckout'])->name('billing.launch');
