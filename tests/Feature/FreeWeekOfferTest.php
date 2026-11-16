@@ -171,10 +171,10 @@ class FreeWeekOfferTest extends TestCase
         $this->assertStringContainsString('← Indietro', $html);
         $this->assertStringContainsString('id="back-top"', $html);
         $this->assertStringContainsString('id="back-dock"', $html);
-        $this->assertStringContainsString('1 · 7 giorni gratis', $html);
-        $this->assertStringContainsString('2 · Poi solo 1 €', $html);
-        $this->assertStringContainsString('3 · Altri 30 giorni di prova', $html);
-        $this->assertStringContainsString(route('registration.create'), $html);
+        $this->assertStringContainsString('1 · Pubblichi subito', $html);
+        $this->assertStringContainsString('2 · Metti la carta', $html);
+        $this->assertStringContainsString('3 · Paghi dopo 30 giorni', $html);
+        $this->assertStringContainsString(route('app.index'), $html);
         $this->assertStringContainsString('id="pmax-panel"', $html);
     }
 }

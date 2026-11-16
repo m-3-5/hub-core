@@ -4,8 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     @php
-        $title = 'Crea il tuo sito con l\'IA, gratis per '.$freeDays.' giorni | Hub Core';
-        $desc = 'Scrivi in due righe cosa fa la tua attività: l\'intelligenza artificiale prepara il sito, pronto per il telefono, con pulsante per chiamare e WhatsApp. Primi '.$freeDays.' giorni gratis, senza carta.';
+        $ppuDays = (int) config('services.hub_billing.pay_per_use.bill_after_days', 30);
+        $ppuIncl = (int) config('services.hub_billing.pay_per_use.included_with_site', 3);
+        $title = 'Crea il tuo sito con l\'IA a 1 € | Hub Core';
+        $desc = 'Scrivi in due righe cosa fa la tua attività: l\'intelligenza artificiale prepara il sito, pronto per il telefono, con pulsante per chiamare e WhatsApp. Costa 1 € e lo paghi dopo '.$ppuDays.' giorni.';
     @endphp
     <title>{{ $title }}</title>
     <meta name="description" content="{{ $desc }}">
@@ -88,8 +90,8 @@
         <span class="ss-pill">✨ Con l'intelligenza artificiale</span>
         <h1>Il tuo sito, scritto dall'IA in 5 minuti</h1>
         <p>Racconti in due righe cosa fai. L'IA scrive i testi, tu controlli e lo metti online.</p>
-        <a class="ss-btn" href="{{ $startUrl }}">{{ $loggedIn ? 'Crea il mio sito' : 'Crea il mio sito gratis' }} →</a>
-        <span class="ss-note">{{ $freeDays }} giorni gratis · senza carta · disdici quando vuoi</span>
+        <a class="ss-btn" href="{{ $startUrl }}">{{ $loggedIn ? 'Crea il mio sito' : 'Crea il mio sito a 1 €' }} →</a>
+        <span class="ss-note">1 € · lo paghi dopo {{ $ppuDays }} giorni · niente abbonamento</span>
 
         <div class="ss-phone" aria-hidden="true">
             <div class="ss-phone__hero"><small>Salone Anna</small><b>Il tuo prossimo taglio, come lo hai sempre immaginato</b><span>Prenota ora</span></div>
@@ -114,22 +116,22 @@
 
     <h2>Quanto costa</h2>
     <div class="ss-price">
-        <div class="big">{{ $premiumMonthly }} € <small>/mese · Premium</small></div>
+        <div class="big">1 € <small>per partire</small></div>
         <ul>
-            <li>Primi {{ $freeDays }} giorni gratis, senza carta</li>
-            <li>Poi {{ $launchEur }} € per altri {{ $trialDays }} giorni di prova</li>
-            <li>Dentro anche promo, servizi, prodotti e pagamenti</li>
+            <li>Adesso non paghi niente: l'addebito arriva dopo {{ $ppuDays }} giorni</li>
+            <li>Dentro {{ $ppuIncl }} promo, {{ $ppuIncl }} prodotti e {{ $ppuIncl }} servizi</li>
+            <li>Niente abbonamento</li>
         </ul>
         <details class="ss-more">
             <summary>Scopri di più</summary>
-            <p>Il canone parte solo dopo la prova. Se non attivi, non succede niente e non paghi nulla.</p>
+            <p>Salvi la carta sulla pagina sicura di Stripe, senza addebito. Dopo le prime {{ $ppuIncl }} promo, prodotti e servizi, ognuno costa 1 €, e meno se ne pubblichi di più.</p>
             <p>Il sito ha un indirizzo su inm35.it. Vuoi un dominio tuo e più pagine? Te lo facciamo noi su misura.</p>
         </details>
     </div>
 
 </main>
 
-<div class="ss-bar"><a class="ss-btn" href="{{ $startUrl }}">{{ $loggedIn ? 'Crea il mio sito' : 'Crea il mio sito gratis' }} →</a></div>
+<div class="ss-bar"><a class="ss-btn" href="{{ $startUrl }}">{{ $loggedIn ? 'Crea il mio sito' : 'Crea il mio sito a 1 €' }} →</a></div>
 
 @include('layouts.partials.app-footer')
 </body>

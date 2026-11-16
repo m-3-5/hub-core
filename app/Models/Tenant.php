@@ -80,7 +80,9 @@ class Tenant extends Model
     /** Funzioni Premium (es. sito web con Max): chi paga Premium, e chiunque sia ancora in prova o seguito da noi. */
     public function hasPremiumFeatures(): bool
     {
-        return $this->tier() === 'premium'
+        // «Paghi quello che pubblichi»: niente livelli, il sito c'è per tutti.
+        return \App\Support\PayPerUse::enabled()
+            || $this->tier() === 'premium'
             || in_array($this->subscription_status, ['trialing', 'pending_payment', 'free'], true);
     }
 

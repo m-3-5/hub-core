@@ -18,6 +18,13 @@ class SendLaunchOfferReminders extends Command
     {
         $sent = 0;
 
+        // Col sistema «paghi quello che pubblichi» non c'è più una prova che finisce: niente promemoria.
+        if (\App\Support\PayPerUse::enabled()) {
+            $this->info('Sistema «paghi quello che pubblichi» attivo: nessun promemoria.');
+
+            return self::SUCCESS;
+        }
+
         Tenant::query()
             ->where('subscription_status', 'trialing')
             ->whereNotNull('trial_ends_at')

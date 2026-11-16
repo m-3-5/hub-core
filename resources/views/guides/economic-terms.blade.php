@@ -15,11 +15,17 @@
 <h1>Condizioni economiche</h1>
 <p class="lead">Qui spieghiamo in chiaro quanto costa usare Hub Core e vendere con i pagamenti. Le cifre dei servizi esterni sono <strong>indicative</strong>.</p>
 
-<h2>1. Abbonamento Hub Core</h2>
+@php $ppu = $hb['pay_per_use']; $eur = fn (int $c) => \App\Support\PayPerUse::euro($c);
+    $stepsText = collect($ppu['steps'])->map(fn ($c, $from) => $from === 1 ? $eur($c)." l'uno" : 'dal '.$from.'° pubblicato nello stesso mese '.$eur($c))->implode('; ');
+@endphp
+<h2>1. Quanto costa Hub Core</h2>
 <ul>
-    <li><strong>Privati:</strong> gratis.</li>
-    <li><strong>Aziende ed enti:</strong> {{ $hb['free_days'] }} giorni gratis senza carta; poi l'offerta di lancio di {{ $hb['launch_offer_price_eur'] }} €; dopo altri {{ $hb['trial_days'] }} giorni di prova parte il canone di {{ $hb['monthly_price_eur'] }} €/mese o {{ $hb['annual_price_eur'] }} €/anno. Puoi disdire quando vuoi.</li>
-    <li>Moduli, quote incluse ed extra: vedi la pagina <a href="{{ route('pricing.show') }}">Prezzi</a>. Prezzi IVA esclusa.</li>
+    <li><strong>Niente abbonamento:</strong> paghi solo quello che pubblichi.</li>
+    <li><strong>Annunci:</strong> sempre gratis, per tutti.</li>
+    <li><strong>Promo, prodotti e servizi:</strong> {{ $stepsText }}. Si paga una volta sola: modificare o ripubblicare non costa.</li>
+    <li><strong>Con il sito web:</strong> i primi {{ $ppu['included_with_site'] }} promo, {{ $ppu['included_with_site'] }} prodotti e {{ $ppu['included_with_site'] }} servizi sono inclusi.</li>
+    <li><strong>Come paghi:</strong> salvi una carta sulla pagina sicura di Stripe, senza addebito. Dopo {{ $ppu['bill_after_days'] }} giorni dalla pubblicazione addebitiamo tutto insieme, in un solo pagamento. Se l'addebito non va a buon fine, per pubblicare altro serve un'altra carta.</li>
+    <li>Chi ha già un abbonamento attivo lo mantiene alle sue condizioni. Dettagli nella pagina <a href="{{ route('pricing.show') }}">Prezzi</a>. Prezzi IVA esclusa.</li>
 </ul>
 
 <h2>2. Trattenute di Stripe sui pagamenti con carta</h2>

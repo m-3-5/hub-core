@@ -89,7 +89,7 @@ return [
         // 1 € l'uno, che scende con l'uso nel mese; chi ha il sito ne ha alcuni inclusi. Si pubblica subito con la
         // carta salvata e si addebita dopo bill_after_days giorni, tutto insieme (una sola commissione Stripe).
         'pay_per_use' => [
-            'enabled' => (bool) env('HUB_PAY_PER_USE', false),
+            'enabled' => (bool) env('HUB_PAY_PER_USE', true),
             'included_with_site' => (int) env('HUB_PPU_INCLUDED_WITH_SITE', 3), // per tipo: promo, prodotti, servizi
             'bill_after_days' => (int) env('HUB_PPU_BILL_AFTER_DAYS', 30),
             // [da quante pubblicazioni pagate nel mese => centesimi]

@@ -40,6 +40,13 @@ class TenantWelcomeNotification extends Notification
                 ->line('Grazie per aver attivato **'.$this->tenant->name.'** su Hub Core con l\'offerta di lancio.')
                 ->line('Il tuo abbonamento è già attivo con '.$included.' servizi a pagamento inclusi (link Stripe per i tuoi trattamenti/prodotti, pubblicabili sul tuo sito in automatico), e l\'attivazione del tuo primo modulo è coperta dall\'offerta.')
                 ->line('Il primo addebito pieno (**€'.$monthlyPrice.'/mese**) partirà tra **'.$trialDays.' giorni** — fino ad allora usi tutto normalmente.');
+        } elseif (\App\Support\PayPerUse::enabled()) {
+            $billDays = (int) config('services.hub_billing.pay_per_use.bill_after_days', 30);
+
+            $mail->subject('Benvenuto su Hub Core')
+                ->line('Grazie per aver registrato **'.$this->tenant->name.'** su Hub Core.')
+                ->line('Niente abbonamento: paghi solo quello che pubblichi. Gli annunci sono gratis; promo, prodotti e servizi costano **1 €** l\'uno, e meno se ne pubblichi di più.')
+                ->line('Quando pubblichi salvi una carta, senza addebito: paghi tutto insieme dopo **'.$billDays.' giorni**.');
         } else {
             $launch = config('services.hub_billing.launch_offer_price_eur', 1);
             $freeDays = config('services.hub_billing.free_days', 30);

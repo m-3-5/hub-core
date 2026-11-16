@@ -210,6 +210,41 @@ class PayPerUseTest extends TestCase
         $this->get(route('admin.credit.show', $tenant))->assertSee('«Trapano»', false);
     }
 
+    public function test_switched_on_there_is_no_trial_and_no_subscription_page(): void
+    {
+        [$tenant, $user] = $this->business();
+        $tenant->update(['trial_ends_at' => now()->subDay(), 'settings' => ['free_week' => true]]);
+
+        $this->actingAs($user)->get(route('admin.billing.show', $tenant))->assertRedirect(route('admin.credit.show', $tenant));
+
+        $this->get(route('admin.promos.index', $tenant))->assertOk()
+            ->assertDontSee('Prova finita')->assertDontSee('Abbonamento')->assertSee('Pagamenti');
+
+        // niente email «la prova è finita»
+        \Illuminate\Support\Facades\Notification::fake();
+        $this->artisan('hub:launch-offer-reminders')->assertSuccessful();
+        \Illuminate\Support\Facades\Notification::assertNothingSent();
+
+        // il sito web c'è per tutti, senza livelli
+        $this->assertTrue($tenant->fresh()->hasPremiumFeatures());
+    }
+
+    public function test_a_refused_card_shows_a_short_warning(): void
+    {
+        [$tenant, $user] = $this->business(card: true);
+        PayPerUse::markCardFailed($tenant);
+
+        $this->actingAs($user)->get(route('admin.promos.index', $tenant->fresh()))->assertOk()->assertSee('Carta non passata');
+    }
+
+    public function test_old_subscribers_keep_their_subscription_page(): void
+    {
+        [$tenant, $user] = $this->business();
+        $tenant->update(['subscription_status' => 'active']);
+
+        $this->actingAs($user)->get(route('admin.billing.show', $tenant))->assertOk();
+    }
+
     public function test_classified_ads_stay_free_and_old_subscribers_and_staff_do_not_pay(): void
     {
         [$tenant, $user] = $this->business();

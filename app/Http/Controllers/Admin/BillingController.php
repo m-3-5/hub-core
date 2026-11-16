@@ -12,8 +12,13 @@ use RuntimeException;
 
 class BillingController extends Controller
 {
-    public function show(Tenant $tenant): View
+    public function show(Tenant $tenant): View|RedirectResponse
     {
+        // Col nuovo sistema niente abbonamento: chi non ne ha uno attivo va alla pagina «Pagamenti».
+        if (\App\Support\PayPerUse::enabled() && ! $tenant->hasActiveSubscription()) {
+            return redirect()->route('admin.credit.show', $tenant);
+        }
+
         return view('admin.billing.show', [
             'tenant' => $tenant,
             'monthlyPrice' => config('services.hub_billing.monthly_price_eur'),

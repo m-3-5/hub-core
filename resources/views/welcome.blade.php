@@ -161,9 +161,9 @@
             </div>
             @include('layouts.partials.install-app')
             <ul class="wl-trust">
-                <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) {{ config('services.hub_billing.free_days', 30) }} giorni gratis</li>
+                <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) Annunci gratis</li>
                 <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) Funziona da telefono</li>
-                <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) Disdici quando vuoi</li>
+                <li>@include('layouts.partials.icon', ['name' => 'check', 'size' => 16]) Niente abbonamento</li>
             </ul>
         </div>
 
@@ -265,11 +265,11 @@
 
 <section class="wl-sec">
     <h2>Prezzi semplici</h2>
-    <p>Niente sorprese: si comincia gratis.</p>
+    <p>Paghi solo quello che pubblichi, dopo {{ (int) config('services.hub_billing.pay_per_use.bill_after_days', 30) }} giorni.</p>
     <div class="wl-price">
-        <div class="wl-plan"><b>Privato</b><strong>€0</strong> <small>per sempre</small></div>
-        <div class="wl-plan wl-plan--hot"><b>Azienda ed ente</b><strong>{{ config('services.hub_billing.free_days', 30) }} giorni gratis</strong><br><small>poi solo €{{ config('services.hub_billing.launch_offer_price_eur', 1) }} per partire</small></div>
-        <div class="wl-plan"><b>Poi: Silver o Premium</b><strong>da €{{ config('services.hub_billing.tiers.silver.monthly', 9) }}</strong> <small>al mese (Premium €{{ config('services.hub_billing.tiers.premium.monthly', 19) }}) · disdici quando vuoi</small></div>
+        <div class="wl-plan"><b>Annunci</b><strong>Gratis</strong> <small>per tutti</small></div>
+        <div class="wl-plan wl-plan--hot"><b>Promo, prodotti, servizi</b><strong>1 €</strong> <small>l'uno · meno se pubblichi di più</small></div>
+        <div class="wl-plan"><b>Sito web</b><strong>1 €</strong> <small>con {{ (int) config('services.hub_billing.pay_per_use.included_with_site', 3) }} promo, prodotti e servizi inclusi</small></div>
     </div>
 </section>
 

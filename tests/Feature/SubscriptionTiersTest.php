@@ -139,14 +139,10 @@ class SubscriptionTiersTest extends TestCase
 
     public function test_pricing_page_shows_three_plans_and_no_per_module_sums(): void
     {
-        $html = $this->get(route('pricing.show'))->assertOk()
-            ->assertSee('Un solo abbonamento, due livelli')
-            ->assertSee('Silver')->assertSee('Premium')
-            ->assertSee('€9')->assertSee('€19')
-            ->assertDontSee('Attivazione (coperta dall\'offerta)')
-            ->getContent();
-
-        $this->assertStringContainsString('30 giorni gratis', $html);
-        $this->assertStringContainsString('dopo 120 giorni', $html);
+        $this->get(route('pricing.show'))->assertOk()
+            ->assertSee('Annunci')->assertSee('Gratis')
+            ->assertSee('Promo, prodotti e servizi')->assertSee('Dal 6° nel mese')->assertSee('0,80 €')->assertSee('0,50 €')
+            ->assertSee('3 promo, 3 prodotti e 3 servizi inclusi')
+            ->assertDontSee('Silver')->assertDontSee('Premium')->assertDontSee('giorni gratis')->assertDontSee('offerta di lancio');
     }
 }

@@ -211,8 +211,8 @@
         $('note-offer').textContent = state.type === 'privato'
             ? 'Per i privati Hub Core è sempre gratis.'
             : FOR_SITE
-            ? `Sito web incluso nel piano Premium (${PREMIUM} €/mese). I primi ${FREE_DAYS} giorni sono gratis, senza carta. Se non attivi, non succede niente.`
-            : `La prova è gratis, senza carta. Dopo, per continuare, basta ${OFFER} € (offerta di lancio, tutti i moduli inclusi); il canone da ${MONTHLY} €/mese parte solo dopo altri mesi di prova. Se non attivi, non succede niente.`;
+            ? 'Sito web a 1 €, con promo, prodotti e servizi inclusi. Niente abbonamento.'
+            : 'Registrarsi è gratis. Paghi solo quello che pubblichi, dopo un mese. Gli annunci sono gratis.';
     }
 
     function next() {

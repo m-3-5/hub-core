@@ -22,7 +22,7 @@ class PayPerUse
 
     public static function enabled(): bool
     {
-        return (bool) config('services.hub_billing.pay_per_use.enabled', false);
+        return (bool) config('services.hub_billing.pay_per_use.enabled', true);
     }
 
     /** Non paga: sistema spento, abbonamento attivo (vecchi clienti) o staff di Hub Core. */
