@@ -52,6 +52,13 @@
             display: inline-block;
         }
         .btn-whatsapp { background: #25D366; color: #fff; text-decoration: none; padding: 16px 24px; border-radius: 999px; font-weight: 600; display: inline-block; }
+        .btn-info { background: #fff; color: var(--primary-dark); border: 2px solid var(--primary); text-decoration: none; padding: 14px 24px; border-radius: 999px; font-weight: 700; display: inline-block; }
+        .bank { background: #f6f7fb; border-radius: 16px; padding: 16px; margin: 0 0 20px; scroll-margin-top: 80px; }
+        .bank h2 { font-size: 1.05rem; margin: 0 0 10px; }
+        .bank dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; font-size: .95rem; }
+        .bank dt { color: var(--muted); }
+        .bank dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+        .bank button { margin-top: 12px; min-height: 48px; padding: 0 18px; border-radius: 999px; border: 1px solid #d9d9e3; background: #fff; font: inherit; font-weight: 700; cursor: pointer; }
         .trust-note { margin-top: 20px; font-size: .85rem; color: var(--muted); }
         .back-link { display: inline-block; margin-top: 40px; color: var(--primary-dark); text-decoration: none; font-size: .9rem; }
         /* Cellulare: aspetto da app. Immagine a tutta larghezza, acquisto in una barra fissa in basso con tasto grande. */
@@ -68,6 +75,7 @@
             .cta-group form { width: 100%; gap: 8px; }
             .cta-group .btn-primary { width: 100%; text-align: center; min-height: 54px; padding: 16px; font-size: 1.05rem; }
             .btn-whatsapp { display: none; }
+            .cta-group .btn-info { flex: 1; min-height: 54px; display: flex; align-items: center; justify-content: center; }
             .trust-note { margin-top: 16px; }
             .back-link { margin: 24px 16px 0; }
         }
@@ -84,7 +92,7 @@
             'priceCurrency' => strtoupper($service->currency),
             'price' => number_format($service->amount_cents / 100, 2, '.', ''),
             'availability' => 'https://schema.org/InStock',
-            'url' => $service->payment_url,
+            'url' => $service->payment_url ?: url()->current(),
         ],
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}
     </script>
@@ -114,8 +122,30 @@
             @if ($service->description)
                 <p class="description">{{ $service->description }}</p>
             @endif
-            @php $protectedBuy = ! empty($protectedAvailable) && empty($embedMode); @endphp
+            @php
+                $protectedBuy = ! empty($protectedAvailable) && empty($embedMode);
+                $directUrl = ! empty($embedMode) ? $service->payment_url : $service->hubPaymentUrl();
+                $showcase = ! $protectedBuy && ! $directUrl;
+                $bank = $showcase ? \M35\HubPayments\Support\TenantBankTransfer::details($tenant) : null;
+                $wa = $tenant->settings['whatsapp'] ?? null;
+                $infoMsg = 'Ciao! Vorrei info su «'.$service->title.'» ('.$service->amountEuros().' €)';
+                $phoneDigits = preg_replace('/[^\d+]/', '', (string) $tenant->phone);
+                $infoUrl = $wa ? 'https://wa.me/'.$wa.'?text='.rawurlencode($infoMsg) : ($phoneDigits !== '' ? 'tel:'.$phoneDigits : null);
+            @endphp
+            @if ($bank)
+                <section class="bank" id="bonifico">
+                    <h2>🏦 Paga con bonifico</h2>
+                    <dl>
+                        <dt>Intestato a</dt><dd>{{ $bank['holder'] }}</dd>
+                        <dt>IBAN</dt><dd>{{ \M35\HubPayments\Support\TenantBankTransfer::pretty($bank['iban']) }}</dd>
+                        <dt>Importo</dt><dd>{{ $service->amountEuros() }} €</dd>
+                        <dt>Causale</dt><dd>{{ $service->title }}</dd>
+                    </dl>
+                    <button type="button" data-no-busy data-iban="{{ $bank['iban'] }}" onclick="navigator.clipboard && navigator.clipboard.writeText(this.dataset.iban); this.textContent = '✓ IBAN copiato'">Copia IBAN</button>
+                </section>
+            @endif
             @error('buy')<p style="color:#b91c1c;font-weight:600;margin-bottom:12px">{{ $message }}</p>@enderror
+            @if (! $showcase || $bank || $infoUrl)
             <div class="cta-group">
                 @if ($protectedBuy)
                     <form method="POST" action="{{ route('services.public.buy', [$tenant, $service]) }}" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
@@ -129,18 +159,24 @@
                         </label>
                         <button type="submit" class="btn-primary" style="border:0;cursor:pointer;font:inherit;font-weight:700">{{ $isProduct ? 'Acquista ora' : 'Prenota e paga ora' }}</button>
                     </form>
-                @else
-                    <a class="btn-primary" href="{{ !empty($embedMode) ? $service->payment_url : $service->hubPaymentUrl() }}" target="_top">{{ $isProduct ? 'Acquista ora' : 'Prenota e paga ora' }}</a>
+                @elseif ($directUrl)
+                    <a class="btn-primary" href="{{ $directUrl }}" target="_top">{{ $isProduct ? 'Acquista ora' : 'Prenota e paga ora' }}</a>
+                @elseif ($bank)
+                    <a class="btn-primary btn-info" style="background:linear-gradient(135deg, var(--primary), var(--primary-dark));color:#fff;border:0" href="#bonifico">🏦 Paga con bonifico</a>
                 @endif
-                @if ($tenant->settings['whatsapp'] ?? null)
-                    <a class="btn-whatsapp" target="_blank" rel="noopener"
-                       href="https://wa.me/{{ $tenant->settings['whatsapp'] }}?text={{ rawurlencode('Ciao! Vorrei info su «'.$service->title.'» ('.$service->amountEuros().' €)') }}">WhatsApp</a>
+                @if ($showcase && $infoUrl)
+                    <a class="btn-info" href="{{ $infoUrl }}" @if ($wa) target="_blank" rel="noopener" @endif>💬 Chiedi info</a>
+                @elseif ($wa)
+                    <a class="btn-whatsapp" target="_blank" rel="noopener" href="{{ $infoUrl }}">WhatsApp</a>
                 @endif
             </div>
+            @endif
             @if ($protectedBuy)
                 <p class="trust-note"><a href="{{ route('terms.buyer') }}" target="_blank" rel="noopener">Leggi termini e condizioni</a></p>
-            @else
+            @elseif ($directUrl)
                 <p class="trust-note">Pagamento sicuro tramite Stripe · {{ $tenant->name }}</p>
+            @elseif ($bank)
+                <p class="trust-note">Il bonifico va direttamente a {{ $tenant->name }}.</p>
             @endif
 
         </div>

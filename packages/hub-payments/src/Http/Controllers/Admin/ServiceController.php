@@ -16,6 +16,7 @@ use M35\HubPayments\Models\PayableService;
 use M35\HubPayments\Services\StripePaymentLinkService;
 use M35\HubPayments\Support\CatalogKind;
 use M35\HubPayments\Support\ImageOptimizer;
+use M35\HubPayments\Support\TenantBankTransfer;
 use M35\HubPayments\Support\TenantServiceQuota;
 use M35\HubPayments\Support\TenantStripeConfig;
 use RuntimeException;
@@ -36,6 +37,7 @@ class ServiceController extends Controller
             'tenant' => $tenant,
             'services' => $services,
             'stripeConfigured' => TenantStripeConfig::isConfigured($tenant),
+            'canSell' => PayableService::sellableOnline($tenant) || TenantBankTransfer::isSet($tenant),
             'stripeMasked' => TenantStripeConfig::maskedSecret($tenant),
             'quota' => $this->quotaFor($tenant),
         ]);
@@ -59,12 +61,7 @@ class ServiceController extends Controller
 
     public function create(Tenant $tenant): View|RedirectResponse
     {
-        if (! TenantStripeConfig::isConfigured($tenant)) {
-            return redirect()
-                ->route('admin.services.index', $tenant)
-                ->withErrors(['stripe' => 'Collega prima il tuo conto Stripe (chiavi in «Servizi»).']);
-        }
-
+        // Senza Stripe si crea lo stesso: resta in vetrina («Chiedi info» o bonifico) finché non colleghi un pagamento.
         return view('hub-payments::admin.services.create', [
             'kind' => $this->kind(),
             'tenant' => $tenant,
@@ -74,10 +71,6 @@ class ServiceController extends Controller
 
     public function store(Request $request, Tenant $tenant): RedirectResponse
     {
-        if (! TenantStripeConfig::isConfigured($tenant)) {
-            return back()->withErrors(['stripe' => 'Configura le chiavi Stripe prima di creare un link.']);
-        }
-
         $kind = $this->kind();
         $overQuota = $kind['quota'] && ! TenantServiceQuota::hasIncludedSlot($tenant);
 
@@ -91,7 +84,6 @@ class ServiceController extends Controller
         ]);
 
         $amountCents = (int) round(((float) $validated['amount']) * 100);
-        $secretKey = TenantStripeConfig::secretKey($tenant);
         $coverImagePath = $this->storeCoverImage($request, $tenant);
 
         // Creazione guidata senza foto: la grafica la crea l'IA dal titolo e dalla descrizione.
@@ -99,23 +91,20 @@ class ServiceController extends Controller
             $coverImagePath = $this->generateCover($tenant, $validated['title'], $validated['description'] ?? null);
         }
 
-        try {
-            $stripe = new StripePaymentLinkService($secretKey);
-            $result = $stripe->createPaymentLink(
-                $validated['title'],
-                $validated['description'] ?? null,
-                $amountCents,
-                config('hub-payments.currency', 'eur'),
-                $this->stripeImage($coverImagePath),
-            );
-        } catch (RuntimeException $e) {
-            if ($coverImagePath) {
-                Storage::disk('public')->delete($coverImagePath);
-            }
+        $result = ['product_id' => null, 'price_id' => null, 'payment_link_id' => null, 'url' => null];
 
-            return back()
-                ->withInput()
-                ->withErrors(['stripe' => $e->getMessage()]);
+        if (TenantStripeConfig::isConfigured($tenant)) {
+            try {
+                $result = $this->createStripeLink($tenant, $validated['title'], $validated['description'] ?? null, $amountCents, $coverImagePath);
+            } catch (RuntimeException $e) {
+                if ($coverImagePath) {
+                    Storage::disk('public')->delete($coverImagePath);
+                }
+
+                return back()
+                    ->withInput()
+                    ->withErrors(['stripe' => $e->getMessage()]);
+            }
         }
 
         $service = PayableService::create([
@@ -141,7 +130,9 @@ class ServiceController extends Controller
             app(WordPressWebhookDispatcher::class)->servicesSync($tenant);
         }
 
-        $status = 'Link di pagamento creato su Stripe (carta + metodi extra attivi sul conto: Klarna, Scalapay, ecc.).';
+        $status = $service->payment_url
+            ? 'Fatto! Link di pagamento pronto.'
+            : 'Fatto! È in vetrina: i clienti possono chiederti informazioni.';
 
         if ($overQuota) {
             TenantModuleCharge::create([
@@ -180,10 +171,6 @@ class ServiceController extends Controller
     {
         abort_unless($service->tenant_id === $tenant->id && $service->type === $this->kind()['type'], 404);
 
-        if (! TenantStripeConfig::isConfigured($tenant)) {
-            return back()->withErrors(['stripe' => 'Configura le chiavi Stripe prima di modificare il '.$this->kind()['singular'].'.']);
-        }
-
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:120'],
             'description' => ['nullable', 'string', 'max:2000'],
@@ -195,7 +182,6 @@ class ServiceController extends Controller
         ]);
 
         $amountCents = (int) round(((float) $validated['amount']) * 100);
-        $secretKey = TenantStripeConfig::secretKey($tenant);
         $coverImagePath = $service->cover_image_path;
 
         if ($request->boolean('remove_cover_image') && $coverImagePath) {
@@ -212,11 +198,24 @@ class ServiceController extends Controller
         }
 
         $stripeImageUrl = $this->stripeImage($coverImagePath);
+        $stripeOn = TenantStripeConfig::isConfigured($tenant);
 
         try {
-            $stripe = new StripePaymentLinkService($secretKey);
+            $stripe = $stripeOn ? new StripePaymentLinkService(TenantStripeConfig::secretKey($tenant)) : null;
 
-            if ($service->stripe_product_id) {
+            // Era in vetrina e ora c'è Stripe: si crea il link di pagamento.
+            if ($stripe && ! $service->stripe_payment_link_id) {
+                $link = $this->createStripeLink($tenant, $validated['title'], $validated['description'] ?? null, $amountCents, $coverImagePath);
+                $service->forceFill([
+                    'stripe_product_id' => $link['product_id'],
+                    'stripe_price_id' => $link['price_id'],
+                    'stripe_payment_link_id' => $link['payment_link_id'],
+                    'payment_url' => $link['url'],
+                ]);
+                $service->amount_cents = $amountCents;
+            }
+
+            if ($stripe && $service->stripe_product_id) {
                 $stripe->updateProduct(
                     $service->stripe_product_id,
                     $validated['title'],
@@ -228,7 +227,7 @@ class ServiceController extends Controller
             $priceChanged = $amountCents !== $service->amount_cents;
             $newPriceId = $service->stripe_price_id;
 
-            if ($priceChanged && $service->stripe_product_id) {
+            if ($stripe && $priceChanged && $service->stripe_product_id) {
                 $price = $stripe->createPrice(
                     $service->stripe_product_id,
                     $amountCents,
@@ -237,7 +236,7 @@ class ServiceController extends Controller
                 $newPriceId = $price['id'];
             }
 
-            if ($priceChanged && $service->stripe_payment_link_id && $newPriceId) {
+            if ($stripe && $priceChanged && $service->stripe_payment_link_id && $newPriceId) {
                 $stripe->updatePaymentLinkPrice($service->stripe_payment_link_id, $newPriceId);
             }
 
@@ -267,7 +266,7 @@ class ServiceController extends Controller
 
         return redirect()
             ->route('admin.'.$this->kind()['route'].'.show', [$tenant, $service])
-            ->with('status', ucfirst($this->kind()['singular']).' aggiornato su Hub e Stripe.');
+            ->with('status', ucfirst($this->kind()['singular']).' aggiornato.');
     }
 
     public function destroy(Tenant $tenant, PayableService $service): RedirectResponse
@@ -297,7 +296,7 @@ class ServiceController extends Controller
 
         return redirect()
             ->route('admin.'.$this->kind()['route'].'.index', $tenant)
-            ->with('status', ucfirst($this->kind()['singular']).' archiviato e link Stripe disattivato.');
+            ->with('status', ucfirst($this->kind()['singular']).' archiviato.');
     }
 
     public function refreshPaymentMethods(Tenant $tenant, PayableService $service): RedirectResponse
@@ -384,6 +383,18 @@ class ServiceController extends Controller
         }
 
         return $current;
+    }
+
+    /** @return array{product_id: string, price_id: string, payment_link_id: string, url: string} */
+    private function createStripeLink(Tenant $tenant, string $title, ?string $description, int $amountCents, ?string $coverImagePath): array
+    {
+        return (new StripePaymentLinkService(TenantStripeConfig::secretKey($tenant)))->createPaymentLink(
+            $title,
+            $description,
+            $amountCents,
+            config('hub-payments.currency', 'eur'),
+            $this->stripeImage($coverImagePath),
+        );
     }
 
     /** Indirizzo pubblico della copertina per Stripe: solo immagini raster (una grafica SVG resta sul sito). */

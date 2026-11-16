@@ -83,13 +83,14 @@ class CreationWizardTest extends TestCase
         $this->actingAs($user)->get('/admin/tenants/beauty/new/altro')->assertNotFound();
     }
 
-    public function test_product_and_service_wizard_need_stripe_but_promo_does_not(): void
+    public function test_product_and_service_wizard_open_even_without_stripe(): void
     {
         $tenant = $this->tenant('senza', false);
         $user = $this->owner($tenant);
 
-        $this->actingAs($user)->get(route('admin.wizard.show', [$tenant, 'product']))
-            ->assertRedirect(route('admin.payout.setup', $tenant))->assertSessionHas('status');
+        // senza un modo per farsi pagare si crea lo stesso: resta in vetrina
+        $this->actingAs($user)->get(route('admin.wizard.show', [$tenant, 'product']))->assertOk();
+        $this->actingAs($user)->get(route('admin.wizard.show', [$tenant, 'service']))->assertOk();
         $this->actingAs($user)->get(route('admin.wizard.show', [$tenant, 'promo']))->assertOk();
     }
 

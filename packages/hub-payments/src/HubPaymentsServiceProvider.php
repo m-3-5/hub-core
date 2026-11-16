@@ -122,6 +122,8 @@ class HubPaymentsServiceProvider extends ServiceProvider
                 // «Come vuoi ricevere i soldi?»: scelta guidata (con le guide) quando si inizia a vendere.
                 Route::get('/payout-setup', [PayoutSetupController::class, 'show'])->name('payout.setup');
                 Route::post('/payout-setup/interest', [PayoutSetupController::class, 'interest'])->name('payout.interest');
+                Route::post('/payout-setup/bonifico', [PayoutSetupController::class, 'storeBank'])->name('payout.bank');
+                Route::delete('/payout-setup/bonifico', [PayoutSetupController::class, 'forgetBank'])->name('payout.bank.forget');
 
                 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
             });

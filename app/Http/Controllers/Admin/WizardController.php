@@ -30,12 +30,7 @@ class WizardController extends Controller
         abort_unless(in_array($kind, self::KINDS, true), 404);
         $this->guardModule($tenant, $kind);
 
-        if ($kind !== 'promo' && ! TenantStripeConfig::isConfigured($tenant)) {
-            // Si inizia a vendere: prima si sceglie come ricevere i soldi (con le guide a portata di mano).
-            return redirect()
-                ->route('admin.payout.setup', $tenant)
-                ->with('status', 'Prima di vendere scegli come vuoi ricevere i soldi: ti accompagniamo passo passo.');
-        }
+        // Prodotti e servizi si creano anche senza un modo per farsi pagare: restano in vetrina («Chiedi info»).
 
         $meta = $kind === 'promo'
             ? [

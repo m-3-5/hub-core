@@ -17,7 +17,7 @@
             {{ $service->published_to_site ? '● Pubblicato (inm35.it + '.($tenant->website ? preg_replace('#^https?://#', '', $tenant->website) : 'sito').')' : 'Non pubblicato' }}
         </span>
         <h3><a href="{{ route('admin.'.$kind['route'].'.show', [$tenant, $service]) }}">{{ $service->title }}</a></h3>
-        <p class="svc-card__price">{{ $service->amountEuros() }} €</p>
+        <p class="svc-card__price">{{ $service->amountEuros() }} €@unless ($service->payment_url) <span class="svc-badge svc-badge--off" title="Senza pagamento online: i clienti chiedono info">Vetrina</span>@endunless</p>
 
         <div class="svc-card__actions">
             <a href="{{ route('admin.'.$kind['route'].'.edit', [$tenant, $service]) }}" class="svc-btn" title="Modifica">✎ Modifica</a>
@@ -29,13 +29,14 @@
                 </button>
             </form>
 
+            @php $clientLink = $service->payment_url ?: route('services.public.show', [$tenant, $service]); @endphp
             <button type="button" class="svc-btn" title="Copia link cliente"
-                    onclick="navigator.clipboard.writeText('{{ $service->payment_url }}');this.textContent='✓ Copiato!';setTimeout(()=>this.textContent='🔗 Link cliente',1500)">
+                    onclick="navigator.clipboard.writeText('{{ $clientLink }}');this.textContent='✓ Copiato!';setTimeout(()=>this.textContent='🔗 Link cliente',1500)">
                 🔗 Link cliente
             </button>
 
             <form method="POST" action="{{ route('admin.'.$kind['route'].'.destroy', [$tenant, $service]) }}"
-                  onsubmit="return confirm('Archiviare questo {{ $kind['singular'] }} e disattivare il link Stripe?')" class="svc-inline">
+                  onsubmit="return confirm('Archiviare questo {{ $kind['singular'] }}?')" class="svc-inline">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="svc-btn svc-btn--danger" title="Elimina">🗑 Elimina</button>

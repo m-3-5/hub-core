@@ -58,7 +58,7 @@
     @if ($products->isNotEmpty())
         <section id="prodotti" style="margin-top:36px">
             <h2 class="section-title">Prodotti</h2>
-            <p class="lead">Acquista online, pagamento sicuro.</p>
+            @if (\M35\HubPayments\Models\PayableService::sellableOnline($tenant))<p class="lead">Acquista online, pagamento sicuro.</p>@endif
             <div class="grid">
                 @foreach ($products as $service)
                     @include('hub-payments::public._card', ['service' => $service, 'tenant' => $tenant])

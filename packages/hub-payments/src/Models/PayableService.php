@@ -138,6 +138,19 @@ class PayableService extends Model
         return $this->payment_url.(str_contains($this->payment_url, '?') ? '&' : '?').'client_reference_id=hub';
     }
 
+    /** L'attività può incassare online (il suo Stripe o i pagamenti protetti Hub Core). */
+    public static function sellableOnline(\App\Models\Tenant $tenant): bool
+    {
+        return \M35\HubPayments\Support\TenantStripeConfig::isConfigured($tenant)
+            || \M35\HubPayments\Support\ProtectedCheckout::available($tenant);
+    }
+
+    /** Si compra online solo se c'è davvero un modo per pagare; altrimenti è in vetrina («Chiedi info»). */
+    public function buyableOnline(bool $protectedAvailable): bool
+    {
+        return $protectedAvailable || (bool) $this->payment_url;
+    }
+
     public function isActive(): bool
     {
         return $this->status === 'active';

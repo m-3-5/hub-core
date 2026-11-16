@@ -75,11 +75,12 @@ class PaymentGuidesAndPayoutSetupTest extends TestCase
         $this->get(route('pricing.show'))->assertOk()->assertSee(route('guides.index'), false)->assertSee(route('terms.economic'), false);
     }
 
-    public function test_starting_to_sell_without_any_payment_method_leads_to_the_choice_screen(): void
+    public function test_without_any_payment_method_the_list_points_to_the_choice_screen(): void
     {
         [$tenant, $user] = $this->seller();
 
-        $this->actingAs($user)->get(route('admin.wizard.show', [$tenant, 'product']))->assertRedirect(route('admin.payout.setup', $tenant));
+        $this->actingAs($user)->get(route('admin.products.index', $tenant))->assertOk()
+            ->assertSee('in vetrina')->assertSee(route('admin.payout.setup', $tenant), false);
     }
 
     public function test_the_choice_screen_shows_each_option_with_its_guide(): void

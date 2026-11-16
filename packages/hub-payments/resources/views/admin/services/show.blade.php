@@ -42,6 +42,12 @@
         <p style="line-height:1.5">{{ $service->description }}</p>
     @endif
 
+    @if (! $service->payment_url)
+    <div style="background:#f6f7fb;border-radius:12px;padding:20px;margin:24px 0">
+        <p style="margin:0 0 12px;font-weight:600">In vetrina: i clienti vedono «Chiedi info»{{ \M35\HubPayments\Support\TenantBankTransfer::isSet($tenant) ? ' e il bonifico' : '' }}.</p>
+        <a class="btn" href="{{ route('admin.payout.setup', $tenant) }}">💳 Ricevi pagamenti online</a>
+    </div>
+    @else
     <div style="background:#f6f7fb;border-radius:12px;padding:20px;margin:24px 0">
         <label style="font-size:.85rem;color:#666">Link da inviare al cliente</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">
@@ -55,6 +61,7 @@
         </div>
         <p style="margin:12px 0 0;font-size:.85rem;color:#666">Il cliente può pagare con carta o con gli altri metodi attivi sul vostro Stripe (Klarna, Scalapay, ecc.).</p>
     </div>
+    @endif
 
     @if ($service->published_to_site)
         <div style="background:#f6f7fb;border-radius:12px;padding:20px;margin:24px 0">

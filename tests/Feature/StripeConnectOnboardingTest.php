@@ -56,7 +56,7 @@ class StripeConnectOnboardingTest extends TestCase
         $this->actingAs($user)->get(route('admin.services.index', $tenant))->assertOk()
             ->assertSee('Pagamenti protetti Hub Core')
             ->assertSee('Collega i pagamenti protetti')
-            ->assertSee('vendite dirette sul tuo sito')
+            ->assertSee('Il tuo Stripe')
             ->assertSee(route('admin.connect.start', $tenant), false);
     }
 

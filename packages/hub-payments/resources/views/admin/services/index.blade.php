@@ -59,15 +59,15 @@
         <p class="ui-note">Hai usato tutti quelli inclusi. @include('layouts.partials.costs-link')</p>
     @endif
 
-    @if ($kind['route'] === 'products' && ! $stripeConfigured)
-        <p class="error">Prima di creare prodotti collega Stripe: <a href="{{ route('admin.services.index', $tenant) }}">imposta le chiavi nella sezione Servizi</a>.</p>
+    @if (! $canSell)
+        <p class="ui-note">Senza pagamento online sono in vetrina: i clienti ti chiedono info. <a href="{{ route('admin.payout.setup', $tenant) }}">💳 Ricevi pagamenti →</a></p>
     @endif
 
     @include('hub-payments::admin.services._connect-card', ['tenant' => $tenant])
 
     @if ($kind['route'] === 'services')
-    <div class="card" id="stripe-keys" style="background:#fafafa;margin-bottom:24px;padding:20px">
-        <h2 style="margin:0 0 12px;font-size:1.1rem">Il tuo Stripe (vendite dirette sul tuo sito)</h2>
+    <details class="card" id="stripe-keys" style="background:#fafafa;margin-bottom:24px;padding:20px" @if ($stripeConfigured || $errors->has('stripe_secret_key')) open @endif>
+        <summary style="cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center">💳 Il tuo Stripe</summary>
         @if ($stripeConfigured)
             <p style="margin:0 0 12px;color:#2e7d32">✓ Collegato — chiave: <code>{{ $stripeMasked }}</code></p>
         @else
@@ -86,7 +86,7 @@
             </div>
             <button type="submit" class="btn btn-secondary">Salva chiavi Stripe</button>
         </form>
-    </div>
+    </details>
 
     @if ($stripeConfigured)
         @include('hub-payments::admin.services._webhook-card', ['tenant' => $tenant, 'stripeConfigured' => $stripeConfigured])
@@ -94,7 +94,7 @@
     @endif
 
     @if ($services->isEmpty())
-        <p style="color:#666">Nessun {{ $kind['singular'] }} ancora. Crea il primo link di pagamento.</p>
+        <p style="color:#666">Nessun {{ $kind['singular'] }} ancora.</p>
     @else
         <div class="svc-grid">
             @foreach ($services as $service)

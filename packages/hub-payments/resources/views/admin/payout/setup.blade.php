@@ -71,7 +71,33 @@
                 </div>
             </section>
 
-            @foreach ([['paypal', '🅿️', 'PayPal', 'Ricevi con PayPal usando il tuo link PayPal.me. Molto conosciuto, ma gestisci tu rimborsi e verifiche.', 'Come aprire un conto PayPal →'], ['bonifico', '🏦', 'Bonifico bancario', 'Il cliente ti paga sul tuo IBAN. Semplice, ma controlli tu che i soldi siano arrivati prima di consegnare.', 'Come ricevere con bonifico →']] as [$key, $emoji, $name, $text, $guideLabel])
+            <section class="opt" id="bonifico">
+                <div class="row1"><span class="ico">🏦</span>
+                    <div>@if ($bank)<span class="badge ok">✓ Attivo</span>@endif<h2>Bonifico bancario</h2></div>
+                </div>
+                <p>Il cliente vede il tuo IBAN e ti paga dalla sua banca. Prima di consegnare controlla che i soldi siano arrivati.</p>
+                @error('bank_holder')<div class="banner bad">{{ $message }}</div>@enderror
+                @error('bank_iban')<div class="banner bad">{{ $message }}</div>@enderror
+                <form method="POST" action="{{ route('admin.payout.bank', $tenant) }}" style="display:grid;gap:10px;width:100%">@csrf
+                    <label style="display:grid;gap:4px;font-weight:600">Intestatario del conto
+                        <input name="bank_holder" value="{{ old('bank_holder', $bank['holder'] ?? $tenant->name) }}" required maxlength="120" autocomplete="off" style="padding:12px;border:1px solid #ddd;border-radius:12px;font:inherit">
+                    </label>
+                    <label style="display:grid;gap:4px;font-weight:600">IBAN
+                        <input name="bank_iban" value="{{ old('bank_iban', $bank ? \M35\HubPayments\Support\TenantBankTransfer::pretty($bank['iban']) : '') }}" required maxlength="42" placeholder="IT00 X000 0000 0000 0000 0000 000" autocomplete="off" autocapitalize="characters" spellcheck="false" style="padding:12px;border:1px solid #ddd;border-radius:12px;font:inherit">
+                    </label>
+                    <button class="btn-sm main" type="submit">{{ $bank ? 'Aggiorna IBAN' : 'Salva IBAN' }}</button>
+                </form>
+                <div class="acts">
+                    @if ($bank)
+                        <form method="POST" action="{{ route('admin.payout.bank.forget', $tenant) }}" onsubmit="return confirm('Togliere l’IBAN? I clienti non vedranno più il bonifico.')">@csrf @method('DELETE')
+                            <button class="btn-sm line" type="submit">Togli IBAN</button>
+                        </form>
+                    @endif
+                    <a class="guide" href="{{ route('guides.show', 'bonifico') }}" target="_blank">Come ricevere con bonifico →</a>
+                </div>
+            </section>
+
+            @foreach ([['paypal', '🅿️', 'PayPal', 'Ricevi con PayPal usando il tuo link PayPal.me. Molto conosciuto, ma gestisci tu rimborsi e verifiche.', 'Come aprire un conto PayPal →']] as [$key, $emoji, $name, $text, $guideLabel])
                 <section class="opt">
                     <div class="row1"><span class="ico">{{ $emoji }}</span><div><h2>{{ $name }}</h2></div></div>
                     <p>{{ $text }}</p>
