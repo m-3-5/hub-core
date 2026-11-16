@@ -193,6 +193,12 @@
                 </div>
                 <p style="margin:10px 0 0;font-size:.85rem">Nessuno può garantire il primo posto su Google: noi prepariamo il sito bene e lo segnaliamo. Google di solito arriva in qualche giorno o settimana.</p>
             </div>
+            @if (\App\Services\FacebookPages::enabled())
+            <div class="box">
+                <p><b>📘 Pubblica da Facebook</b> · scrivi #promo in un post con foto: diventa una promo e compare qui nel sito.</p>
+                <a class="btn ghost" style="width:100%" href="{{ route('admin.facebook.show', $tenant) }}">{{ \App\Services\FacebookPages::connection($tenant) ? 'Facebook collegato ✓' : 'Collega Facebook' }}</a>
+            </div>
+            @endif
             <div class="box">
                 <p><b>Cambiare i testi dal telefono, senza password:</b> ti mandiamo un link segreto per email.</p>
                 @if ($hasRealEmail)

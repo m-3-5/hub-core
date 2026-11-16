@@ -71,6 +71,9 @@ Route::get('/guide/pagamenti/{slug}', [\App\Http\Controllers\GuideController::cl
 Route::get('/condizioni-economiche', [\App\Http\Controllers\GuideController::class, 'economicTerms'])->name('terms.economic');
 Route::get('/condizioni-acquisto', [\App\Http\Controllers\GuideController::class, 'buyerTerms'])->name('terms.buyer');
 Route::view('/privacy', 'guides.privacy')->name('privacy');
+// Ritorno dal collegamento Facebook (l'attività viaggia cifrata nello «state»).
+Route::get('/facebook/ritorno', [\App\Http\Controllers\FacebookController::class, 'callback'])->middleware(['auth', 'throttle:20,1'])->name('facebook.callback');
+
 // Link «Non mandatemele più» delle email promozionali: firmato, senza accesso.
 Route::get('/email/idee/{tenant}', [\App\Http\Controllers\EmailUnsubscribeController::class, 'show'])->middleware('signed')->name('email.unsubscribe');
 Route::post('/email/idee/{tenant}', [\App\Http\Controllers\EmailUnsubscribeController::class, 'update'])->middleware(['signed', 'throttle:20,1'])->name('email.unsubscribe.update');
@@ -182,6 +185,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/tenants/{tenant}/promos/{promo}/video', [PromoController::class, 'generateVideo'])->name('promos.generate-video');
         Route::post('/tenants/{tenant}/promos/{promo}/image-pack', [PromoController::class, 'generateImagePack'])->name('promos.generate-image-pack');
         Route::delete('/tenants/{tenant}/promos/{promo}', [PromoController::class, 'destroy'])->name('promos.destroy');
+
+        // Pubblica da Facebook: i post con #promo diventano promo (e vanno nel sito)
+        Route::get('/tenants/{tenant}/facebook', [\App\Http\Controllers\FacebookController::class, 'show'])->name('facebook.show');
+        Route::post('/tenants/{tenant}/facebook/collega', [\App\Http\Controllers\FacebookController::class, 'connect'])->name('facebook.connect')->middleware('throttle:10,1');
+        Route::post('/tenants/{tenant}/facebook/pagina', [\App\Http\Controllers\FacebookController::class, 'choose'])->name('facebook.choose');
+        Route::post('/tenants/{tenant}/facebook/hashtag', [\App\Http\Controllers\FacebookController::class, 'hashtags'])->name('facebook.hashtags');
+        Route::post('/tenants/{tenant}/facebook/scollega', [\App\Http\Controllers\FacebookController::class, 'disconnect'])->name('facebook.disconnect');
 
         // Carta: paghi quello che pubblichi, addebito dopo un mese
         Route::get('/tenants/{tenant}/carta', [\App\Http\Controllers\Admin\CreditController::class, 'show'])->name('credit.show');

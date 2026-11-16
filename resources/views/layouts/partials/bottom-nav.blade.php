@@ -25,6 +25,7 @@
 
         $uiMore = [];
         $uiMore[] = ['Profilo', 'user', route('admin.profile.edit', $uiTenant), request()->routeIs('admin.profile.*')];
+        if (\App\Services\FacebookPages::enabled()) $uiMore[] = ['Facebook', 'globe', route('admin.facebook.show', $uiTenant), request()->routeIs('admin.facebook.*')];
         if (\App\Support\PayPerUse::enabled() && ! $uiTenant->hasActiveSubscription()) $uiMore[] = ['Pagamenti', 'card', route('admin.credit.show', $uiTenant), request()->routeIs('admin.credit.*')];
         elseif (in_array('billing', $uiActive, true)) $uiMore[] = ['Abbonamento', 'card', route('admin.billing.show', $uiTenant), request()->routeIs('admin.billing.*') || request()->routeIs('admin.module-billing.*')];
 

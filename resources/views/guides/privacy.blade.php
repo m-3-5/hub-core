@@ -48,6 +48,7 @@ Non abbiamo nominato un Responsabile della protezione dei dati (DPO), perché no
 <ul>
     <li>Google (accesso con Google; IA Gemini per scrivere e controllare i testi);</li>
     <li>Stripe Payments Europe, Ltd. (pagamenti);</li>
+    <li>Meta Platforms Ireland Ltd. (solo se colleghi la tua pagina Facebook);</li>
     <li>fornitori di hosting, server e posta elettronica del sito;</li>
     <li>commercialista e consulenti, per gli obblighi fiscali;</li>
     <li>autorità pubbliche, quando la legge lo richiede.</li>
@@ -56,6 +57,15 @@ Non abbiamo nominato un Responsabile della protezione dei dati (DPO), perché no
 
 <h2>6. I tuoi diritti</h2>
 <p>Puoi chiedere in ogni momento di vedere, correggere, cancellare o portare via i tuoi dati, limitarne l'uso o opporti (articoli 15-22 GDPR). Scrivi a <a href="mailto:{{ $co['email'] }}">{{ $co['email'] }}</a> o via PEC a {{ $co['pec'] }}. Puoi anche fare reclamo al Garante per la protezione dei dati personali (<a href="https://www.garanteprivacy.it" target="_blank" rel="noopener">garanteprivacy.it</a>).</p>
+
+<h2 id="facebook">6-bis. Collegamento a Facebook e cancellazione dei dati</h2>
+<p>Se scegli «Collega Facebook», riceviamo da Facebook (Meta) solo quello che serve a trasformare i tuoi post in promo:</p>
+<ul>
+    <li>il nome e l'identificativo della <strong>pagina</strong> che scegli, e un codice di accesso a quella pagina (salvato cifrato);</li>
+    <li>il <strong>testo, la foto e il link dei post</strong> di quella pagina che contengono l'hashtag scelto (ad esempio #promo).</li>
+</ul>
+<p>Non leggiamo il tuo profilo personale, i messaggi, gli amici né le pagine che non scegli, e non pubblichiamo niente su Facebook al posto tuo. I post diventati promo restano tra le tue promo finché non le cancelli.</p>
+<p><strong>Come cancellare i dati di Facebook:</strong> premi «Scollega la pagina» nella sezione Facebook di Hub Core (il codice di accesso viene cancellato subito), oppure rimuovi l'app «Hub Core» dalle impostazioni di Facebook (Impostazioni → App e siti web). Per cancellare anche le promo create dai post, eliminale dalla sezione Promo o scrivici a <a href="mailto:{{ $co['email'] }}">{{ $co['email'] }}</a>: lo facciamo entro 30 giorni.</p>
 
 <h2 id="cookie">7. Cookie</h2>
 <p>Su inm35.it e sui siti, le promo e le pagine dei clienti usiamo <strong>solo cookie tecnici</strong>, quelli che servono a far funzionare le pagine. Per questo non ti chiediamo il consenso con un banner, come prevedono le linee guida del Garante.</p>

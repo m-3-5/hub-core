@@ -42,6 +42,17 @@ return [
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
     ],
 
+    // «Collega Facebook»: i post della pagina con l'hashtag diventano promo (e vanno nel sito).
+    // App Meta «Hub Core»: ritorno {APP_URL}/facebook/ritorno, webhook {APP_URL}/api/facebook/webhook (campo «feed» delle pagine).
+    // Vuoti = funzione nascosta.
+    'facebook' => [
+        'app_id' => env('FACEBOOK_APP_ID'),
+        'app_secret' => env('FACEBOOK_APP_SECRET'),
+        'verify_token' => env('FACEBOOK_VERIFY_TOKEN'),
+        'graph_version' => env('FACEBOOK_GRAPH_VERSION', 'v21.0'),
+        'hashtag' => env('FACEBOOK_HASHTAG', '#promo'),
+    ],
+
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
         // Solo per prove in locale con un finto Gemini: in produzione resta l'indirizzo ufficiale.

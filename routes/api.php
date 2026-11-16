@@ -16,4 +16,8 @@ Route::prefix('v1')->name('api.')->group(function () {
         ->name('promos.drafts.store');
 });
 
+// Avvisi di Meta sui nuovi post delle pagine collegate (verifica + post firmati).
+Route::get('facebook/webhook', [\App\Http\Controllers\FacebookController::class, 'verify'])->name('facebook.webhook.verify');
+Route::post('facebook/webhook', [\App\Http\Controllers\FacebookController::class, 'webhook'])->middleware('throttle:300,1')->name('facebook.webhook');
+
 Route::post('stripe/webhook', [StripeBillingWebhookController::class, 'handle'])->name('stripe.webhook');
