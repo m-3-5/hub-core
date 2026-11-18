@@ -76,6 +76,8 @@ class PrepaidCreditTest extends TestCase
                 && str_contains(implode(' ', $mail->outroLines), 'non fiscale');
         });
         Notification::assertSentTo(new AnonymousNotifiable, UsageReceiptNotification::class, fn ($n, $c, $notifiable) => $notifiable->routes['mail'] === 'max@example.com');
+
+        $this->get(route('admin.credit.show', $tenant))->assertOk()->assertSee('+ 15 €')->assertSee('− 1 €')->assertDontSee('(carta)');
     }
 
     public function test_when_credit_ends_work_goes_on_with_the_overdraft_and_both_are_told(): void

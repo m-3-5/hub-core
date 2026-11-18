@@ -122,7 +122,15 @@
             @foreach ($entries as $e)
                 <li>
                     <span>{{ $e->description }}<br><small style="color:#94a3b8">{{ $e->created_at->timezone(config('app.timezone'))->format('d/m/Y') }}</small></span>
-                    <b>@if ($e->reason === 'included')Incluso@elseif (in_array($e->reason, ['topup', 'gift'], true))<span style="color:#16a34a">+ {{ $eur($e->amount_cents) }}</span>@elseif ($e->status === 'credit')− {{ $eur($e->amount_cents) }}@elseif ($e->status === 'owed')− {{ $eur($e->amount_cents) }} <small>(fido)</small>@elseif ($e->status === 'billed')✓ {{ $eur($e->amount_cents) }}@else{{ $eur($e->amount_cents) }} <small>(carta)</small>@endif</b>
+                    <b>
+                        @if ($e->reason === 'included') Incluso
+                        @elseif (in_array($e->reason, ['topup', 'gift'], true)) <span style="color:#16a34a">+ {{ $eur($e->amount_cents) }}</span>
+                        @elseif ($e->status === 'credit') − {{ $eur($e->amount_cents) }}
+                        @elseif ($e->status === 'owed') − {{ $eur($e->amount_cents) }} <small>(fido)</small>
+                        @elseif ($e->status === 'billed') ✓ {{ $eur($e->amount_cents) }}
+                        @else {{ $eur($e->amount_cents) }} <small>(carta)</small>
+                        @endif
+                    </b>
                 </li>
             @endforeach
         </ul>
