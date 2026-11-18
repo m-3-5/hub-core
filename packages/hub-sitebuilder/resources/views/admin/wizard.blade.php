@@ -124,7 +124,7 @@
             <div class="ok">{{ $okMessage }}</div>
         @endif
         @if ($awaitingCard && ! $errors->any())
-            <div class="banner bad">Il tuo sito è pronto ma non è ancora online: manca la carta. Non paghi niente adesso, 1 € dopo {{ (int) config('services.hub_billing.pay_per_use.bill_after_days', 30) }} giorni.<br><a href="{{ route('admin.credit.show', $tenant) }}" style="color:inherit;font-weight:700">Salva la carta e metti online →</a></div>
+            <div class="banner bad">Il tuo sito è pronto ma non è ancora online: il credito non basta. Ricarica da 5 € (o salva la carta) e va online da solo.<br><a href="{{ route('admin.credit.show', $tenant) }}" style="color:inherit;font-weight:700">Ricarica e metti online →</a></div>
         @endif
         @if (session('upgrade_sent'))
             <div class="ok">Richiesta inviata! Ti contattiamo per il sito Pro.</div>

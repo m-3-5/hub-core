@@ -169,7 +169,7 @@ class FacebookPages
 
         // Online subito solo se si può pagare e il contenuto è serio; altrimenti bozza da approvare.
         $check = app(ContentModerator::class)->check($message);
-        $canPay = PayPerUse::exempt($tenant) || PayPerUse::hasCard($tenant);
+        $canPay = PayPerUse::canPay($tenant);
         $publish = $canPay && $check['allowed'] && ! $check['unavailable'];
 
         $result = app(PromoDraftImporter::class)->import($tenant, [

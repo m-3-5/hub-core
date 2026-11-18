@@ -128,12 +128,12 @@
             <div><b>1 · Pubblichi subito</b><span>Promo, prodotto o servizio vanno online <span class="big">appena premi «Pubblica»</span>.</span></div>
         </div>
         <div class="tap">
-            <span class="ico">💳</span>
-            <div><b>2 · Metti la carta</b><span>Una volta sola, sulla pagina sicura di Stripe. <span class="big">Non ti addebitiamo niente</span>.</span></div>
+            <span class="ico">🎁</span>
+            <div><b>2 · Usi il credito</b><span><span class="big">15 € in regalo</span> la prima volta, senza carta. Poi ricarichi da 5 €.</span></div>
         </div>
         <div class="tap">
             <span class="ico">📅</span>
-            <div><b>3 · Paghi dopo {{ $billDays }} giorni</b><span>Tutto quello del mese <span class="big">in un solo addebito</span>. Niente abbonamento.</span></div>
+            <div><b>3 · Oppure la carta</b><span>Se preferisci, salvi la carta e paghi dopo {{ $billDays }} giorni <span class="big">in un solo addebito</span>. Niente abbonamento.</span></div>
         </div>
     </div>
 
@@ -201,7 +201,7 @@
 
     <div class="group-title">Domande frequenti</div>
     <details><summary>Devo pagare per registrarmi?</summary><p>No. Ti registri gratis e prepari tutto quello che vuoi. Paghi solo quando pubblichi una promo, un prodotto o un servizio.</p></details>
-    <details><summary>Quando mi addebitate?</summary><p>Dopo {{ $billDays }} giorni dalla pubblicazione, tutto insieme in un solo addebito sulla carta che hai salvato. Nella pagina «Pagamenti» dell'app vedi sempre quanto e quando.</p></details>
+    <details><summary>Come pago?</summary><p>Con il credito: la prima volta ti regaliamo 15 €, poi ricarichi da 5 € con la carta, con bonifico o in contanti. Se preferisci salvi la carta e paghi dopo {{ $billDays }} giorni, tutto insieme. Se il credito finisce mentre lavori non ti blocchiamo: puoi andare avanti fino a 5 € e saldi con la ricarica. A ogni acquisto ricevi la ricevuta per email; nella pagina «Pagamenti» dell'app vedi sempre credito e movimenti.</p></details>
     <details><summary>C'è un abbonamento?</summary><p>No. Niente canone e niente da disdire: se un mese non pubblichi niente, non paghi niente.</p></details>
     <details><summary>Quanto mi trattiene Stripe quando vendo?</summary><p>Su ogni pagamento con carta Stripe applica una commissione, indicativamente {{ \M35\HubPayments\Support\StripeFees::rateLabel() }} (di più per carte extra-UE). È un costo di Stripe e viene sottratto dall'incasso: nel pannello vedi sempre quanto ricevi netto.</p></details>
     <details><summary>Posso vendere anche direttamente, senza Hub Core?</summary><p>Sì. Sul tuo sito puoi continuare a incassare con il tuo conto Stripe. I pagamenti protetti valgono per le vendite fatte tramite inm35.it, dove chi compra e chi vende sono tutelati.</p></details>

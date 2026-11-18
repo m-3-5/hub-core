@@ -13,7 +13,10 @@ use M35\HubSitebuilder\Models\GeneratedSite;
  * - Promo, prodotto, servizio: 1 € l'uno; nello stesso mese dal 6° 0,80 €, dal 21° 0,50 €.
  * - Chi ha fatto il sito ha i primi N di ogni tipo inclusi.
  * - Si paga una volta per oggetto (ripubblicare o modificare non costa).
- * - Serve una carta salvata: si pubblica subito e l'addebito arriva dopo un mese, tutto insieme.
+ * - Si paga col credito: 15 € in regalo la prima volta, poi ricariche da 5 € in su (carta, bonifico, contanti).
+ * - In alternativa la carta salvata: si pubblica subito e l'addebito arriva dopo un mese, tutto insieme.
+ * - Finito il credito, senza carta, c'è un piccolo fido: il lavoro non si ferma e si salda con la ricarica.
+ * - A ogni acquisto e ricarica: ricevuta (non fiscale) per email al cliente e a Max.
  * Chi ha ancora un abbonamento attivo e lo staff non pagano.
  */
 class PayPerUse
@@ -136,25 +139,156 @@ class PayPerUse
                 return true;
             }
 
+            $tenant = $tenant->fresh();
             $price = self::priceCents($tenant, $kind);
-            if ($price > 0 && ! self::hasCard($tenant->fresh())) {
+            $credit = self::creditCents($tenant);
+            $wasPositive = $credit >= 0;
+
+            // Come si paga: 1) il credito (15 € in regalo la prima volta, poi le ricariche);
+            // 2) la carta salvata, addebito dopo un mese; 3) il fido, per non fermare il lavoro (si salda con una ricarica).
+            $status = match (true) {
+                $price === 0 => 'free',
+                $credit >= $price => 'credit',
+                self::hasCard($tenant) => 'pending',
+                $credit - $price >= -self::overdraftCents() => 'owed',
+                default => null,
+            };
+
+            if ($status === null) {
                 return false;
             }
 
-            TenantUsageEntry::create([
+            $entry = TenantUsageEntry::create([
                 'tenant_id' => $tenant->id,
                 'amount_cents' => $price,
                 'reason' => $price > 0 ? 'use' : 'included',
-                'status' => $price > 0 ? 'pending' : 'free',
+                'status' => $status,
                 'item_type' => $kind,
                 'item_id' => $itemId,
-                'bill_after' => $price > 0 ? now()->addDays((int) config('services.hub_billing.pay_per_use.bill_after_days', 30)) : null,
+                'bill_after' => $status === 'pending' ? now()->addDays((int) config('services.hub_billing.pay_per_use.bill_after_days', 30)) : null,
                 'description' => ucfirst(self::label($kind)).' «'.mb_strimwidth($title, 0, 120, '…').'»',
                 'user_id' => auth()->id(),
             ]);
 
+            if (in_array($status, ['credit', 'owed'], true)) {
+                self::moveCredit($tenant, -$price);
+            }
+
+            if ($price > 0) {
+                DB::afterCommit(fn () => CreditNotices::receipt($tenant->fresh(), $entry));
+            }
+            if ($status === 'owed' && $wasPositive) {
+                DB::afterCommit(fn () => CreditNotices::overdraft($tenant->fresh()));
+            }
+
             return true;
         });
+    }
+
+    /* ---------- Credito prepagato ---------- */
+
+    /** Credito regalato a ogni attività la prima volta (lo finanzia Hub Core). */
+    public static function welcomeCents(): int
+    {
+        return max(0, (int) config('services.hub_billing.pay_per_use.welcome_credit_cents', 1500));
+    }
+
+    /** Fido: quanto si può andare sotto zero senza carta, così il lavoro non si ferma (si salda con la ricarica). */
+    public static function overdraftCents(): int
+    {
+        return max(0, (int) config('services.hub_billing.pay_per_use.overdraft_cents', 500));
+    }
+
+    /** Ricarica minima. */
+    public static function topUpMinCents(): int
+    {
+        return max(100, (int) config('services.hub_billing.pay_per_use.topup_min_cents', 500));
+    }
+
+    /** Credito disponibile (può essere negativo se si usa il fido). Alla prima lettura arriva il regalo di benvenuto. */
+    public static function creditCents(Tenant $tenant): int
+    {
+        self::grantWelcome($tenant);
+
+        return (int) ($tenant->settings['ppu_credit']['cents'] ?? 0);
+    }
+
+    public static function grantWelcome(Tenant $tenant): void
+    {
+        if (! empty($tenant->settings['ppu_credit']['welcome_at']) || self::welcomeCents() === 0 || ! self::enabled()) {
+            return;
+        }
+
+        $settings = $tenant->settings ?? [];
+        $settings['ppu_credit'] = [
+            'cents' => (int) ($settings['ppu_credit']['cents'] ?? 0) + self::welcomeCents(),
+            'welcome_at' => now()->toIso8601String(),
+        ];
+        $tenant->forceFill(['settings' => $settings])->save();
+
+        TenantUsageEntry::create([
+            'tenant_id' => $tenant->id,
+            'amount_cents' => self::welcomeCents(),
+            'reason' => 'gift',
+            'status' => 'topup',
+            'description' => 'Credito di benvenuto offerto da Hub Core',
+        ]);
+    }
+
+    /** Ricarica (carta, bonifico o contanti segnati da Max): prima salda il fido, poi resta come credito. */
+    public static function topUp(Tenant $tenant, int $cents, string $method, ?string $reference = null): ?TenantUsageEntry
+    {
+        if ($cents <= 0) {
+            return null;
+        }
+
+        $entry = DB::transaction(function () use ($tenant, $cents, $method, $reference) {
+            Tenant::whereKey($tenant->id)->lockForUpdate()->first();
+
+            if ($reference && TenantUsageEntry::where('tenant_id', $tenant->id)->where('reason', 'topup')->where('payment_intent_id', $reference)->exists()) {
+                return null; // la stessa ricarica arriva due volte (ritorno + webhook)
+            }
+
+            $tenant = $tenant->fresh();
+            self::grantWelcome($tenant);
+            self::moveCredit($tenant, $cents);
+
+            if (self::creditCents($tenant->fresh()) >= 0) {
+                TenantUsageEntry::where('tenant_id', $tenant->id)->where('status', 'owed')->update(['status' => 'credit']);
+            }
+
+            return TenantUsageEntry::create([
+                'tenant_id' => $tenant->id,
+                'amount_cents' => $cents,
+                'reason' => 'topup',
+                'status' => 'topup',
+                'payment_intent_id' => $reference,
+                'billed_at' => now(),
+                'description' => 'Ricarica del credito ('.$method.')',
+                'user_id' => auth()->id(),
+            ]);
+        });
+
+        if ($entry) {
+            CreditNotices::receipt($tenant->fresh(), $entry);
+        }
+
+        return $entry;
+    }
+
+    private static function moveCredit(Tenant $tenant, int $cents): void
+    {
+        $settings = $tenant->fresh()->settings ?? [];
+        $settings['ppu_credit']['cents'] = (int) ($settings['ppu_credit']['cents'] ?? 0) + $cents;
+        $tenant->forceFill(['settings' => $settings])->save();
+    }
+
+    /** Si può pubblicare qualcosa che costa $cents adesso? (credito, fido o carta salvata) */
+    public static function canPay(Tenant $tenant, int $cents = 100): bool
+    {
+        return self::exempt($tenant)
+            || self::hasCard($tenant)
+            || self::creditCents($tenant) - $cents >= -self::overdraftCents();
     }
 
     public static function label(string $kind): string
@@ -169,7 +303,7 @@ class PayPerUse
         return $kind === self::SITE ? 'sito web' : (self::KINDS[$kind] ?? $kind);
     }
 
-    /** Totale ancora da addebitare (pubblicazioni dell'ultimo mese). */
+    /** Totale ancora da addebitare sulla carta (pubblicazioni dell'ultimo mese). */
     public static function pendingCents(Tenant $tenant): int
     {
         return (int) TenantUsageEntry::where('tenant_id', $tenant->id)->whereIn('status', ['pending', 'failed'])->sum('amount_cents');

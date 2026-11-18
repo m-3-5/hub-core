@@ -24,7 +24,10 @@
     <li><strong>Annunci:</strong> sempre gratis, per tutti.</li>
     <li><strong>Promo, prodotti e servizi:</strong> {{ $stepsText }}. Si paga una volta sola: modificare o ripubblicare non costa.</li>
     <li><strong>Con il sito web:</strong> i primi {{ $ppu['included_with_site'] }} promo, {{ $ppu['included_with_site'] }} prodotti e {{ $ppu['included_with_site'] }} servizi sono inclusi.</li>
-    <li><strong>Come paghi:</strong> salvi una carta sulla pagina sicura di Stripe, senza addebito. Dopo {{ $ppu['bill_after_days'] }} giorni dalla pubblicazione addebitiamo tutto insieme, in un solo pagamento. Se l'addebito non va a buon fine, per pubblicare altro serve un'altra carta.</li>
+    <li><strong>Come paghi:</strong> con il <strong>credito prepagato</strong>. La prima volta ti regaliamo {{ \App\Support\PayPerUse::euro(\App\Support\PayPerUse::welcomeCents()) }} di credito (una sola volta per attività, offerto da noi). Poi ricarichi da {{ \App\Support\PayPerUse::euro(\App\Support\PayPerUse::topUpMinCents()) }} in su con la carta, con bonifico o in contanti; il credito non scade.</li>
+    <li><strong>In alternativa la carta:</strong> salvi una carta sulla pagina sicura di Stripe, senza addebito; quando il credito non basta, dopo {{ $ppu['bill_after_days'] }} giorni addebitiamo tutto insieme. Se l'addebito non va a buon fine, per pubblicare altro serve un'altra carta o una ricarica.</li>
+    <li><strong>Fido:</strong> se il credito finisce e non hai la carta, puoi andare avanti fino a {{ \App\Support\PayPerUse::euro(\App\Support\PayPerUse::overdraftCents()) }} sotto zero; ti avvisiamo per email e lo saldi con la ricarica successiva.</li>
+    <li><strong>Ricevute:</strong> a ogni acquisto e ricarica ti mandiamo per email una ricevuta non fiscale. Se ti serve la fattura, chiedila a {{ config('company.email') }}.</li>
     <li>Chi ha già un abbonamento attivo lo mantiene alle sue condizioni. Dettagli nella pagina <a href="{{ route('pricing.show') }}">Prezzi</a>. Prezzi IVA esclusa.</li>
 </ul>
 

@@ -107,6 +107,11 @@ return [
             'site_cents' => (int) env('HUB_PPU_SITE_CENTS', 100),
             // [da quante pubblicazioni pagate nel mese => centesimi]
             'steps' => [1 => 100, 6 => 80, 21 => 50],
+            // Credito prepagato: 15 € in regalo la prima volta (li finanzia Hub Core), ricariche da 5 € in su,
+            // fido senza carta per non fermare il lavoro (si salda con la ricarica).
+            'welcome_credit_cents' => (int) env('HUB_PPU_WELCOME_CREDIT_CENTS', 1500),
+            'topup_min_cents' => (int) env('HUB_PPU_TOPUP_MIN_CENTS', 500),
+            'overdraft_cents' => (int) env('HUB_PPU_OVERDRAFT_CENTS', 500),
         ],
         // Un solo abbonamento, due livelli. Silver = tutto il necessario; Premium = in più sito web con Max, quote molto più alte, assistenza prioritaria.
         // Durante prova gratuita e lancio ogni cliente ha tutto (anche il sito web).

@@ -33,5 +33,7 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="HUB_PAY_PER_USE" value="false"/>
+        <env name="HUB_PPU_WELCOME_CREDIT_CENTS" value="0"/>
+        <env name="HUB_PPU_OVERDRAFT_CENTS" value="0"/>
     </php>
 </phpunit>

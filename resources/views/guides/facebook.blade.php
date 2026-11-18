@@ -43,7 +43,7 @@
 
 <h2>4. Quando va online da solo</h2>
 <ul>
-    <li><strong>Promo, prodotti e servizi</strong> vanno online subito se hai salvato la carta in «Pagamenti» (l'addebito arriva dopo 30 giorni, tutto insieme) e il testo passa il controllo. Prodotti e servizi servono anche del prezzo.</li>
+    <li><strong>Promo, prodotti e servizi</strong> vanno online subito se hai credito (15 € in regalo la prima volta, poi ricariche da 5 €) o la carta salvata in «Pagamenti», e il testo passa il controllo. Prodotti e servizi servono anche del prezzo.</li>
     <li>Altrimenti restano <strong>da completare</strong>: li trovi in Promo, Prodotti o Servizi del pannello, aggiungi quello che manca e pubblichi tu.</li>
     <li><strong>Novità, eventi, articoli e lavori</strong> sono gratis e vanno nel tuo sito, se hai fatto il sito su inm35.it.</li>
     <li>Con il sito, i primi 3 prodotti e 3 servizi del mese sono inclusi.</li>

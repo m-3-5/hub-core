@@ -66,8 +66,8 @@ class PayPerUseTest extends TestCase
         $this->assertSame('draft', $promo->fresh()->status);
 
         $this->get(route('admin.credit.show', $tenant))->assertOk()
-            ->assertSee('Non paghi niente adesso')->assertSee('Aggiungi la carta')
-            ->assertSee('«Sconto trapani»', false)->assertSee('1 €')->assertSee('tra 30 giorni');
+            ->assertSee('Ricarica il credito')->assertSee('Salva la carta')
+            ->assertSee('«Sconto trapani»', false)->assertSee('1 €');
     }
 
     public function test_with_a_card_it_goes_online_now_and_is_billed_in_a_month_only_once(): void
@@ -285,7 +285,7 @@ class PayPerUseTest extends TestCase
         $this->assertSame(0, TenantUsageEntry::count());
         $this->assertSame(0, PayPerUse::includedLeft($tenant, 'promo')); // niente inclusi finché il sito non è online
         $this->get(route('admin.credit.show', $tenant))->assertOk()->assertSee('«Sito web di Ferramenta Rossi»', false)->assertSee('1 €');
-        $this->get(route('admin.sitebuilder.show', $tenant))->assertOk()->assertSee('manca la carta');
+        $this->get(route('admin.sitebuilder.show', $tenant))->assertOk()->assertSee('il credito non basta');
         auth()->logout();
         $this->get(route('site.public.show', $tenant))->assertNotFound();
 

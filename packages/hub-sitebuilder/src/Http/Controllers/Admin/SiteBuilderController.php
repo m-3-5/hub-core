@@ -189,8 +189,8 @@ class SiteBuilderController extends Controller
             set_time_limit(180);
         }
 
-        // Manca la carta: si ricordano le lingue scelte e si va a «Pagamenti».
-        if (! PayPerUse::exempt($tenant) && ! PayPerUse::hasCard($tenant)) {
+        // Non basta il credito (né c'è la carta): si ricordano le lingue scelte e si va a «Pagamenti».
+        if (! PayPerUse::canPay($tenant, count($new) * PayPerUse::priceCents($tenant, 'lang_x'))) {
             $answers = $site->answers;
             $answers['i18n']['wanted'] = $new;
             $site->forceFill(['answers' => $answers])->save();
@@ -223,7 +223,7 @@ class SiteBuilderController extends Controller
             return back()->with('success', 'Questa opzione è già attiva.');
         }
 
-        if (! PayPerUse::exempt($tenant) && ! PayPerUse::hasCard($tenant)) {
+        if (! PayPerUse::canPay($tenant, PayPerUse::priceCents($tenant, 'addon_'.$name))) {
             return PendingPublication::redirect($tenant, 'addon_'.$name, $site->id);
         }
 

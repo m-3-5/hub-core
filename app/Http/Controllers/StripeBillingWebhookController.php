@@ -57,6 +57,13 @@ class StripeBillingWebhookController extends Controller
             return;
         }
 
+        // Ricarica del credito pagata (se il cliente chiude la pagina prima del ritorno).
+        if (($session['metadata']['ppu_topup'] ?? null) === '1') {
+            \App\Support\CreditTopUp::fromStripe((string) ($session['id'] ?? ''));
+
+            return;
+        }
+
         // Pagamento protetto di un cliente finale: arriva sul conto di M 3.5 e resta trattenuto fino alla consegna.
         if (($session['metadata']['hub_flow'] ?? null) === 'protected') {
             $tenant = Tenant::where('slug', $session['metadata']['hub_tenant'] ?? '')->first();

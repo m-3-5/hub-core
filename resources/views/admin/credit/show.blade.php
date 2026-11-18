@@ -21,6 +21,14 @@
     .cr-log { list-style: none; margin: 0; padding: 0; }
     .cr-log li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: .92rem; }
     .cr-log b { white-space: nowrap; }
+    .cr-top { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+    .cr-top .btn { width: 100%; min-height: 52px; font-size: 1.05rem; }
+    .cr-custom { display: flex; gap: 8px; margin-bottom: 6px; }
+    .cr-custom input, .cr-custom select { flex: 1; min-height: 48px; border: 2px solid #e2e3ea; border-radius: 12px; padding: 8px 12px; font-size: 1rem; min-width: 0; }
+    .cr-note { color: #64748b; font-size: .85rem; margin: 0 0 14px; }
+    .cr-more { background: #f6f7fb; border-radius: 16px; padding: 12px 14px; margin-bottom: 18px; }
+    .cr-more summary { cursor: pointer; font-weight: 700; }
+    .cr-more p { margin: 10px 0; }
     @media (max-width: 420px) { .cr-prices { grid-template-columns: repeat(2, 1fr); } }
 </style>
 
@@ -31,32 +39,71 @@
     @if (session('success'))<p class="alert">{{ session('success') }}</p>@endif
     @error('credit')<p class="error">{{ $message }}</p>@enderror
 
+    <div class="cr-hero" style="{{ $credit < 0 ? 'background:linear-gradient(135deg,#dc2626,#f97316)' : '' }}">
+        <b>{{ $eur($credit) }}</b>
+        <small>
+            @if ($credit < 0)
+                Credito finito: stai usando il fido ({{ $eur($overdraft + $credit) }} rimasti). Ricarica per saldare.
+            @else
+                Il tuo credito · ogni cosa a 1 € si scala da qui
+            @endif
+        </small>
+    </div>
+
     @if ($pending)
         <div class="cr-wait">
-            <p>Per pubblicare <strong>«{{ $pending['title'] }}»</strong>: <strong>{{ $eur($pendingPrice) }}</strong>, lo paghi tra {{ $billDays }} giorni.</p>
-            @if ($hasCard)
+            <p>Per pubblicare <strong>«{{ $pending['title'] }}»</strong>: <strong>{{ $eur($pendingPrice) }}</strong>.</p>
+            @if ($canPayPending)
                 <form method="POST" action="{{ route('admin.credit.publish', $tenant) }}" style="margin-top:10px">@csrf
                     <button class="btn cr-cta" type="submit" data-busy="Pubblico…">🚀 Pubblica ora</button>
                 </form>
+            @else
+                <p style="margin-top:6px">Ricarica il credito qui sotto (da {{ $eur($topUpMin) }}): poi si pubblica da solo.</p>
             @endif
         </div>
     @endif
 
-    @if ($hasCard)
-        <div class="cr-card"><span>💳 {{ ucfirst($card['brand'] ?? 'Carta') }} •••• {{ $card['last4'] ?? '' }}</span><span>✓</span></div>
-        @if ($toBill > 0)
-            <div class="cr-hero"><b>{{ $eur($toBill) }}</b><small>da pagare il {{ \Illuminate\Support\Carbon::parse($nextBill)->timezone(config('app.timezone'))->format('d/m/Y') }}</small></div>
+    <h2 style="font-size:1rem;margin:0 0 8px">Ricarica il credito</h2>
+    <div class="cr-top">
+        @foreach ([5, 10, 20] as $amount)
+            @if ($amount * 100 >= $topUpMin)
+                <form method="POST" action="{{ route('admin.credit.topup', $tenant) }}">@csrf
+                    <input type="hidden" name="amount" value="{{ $amount }}">
+                    <button type="submit" class="btn" data-busy="Apro…">+ {{ $amount }} €</button>
+                </form>
+            @endif
+        @endforeach
+    </div>
+    <form method="POST" action="{{ route('admin.credit.topup', $tenant) }}" class="cr-custom">@csrf
+        <input type="number" name="amount" min="{{ $topUpMin / 100 }}" max="500" step="1" placeholder="Altro importo (da {{ $topUpMin / 100 }} €)" inputmode="numeric">
+        <button type="submit" class="btn btn-secondary" data-busy="Apro…">Ricarica</button>
+    </form>
+    <p class="cr-note">Paghi subito con la carta sulla pagina sicura di Stripe. Ricevuta per email a te e a noi.</p>
+
+    <details class="cr-more" @if (! $hasCard && $credit < 0) open @endif>
+        <summary>Altri modi per pagare</summary>
+        <p><strong>💳 Carta salvata, paghi dopo:</strong> quando il credito finisce, quello che pubblichi lo paghi dopo {{ $billDays }} giorni, tutto insieme.</p>
+        @if ($hasCard)
+            <div class="cr-card"><span>💳 {{ ucfirst($card['brand'] ?? 'Carta') }} •••• {{ $card['last4'] ?? '' }}</span><span>✓</span></div>
+            @if ($toBill > 0)
+                <p>Da pagare sulla carta: <strong>{{ $eur($toBill) }}</strong> il {{ \Illuminate\Support\Carbon::parse($nextBill)->timezone(config('app.timezone'))->format('d/m/Y') }}.</p>
+            @endif
         @endif
-        <form method="POST" action="{{ route('admin.credit.checkout', $tenant) }}" style="margin-bottom:18px">@csrf
-            <button type="submit" class="btn btn-secondary" style="width:100%;min-height:48px" data-busy="Apro…">Cambia carta</button>
-        </form>
-    @else
-        <div class="cr-hero"><b>Non paghi niente adesso</b><small>Il primo addebito tra {{ $billDays }} giorni</small></div>
         @if (! empty($card['failed']))
             <p class="error">L'ultimo addebito non è andato a buon fine: aggiungi un'altra carta.</p>
         @endif
-        <form method="POST" action="{{ route('admin.credit.checkout', $tenant) }}" style="margin-bottom:18px">@csrf
-            <button type="submit" class="btn cr-cta" data-busy="Apro la pagina sicura…">💳 Aggiungi la carta</button>
+        <form method="POST" action="{{ route('admin.credit.checkout', $tenant) }}" style="margin-bottom:12px">@csrf
+            <button type="submit" class="btn btn-secondary" style="width:100%;min-height:48px" data-busy="Apro…">{{ $hasCard ? 'Cambia carta' : 'Salva la carta' }}</button>
+        </form>
+        <p><strong>🏦 Bonifico o contanti:</strong> scrivi a <a href="mailto:{{ config('company.email') }}?subject={{ rawurlencode('Ricarica credito '.$tenant->name) }}">{{ config('company.email') }}</a> con il nome dell'attività: segniamo noi la ricarica e ti arriva la ricevuta.</p>
+        <p><strong>⏳ Non hai la carta adesso?</strong> Finito il credito puoi andare avanti lo stesso fino a {{ $eur($overdraft) }} (fido): ti avvisiamo per email e saldi con la prossima ricarica.</p>
+    </details>
+
+    @if (auth()->user()?->isSuperAdmin())
+        <form method="POST" action="{{ route('admin.credit.manual', $tenant) }}" class="cr-custom" style="margin-top:12px">@csrf
+            <input type="number" name="amount" min="1" max="5000" step="0.5" placeholder="€ ricevuti" required>
+            <select name="method"><option value="bonifico">Bonifico</option><option value="contanti">Contanti</option><option value="regalo">Regalo</option></select>
+            <button type="submit" class="btn btn-secondary">Segna ricarica</button>
         </form>
     @endif
 
@@ -75,7 +122,7 @@
             @foreach ($entries as $e)
                 <li>
                     <span>{{ $e->description }}<br><small style="color:#94a3b8">{{ $e->created_at->timezone(config('app.timezone'))->format('d/m/Y') }}</small></span>
-                    <b>@if ($e->reason === 'included')Incluso@elseif ($e->status === 'billed')✓ {{ $eur($e->amount_cents) }}@else{{ $eur($e->amount_cents) }}@endif</b>
+                    <b>@if ($e->reason === 'included')Incluso@elseif (in_array($e->reason, ['topup', 'gift'], true))<span style="color:#16a34a">+ {{ $eur($e->amount_cents) }}</span>@elseif ($e->status === 'credit')− {{ $eur($e->amount_cents) }}@elseif ($e->status === 'owed')− {{ $eur($e->amount_cents) }} <small>(fido)</small>@elseif ($e->status === 'billed')✓ {{ $eur($e->amount_cents) }}@else{{ $eur($e->amount_cents) }} <small>(carta)</small>@endif</b>
                 </li>
             @endforeach
         </ul>

@@ -229,6 +229,53 @@ class HubBillingService
         ];
     }
 
+    /** Ricarica del credito: pagamento singolo su Stripe Checkout (la carta resta salvata per la prossima volta). */
+    public function createTopUpSession(Tenant $tenant, int $amountCents, string $successUrl, string $cancelUrl): array
+    {
+        $customerId = $tenant->stripe_customer_id ?? $this->createCustomer($tenant)['id'];
+
+        if (! $tenant->stripe_customer_id) {
+            $tenant->forceFill(['stripe_customer_id' => $customerId])->save();
+        }
+
+        return $this->post('/v1/checkout/sessions', [
+            'mode' => 'payment',
+            'customer' => $customerId,
+            'line_items[0][quantity]' => 1,
+            'line_items[0][price_data][currency]' => 'eur',
+            'line_items[0][price_data][unit_amount]' => $amountCents,
+            'line_items[0][price_data][product_data][name]' => 'Ricarica credito Hub Core — '.$tenant->name,
+            'success_url' => $successUrl.(str_contains($successUrl, '?') ? '&' : '?').'session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url' => $cancelUrl,
+            'client_reference_id' => (string) $tenant->id,
+            'metadata[tenant_id]' => (string) $tenant->id,
+            'metadata[ppu_topup]' => '1',
+            'payment_intent_data[metadata][tenant_id]' => (string) $tenant->id,
+            'payment_intent_data[metadata][ppu_topup]' => '1',
+        ]);
+    }
+
+    /**
+     * Controlla con Stripe che la ricarica sia pagata davvero.
+     *
+     * @return array{tenant_id: string, amount: int, session: string}|null
+     */
+    public function finishTopUp(string $sessionId): ?array
+    {
+        $session = $this->get('/v1/checkout/sessions/'.rawurlencode($sessionId));
+
+        if (($session['mode'] ?? null) !== 'payment' || ($session['payment_status'] ?? null) !== 'paid'
+            || ($session['metadata']['ppu_topup'] ?? null) !== '1' || (int) ($session['amount_total'] ?? 0) <= 0) {
+            return null;
+        }
+
+        return [
+            'tenant_id' => (string) ($session['metadata']['tenant_id'] ?? ''),
+            'amount' => (int) $session['amount_total'],
+            'session' => (string) $session['id'],
+        ];
+    }
+
     public function cancelSubscription(string $subscriptionId): void
     {
         $this->post('/v1/subscriptions/'.$subscriptionId, ['cancel_at_period_end' => 'true']);

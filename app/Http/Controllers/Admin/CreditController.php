@@ -7,6 +7,7 @@ use App\Models\Tenant;
 use App\Models\TenantUsageEntry;
 use App\Services\HubBillingService;
 use App\Support\CardSetup;
+use App\Support\CreditTopUp;
 use App\Support\PayPerUse;
 use App\Support\PendingPublication;
 use Illuminate\Http\RedirectResponse;
@@ -24,6 +25,10 @@ class CreditController extends Controller
         return view('admin.credit.show', [
             'tenant' => $tenant,
             'hasCard' => PayPerUse::hasCard($tenant),
+            'credit' => PayPerUse::creditCents($tenant),
+            'overdraft' => PayPerUse::overdraftCents(),
+            'topUpMin' => PayPerUse::topUpMinCents(),
+            'canPayPending' => $pending ? PayPerUse::canPay($tenant, PayPerUse::priceCents($tenant, $pending['kind'])) : false,
             'card' => $tenant->settings['ppu_card'] ?? null,
             'pending' => $pending,
             'pendingPrice' => $pending ? PayPerUse::priceCents($tenant, $pending['kind']) : null,
@@ -74,10 +79,64 @@ class CreditController extends Controller
         return redirect()->route('admin.credit.show', $tenant)->with('status', 'Carta salvata. Non paghi niente adesso.');
     }
 
+    /** Ricarica il credito con la carta: pagamento subito, minimo 5 €. */
+    public function topUp(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $min = PayPerUse::topUpMinCents();
+        $data = $request->validate(['amount' => ['required', 'numeric', 'min:'.($min / 100), 'max:500']], [
+            'amount.min' => 'La ricarica minima è '.PayPerUse::euro($min).'.',
+        ]);
+        $secretKey = config('services.hub_billing.secret_key');
+
+        if (! $secretKey) {
+            return back()->withErrors(['credit' => 'I pagamenti con la carta non sono ancora attivi: scrivici per il bonifico.']);
+        }
+
+        try {
+            $session = (new HubBillingService($secretKey))->createTopUpSession(
+                $tenant, (int) round(((float) $data['amount']) * 100), route('admin.credit.topup.return', $tenant), route('admin.credit.show', $tenant),
+            );
+        } catch (RuntimeException $e) {
+            report($e);
+
+            return back()->withErrors(['credit' => 'Non riesco ad aprire la pagina di pagamento: riprova tra un momento.']);
+        }
+
+        return redirect()->away($session['url']);
+    }
+
+    /** Ritorno dalla ricarica: si controlla con Stripe e si pubblica ciò che aspettava. */
+    public function topUpReturn(Request $request, Tenant $tenant): RedirectResponse
+    {
+        CreditTopUp::fromStripe((string) $request->query('session_id', ''), $tenant);
+        $tenant->refresh();
+
+        if ($done = PendingPublication::resume($tenant)) {
+            return $done;
+        }
+
+        return redirect()->route('admin.credit.show', $tenant)->with('status', 'Ricarica fatta: credito '.PayPerUse::euro(PayPerUse::creditCents($tenant)).'. Ti abbiamo mandato la ricevuta per email.');
+    }
+
+    /** Max segna una ricarica arrivata con bonifico o in contanti (solo staff). */
+    public function manualTopUp(Request $request, Tenant $tenant): RedirectResponse
+    {
+        abort_unless((bool) $request->user()?->isSuperAdmin(), 403);
+
+        $data = $request->validate([
+            'amount' => ['required', 'numeric', 'min:1', 'max:5000'],
+            'method' => ['required', 'in:bonifico,contanti,regalo'],
+        ]);
+
+        PayPerUse::topUp($tenant, (int) round(((float) $data['amount']) * 100), $data['method'], 'manual-'.now()->format('YmdHis').'-'.$request->user()->id);
+
+        return back()->with('status', 'Credito aggiunto: ora '.PayPerUse::euro(PayPerUse::creditCents($tenant->fresh())).'. Ricevuta inviata al cliente e a te.');
+    }
+
     /** Pubblica subito ciò che aspettava, se ora si può. */
     public function publishPending(Tenant $tenant): RedirectResponse
     {
         return PendingPublication::resume($tenant)
-            ?? redirect()->route('admin.credit.show', $tenant)->withErrors(['credit' => 'Prima aggiungi la carta.']);
+            ?? redirect()->route('admin.credit.show', $tenant)->withErrors(['credit' => 'Prima ricarica il credito o aggiungi la carta.']);
     }
 }

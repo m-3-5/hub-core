@@ -47,8 +47,8 @@
             <div class="fb-page">✅ Collegata: {{ $fb['page_name'] }}</div>
             <p style="margin-top:10px">Pubblica su questa pagina un post <b>con una foto</b> e con <b>{{ implode(' o ', $hashtags) }}</b> nel testo. Diventa una promo da sola:</p>
             <ul class="fb-steps">
-                <li>con la carta salvata va subito online, anche nel tuo sito (1 €, come ogni promo);</li>
-                <li>senza carta, o se il testo va controllato, resta una bozza e ti scriviamo per approvarla.</li>
+                <li>con il credito (o la carta salvata) va subito online, anche nel tuo sito (1 €, come ogni promo);</li>
+                <li>se il credito non basta, o se il testo va controllato, resta una bozza e ti scriviamo per approvarla.</li>
             </ul>
         </div>
         <div class="fb-card">
@@ -62,7 +62,7 @@
                 <li><b>#blog</b> → un articolo: prima riga il titolo, poi il testo (gratis)</li>
                 <li><b>#lavori</b> → la foto va nella galleria del tuo sito (gratis)</li>
             </ul>
-            <p style="margin-top:10px">Senza prezzo, senza carta o se il testo va controllato, prodotti e servizi restano da completare nel pannello. Novità, eventi, blog e lavori vanno nel sito se ce l'hai. <a href="{{ route('guides.facebook') }}" target="_blank">Leggi la guida completa</a></p>
+            <p style="margin-top:10px">Senza prezzo, senza credito o se il testo va controllato, prodotti e servizi restano da completare nel pannello. Novità, eventi, blog e lavori vanno nel sito se ce l'hai. <a href="{{ route('guides.facebook') }}" target="_blank">Leggi la guida completa</a></p>
         </div>
         <div class="fb-card">
             <h2>Hashtag delle promo</h2>

@@ -52,7 +52,7 @@ class PendingPublication
 
         // Lingue del sito: con la carta salvata si traducono e si registra 1 € per ognuna riuscita.
         if ($p['kind'] === 'site_langs') {
-            if (! PayPerUse::exempt($tenant) && ! PayPerUse::hasCard($tenant)) {
+            if (! PayPerUse::canPay($tenant, PayPerUse::priceCents($tenant, 'site_langs'))) {
                 return null;
             }
             session()->forget(self::KEY);
@@ -66,7 +66,7 @@ class PendingPublication
 
         // Opzioni del sito (SEO, IA, indicizza): con la carta salvata si attivano da sole.
         if (str_starts_with($p['kind'], 'addon_')) {
-            if (! PayPerUse::exempt($tenant) && ! PayPerUse::hasCard($tenant)) {
+            if (! PayPerUse::canPay($tenant, PayPerUse::priceCents($tenant, $p['kind']))) {
                 return null;
             }
             session()->forget(self::KEY);

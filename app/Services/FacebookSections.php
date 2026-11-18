@@ -161,7 +161,7 @@ class FacebookSections
             : null;
         $price = self::price($message);
 
-        $canPay = PayPerUse::exempt($tenant) || PayPerUse::hasCard($tenant);
+        $canPay = PayPerUse::canPay($tenant);
         $publish = $price !== null && $canPay && $check['allowed'] && ! $check['unavailable'];
 
         $item = PayableService::create([

@@ -118,13 +118,13 @@
     <div class="ss-price">
         <div class="big">1 € <small>per partire</small></div>
         <ul>
-            <li>Adesso non paghi niente: l'addebito arriva dopo {{ $ppuDays }} giorni</li>
+            <li>🎁 15 € di credito in regalo: senza carta, il sito lo paghi con quelli</li>
             <li>Dentro {{ $ppuIncl }} promo, {{ $ppuIncl }} prodotti e {{ $ppuIncl }} servizi</li>
             <li>Niente abbonamento</li>
         </ul>
         <details class="ss-more">
             <summary>Scopri di più</summary>
-            <p>Salvi la carta sulla pagina sicura di Stripe, senza addebito. Dopo le prime {{ $ppuIncl }} promo, prodotti e servizi, ognuno costa 1 €, e meno se ne pubblichi di più.</p>
+            <p>Alla prima volta ti regaliamo 15 € di credito: sito, lingue, opzioni, promo, prodotti e servizi a 1 € si scalano da lì. Finito il credito ricarichi da 5 € (carta, bonifico o contanti) oppure salvi la carta e paghi dopo {{ $ppuDays }} giorni. A ogni acquisto ti arriva la ricevuta per email.</p>
             <p>Il sito ha un indirizzo su inm35.it. Vuoi un dominio tuo e più pagine? Te lo facciamo noi su misura.</p>
         </details>
     </div>

@@ -199,6 +199,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/tenants/{tenant}/carta/aggiungi', [\App\Http\Controllers\Admin\CreditController::class, 'checkout'])->name('credit.checkout')->middleware('throttle:10,1');
         Route::get('/tenants/{tenant}/carta/fatto', [\App\Http\Controllers\Admin\CreditController::class, 'return'])->name('credit.return');
         Route::post('/tenants/{tenant}/carta/pubblica', [\App\Http\Controllers\Admin\CreditController::class, 'publishPending'])->name('credit.publish');
+        Route::post('/tenants/{tenant}/credito/ricarica', [\App\Http\Controllers\Admin\CreditController::class, 'topUp'])->name('credit.topup')->middleware('throttle:10,1');
+        Route::get('/tenants/{tenant}/credito/ricarica/fatto', [\App\Http\Controllers\Admin\CreditController::class, 'topUpReturn'])->name('credit.topup.return');
+        Route::post('/tenants/{tenant}/credito/manuale', [\App\Http\Controllers\Admin\CreditController::class, 'manualTopUp'])->name('credit.manual');
 
         Route::get('/tenants/{tenant}/billing', [BillingController::class, 'show'])->name('billing.show');
         Route::post('/tenants/{tenant}/billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');
