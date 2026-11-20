@@ -61,6 +61,9 @@
 <div class="top">
     <h1>{{ $tenant ? $tenant->name : 'Annunci' }}</h1>
     <p>Immobili, oggetti in vendita, servizi e lezioni</p>
+    @unless ($tenant)
+        <a href="{{ route('classifieds.private.create') }}" style="display:inline-block;margin-top:14px;background:#fff;color:var(--primary-dark);font-weight:800;border-radius:14px;padding:12px 22px">+ Pubblica il tuo annuncio</a>
+    @endunless
 </div>
 <div class="wrap">
     <nav class="cats" data-ui-scroll aria-label="Categorie">

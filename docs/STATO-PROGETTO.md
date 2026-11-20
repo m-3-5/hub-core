@@ -203,3 +203,17 @@ Richiesta: prezzi uniformi, più bassi, con lo sconto che dura più a lungo. Non
 - **Pezzo 1** (c0c0801): l'IA scrive anche punti di forza, servizi con riga e icona, domande frequenti, frase finale e stile; pagina nuova (barra in alto, hero con onda, sezioni, fascia finale, footer completo, barra Chiama/WhatsApp su telefono). Testi in più in `answers.extras`, controllati da `SiteGuard`, conservati dal link segreto.
 - **Pezzo 2** (970e416): passi facoltativi «Logo e foto», «Dove e quando», «Ancora qualcosa?» (Facebook, Instagram, P.IVA, frasi dei clienti) → galleria con foto a schermo intero, foto vera in alto, mappa Google solo al clic, recensioni, footer con orari/social/P.IVA. Dati in `answers.media` e `answers.info`; il controllo IA guarda anche logo e foto (una chiamata); con foto vere niente sfondo IA (~30 s per pubblicare).
 - **Pezzo 3**: promo attive e servizi/prodotti pubblicati entrano da soli nel sito («Offerte del momento», «Acquista online»); orari per giorni + mattina/pomeriggio con «Aperto ora / Chiuso · apre alle…» calcolato in ora italiana (anche oltre mezzanotte); scelta dello stile nel riepilogo (vince su quello del profilo).
+
+## Annunci dei privati per paese + buoni dei giochi di piramide35 (21/11/2026) — sul ramo, da deployare
+
+**Annunci dei privati** (Vendo / Cerco / Lavoro, zona = paese)
+- Modulo da telefono: `/annunci/nuovo` (precompilato: `?zona=Senise&tipo=vendo&testo=...&ref=piramide35`). Foto ridotte nel telefono (1600 px) e foto piccola 480 px fatta dal server.
+- Niente password: chi non è entrato scrive nome + email e riceve un link (vale 1 ora). Al clic nasce l'account «privato» se manca. Pagina generica: `/entra`.
+- Stati: `email` (aspetta il clic) → `review` (lo controlla Max, email a LEADS_MONITOR_EMAIL) → `published` per 30 giorni (`expires_at`) oppure `rejected`. Max: `/admin/annunci-da-controllare` (riquadro in dashboard).
+- Il privato: `/annunci/miei` (rinnova +30 giorni, togli).
+- JSON pubblico per piramide35.com: `GET /api/annunci?zona=Senise&tipo=vendo|cerco|lavoro&limit=12` (cache 5 min; CORS aperto come tutte le /api). vendo = oggetti + vendita immobili, cerco = cerco, lavoro = lavoro.
+
+**Buoni gioco** (`App\Support\GameVoucher`)
+- Formato: `M35G-{centesimi}-{AAMMGG}-{6 A-Z0-9}-{firma}`; firma = primi 10 esadecimali MAIUSCOLI di `hash_hmac('sha256', "M35G|cent|AAMMGG|casuali", GIOCO_BUONI_SEGRETO)`.
+- `.env`: `GIOCO_BUONI_SEGRETO` (lo scrive Max, uguale su piramide35; senza segreto i buoni sono spenti), `GIOCO_BUONI_MAX_MESE=3`, `GIOCO_BUONI_MAX_CENTESIMI=500`.
+- Riscatto: riquadro in «Pagamenti» oppure `/buono?codice=...` (chi non è entrato passa dal link email e torna lì). Tabella `game_vouchers` (codice unico = una volta sola). Movimento «Buono gioco piramide35 + 1 €» (reason `voucher`).

@@ -276,6 +276,33 @@ class PayPerUse
         return $entry;
     }
 
+    /** Buono vinto ai giochi di piramide35.com (GameVoucher): credito regalato, prima salda l'eventuale fido. */
+    public static function addVoucher(Tenant $tenant, int $cents, string $code): TenantUsageEntry
+    {
+        return DB::transaction(function () use ($tenant, $cents, $code) {
+            Tenant::whereKey($tenant->id)->lockForUpdate()->first();
+
+            $tenant = $tenant->fresh();
+            self::grantWelcome($tenant);
+            self::moveCredit($tenant, $cents);
+
+            if (self::creditCents($tenant->fresh()) >= 0) {
+                TenantUsageEntry::where('tenant_id', $tenant->id)->where('status', 'owed')->update(['status' => 'credit']);
+            }
+
+            return TenantUsageEntry::create([
+                'tenant_id' => $tenant->id,
+                'amount_cents' => $cents,
+                'reason' => 'voucher',
+                'status' => 'topup',
+                'payment_intent_id' => $code,
+                'billed_at' => now(),
+                'description' => 'Buono gioco piramide35',
+                'user_id' => auth()->id(),
+            ]);
+        });
+    }
+
     private static function moveCredit(Tenant $tenant, int $cents): void
     {
         $settings = $tenant->fresh()->settings ?? [];

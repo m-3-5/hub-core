@@ -21,6 +21,29 @@ class ClassifiedAd extends Model
         'servizi' => 'Servizi e lezioni',
         // Libri e altri prodotti che si comprano altrove (es. Amazon): l'annuncio porta al link, non c'è pagamento da noi.
         'libri' => 'Libri',
+        // Annunci dei privati del paese (anche da piramide35.com): chi cerca qualcosa e il lavoro (offro o cerco).
+        'cerco' => 'Cerco',
+        'lavoro' => 'Lavoro',
+    ];
+
+    /** I tre tipi semplici dei privati (link da piramide35.com e API) → categorie vere. */
+    public const PRIVATE_TYPES = [
+        'vendo' => ['label' => 'Vendo', 'icon' => '🏷️', 'category' => 'oggetti', 'categories' => ['oggetti', 'vendita']],
+        'cerco' => ['label' => 'Cerco', 'icon' => '🔎', 'category' => 'cerco', 'categories' => ['cerco']],
+        'lavoro' => ['label' => 'Lavoro', 'icon' => '💼', 'category' => 'lavoro', 'categories' => ['lavoro']],
+    ];
+
+    /** Quanto resta online un annuncio di un privato. */
+    public const PRIVATE_DAYS = 30;
+
+    /** Stati in più per i privati: «email» = aspetta il clic sul link, «review» = lo controlla Max, «rejected» = non approvato. */
+    public const STATUS_LABELS = [
+        'draft' => 'Bozza',
+        'email' => 'Conferma la tua email',
+        'review' => 'In controllo',
+        'published' => 'Online',
+        'rejected' => 'Non approvato',
+        'sold' => 'Venduto',
     ];
 
     /**
@@ -40,6 +63,10 @@ class ClassifiedAd extends Model
             'hint' => 'Descrivi il servizio: cosa offri, per chi, come lavori, come prenotare...'],
         'libri' => ['icon' => '📚', 'fields' => ['author', 'buy_url'], 'units' => [''],
             'hint' => 'Di cosa parla il libro, a chi è rivolto, lingua, numero di pagine, formato (eBook o cartaceo)...'],
+        'cerco' => ['icon' => '🔎', 'fields' => [], 'units' => [''],
+            'hint' => 'Cosa cerchi, in che stato, quanto vuoi spendere...'],
+        'lavoro' => ['icon' => '💼', 'fields' => [], 'units' => ['', 'ora', 'mese'],
+            'hint' => 'Offri o cerchi lavoro? Che lavoro, orari, esperienza...'],
     ];
 
     /** Campi di testo libero / link specifici di alcune categorie. */
@@ -72,7 +99,8 @@ class ClassifiedAd extends Model
 
     protected $fillable = [
         'tenant_id', 'slug', 'category', 'title', 'zone', 'price', 'price_unit', 'protected_sale', 'description',
-        'features', 'images', 'videos', 'contact_name', 'contact_phone', 'contact_email', 'status', 'published_at',
+        'features', 'images', 'thumb', 'videos', 'contact_name', 'contact_phone', 'contact_email', 'status', 'source',
+        'published_at', 'expires_at',
     ];
 
     protected function casts(): array
@@ -82,6 +110,7 @@ class ClassifiedAd extends Model
             'images' => 'array',
             'videos' => 'array',
             'published_at' => 'datetime',
+            'expires_at' => 'datetime',
             'price' => 'decimal:2',
             'protected_sale' => 'boolean',
         ];
@@ -97,14 +126,48 @@ class ClassifiedAd extends Model
         return $this->belongsTo(Tenant::class);
     }
 
+    /** Online: pubblicato e non scaduto (gli annunci dei privati durano 30 giorni). */
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('status', 'published');
+        return $query->where('status', 'published')
+            ->where(fn (Builder $q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', now()));
     }
 
     public function isPublished(): bool
     {
-        return $this->status === 'published';
+        return $this->status === 'published' && ! $this->isExpired();
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    public function statusLabel(): string
+    {
+        if ($this->status === 'published' && $this->isExpired()) {
+            return 'Scaduto';
+        }
+
+        return self::STATUS_LABELS[$this->status] ?? ucfirst((string) $this->status);
+    }
+
+    /** Foto piccola (per elenchi e piramide35.com); senza, la prima foto. */
+    public function thumbUrl(): ?string
+    {
+        return $this->thumb ? Storage::disk('public')->url($this->thumb) : $this->coverUrl();
+    }
+
+    /** vendo / cerco / lavoro per gli annunci dei privati, null per le altre categorie. */
+    public function privateType(): ?string
+    {
+        foreach (self::PRIVATE_TYPES as $type => $meta) {
+            if (in_array($this->category, $meta['categories'], true)) {
+                return $type;
+            }
+        }
+
+        return null;
     }
 
     /** L'annuncio può essere comprato online con il pagamento protetto: oggetto a prezzo fisso, pubblicato, con l'opzione attiva. */

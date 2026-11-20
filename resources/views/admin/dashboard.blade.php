@@ -19,6 +19,10 @@
         <a class="tile" href="{{ route('admin.commissions.index') }}"><span class="ti">💶</span>Commissioni</a>
         <a class="tile" href="{{ route('admin.protected-orders.index') }}"><span class="ti">🛡️</span>Pagamenti protetti</a>
         <a class="tile" href="{{ route('admin.leads.index') }}"><span class="ti">📩</span>Richieste sito</a>
+        @php $adsToReview = \App\Models\ClassifiedAd::where('status', 'review')->count(); @endphp
+        <a class="tile" href="{{ route('admin.classified-review.index') }}"><span class="ti">📋</span>Annunci da controllare
+            @if ($adsToReview > 0)<span class="tb">{{ $adsToReview }}</span>@endif
+        </a>
         <a class="tile" href="{{ route('pricing.show') }}" target="_blank"><span class="ti">🏷️</span>Listino prezzi</a>
     </div>
 

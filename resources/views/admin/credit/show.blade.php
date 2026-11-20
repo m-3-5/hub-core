@@ -80,6 +80,14 @@
     </form>
     <p class="cr-note">Paghi subito con la carta sulla pagina sicura di Stripe. Ricevuta per email a te e a noi.</p>
 
+    <form method="POST" action="{{ route('voucher.redeem') }}" class="cr-custom" style="margin-top:4px">@csrf
+        <input type="hidden" name="attivita" value="{{ $tenant->slug }}">
+        <input type="text" name="codice" maxlength="80" placeholder="🎁 Hai un codice buono?" autocapitalize="characters" autocomplete="off" spellcheck="false" required value="{{ old('codice') }}">
+        <button type="submit" class="btn btn-secondary">Usa</button>
+    </form>
+    @error('codice')<p class="error">{{ $message }}</p>@enderror
+    <p class="cr-note">I buoni vinti ai giochi di piramide35.com diventano credito.</p>
+
     <details class="cr-more" @if (! $hasCard && $credit < 0) open @endif>
         <summary>Altri modi per pagare</summary>
         <p><strong>💳 Carta salvata, paghi dopo:</strong> quando il credito finisce, quello che pubblichi lo paghi dopo {{ $billDays }} giorni, tutto insieme.</p>
@@ -124,7 +132,7 @@
                     <span>{{ $e->description }}<br><small style="color:#94a3b8">{{ $e->created_at->timezone(config('app.timezone'))->format('d/m/Y') }}</small></span>
                     <b>
                         @if ($e->reason === 'included') Incluso
-                        @elseif (in_array($e->reason, ['topup', 'gift'], true)) <span style="color:#16a34a">+ {{ $eur($e->amount_cents) }}</span>
+                        @elseif (in_array($e->reason, ['topup', 'gift', 'voucher'], true)) <span style="color:#16a34a">+ {{ $eur($e->amount_cents) }}</span>
                         @elseif ($e->status === 'credit') − {{ $eur($e->amount_cents) }}
                         @elseif ($e->status === 'owed') − {{ $eur($e->amount_cents) }} <small>(fido)</small>
                         @elseif ($e->status === 'billed') ✓ {{ $eur($e->amount_cents) }}

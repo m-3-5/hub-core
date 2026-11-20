@@ -133,6 +133,26 @@ Route::get('/accesso/{user}/{tenant}', [MagicLoginController::class, 'login'])
     ->name('magic.login');
 
 Route::get('/annunci',[ClassifiedPublicController::class, 'board'])->name('classifieds.board');
+
+// Entra con un link via email, senza password (privati: annunci, buoni dei giochi).
+Route::get('/entra', [\App\Http\Controllers\EmailLoginController::class, 'show'])->name('email-login.show');
+Route::post('/entra', [\App\Http\Controllers\EmailLoginController::class, 'send'])->middleware('throttle:5,10')->name('email-login.send');
+Route::get('/entra/link', [\App\Http\Controllers\EmailLoginController::class, 'go'])->middleware(['signed', 'throttle:20,1'])->name('email-login.go');
+
+// Annunci dei privati (Vendo / Cerco / Lavoro): link precompilato anche da piramide35.com.
+Route::get('/annunci/nuovo', [\App\Http\Controllers\PrivateAdController::class, 'create'])->name('classifieds.private.create');
+Route::post('/annunci/nuovo', [\App\Http\Controllers\PrivateAdController::class, 'store'])->middleware('throttle:10,10')->name('classifieds.private.store');
+Route::middleware('auth')->group(function () {
+    Route::get('/annunci/miei', [\App\Http\Controllers\PrivateAdController::class, 'mine'])->name('classifieds.private.mine');
+    Route::get('/annunci/conferma/{classifiedAd}', [\App\Http\Controllers\PrivateAdController::class, 'confirm'])->name('classifieds.private.confirm');
+    Route::post('/annunci/{classifiedAd}/rinnova', [\App\Http\Controllers\PrivateAdController::class, 'renew'])->name('classifieds.private.renew');
+    Route::post('/annunci/{classifiedAd}/togli', [\App\Http\Controllers\PrivateAdController::class, 'remove'])->name('classifieds.private.remove');
+});
+
+// Buoni credito vinti ai giochi di piramide35.com.
+Route::get('/buono', [\App\Http\Controllers\GameVoucherController::class, 'show'])->name('voucher.show');
+Route::post('/buono', [\App\Http\Controllers\GameVoucherController::class, 'redeem'])->middleware(['auth', 'throttle:10,1'])->name('voucher.redeem');
+
 Route::get('/a/{tenant}', [ClassifiedPublicController::class, 'board'])->name('classifieds.tenant-board');
 Route::get('/a/{tenant}/{classifiedAd}', [ClassifiedPublicController::class, 'show'])
     ->name('classifieds.show')
@@ -225,6 +245,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/tenants/{tenant}/classifieds/{classifiedAd}/publish', [ClassifiedAdController::class, 'publish'])->name('classifieds.publish');
         Route::post('/tenants/{tenant}/classifieds/{classifiedAd}/unpublish', [ClassifiedAdController::class, 'unpublish'])->name('classifieds.unpublish');
         Route::delete('/tenants/{tenant}/classifieds/{classifiedAd}', [ClassifiedAdController::class, 'destroy'])->name('classifieds.destroy');
+
+        // Annunci dei privati da controllare (solo Max)
+        Route::get('/annunci-da-controllare', [\App\Http\Controllers\Admin\ClassifiedReviewController::class, 'index'])->name('classified-review.index');
+        Route::post('/annunci-da-controllare/{classifiedAd}/approva', [\App\Http\Controllers\Admin\ClassifiedReviewController::class, 'approve'])->name('classified-review.approve');
+        Route::post('/annunci-da-controllare/{classifiedAd}/rifiuta', [\App\Http\Controllers\Admin\ClassifiedReviewController::class, 'reject'])->name('classified-review.reject');
 
         Route::get('/tenants/{tenant}/customer-tickets', [CustomerTicketController::class, 'index'])->name('customer-tickets.index');
         Route::post('/tenants/{tenant}/customer-tickets/{customerTicket}/toggle-status', [CustomerTicketController::class, 'toggleStatus'])->name('customer-tickets.toggle-status');

@@ -16,6 +16,9 @@ Route::prefix('v1')->name('api.')->group(function () {
         ->name('promos.drafts.store');
 });
 
+// Annunci online per paese, letti da piramide35.com (cache 5 minuti, CORS per piramide35.com).
+Route::get('annunci', [\App\Http\Controllers\Api\ClassifiedFeedController::class, 'index'])->middleware('throttle:120,1')->name('api.classifieds.feed');
+
 // Avvisi di Meta sui nuovi post delle pagine collegate (verifica + post firmati).
 Route::get('facebook/webhook', [\App\Http\Controllers\FacebookController::class, 'verify'])->name('facebook.webhook.verify');
 Route::post('facebook/webhook', [\App\Http\Controllers\FacebookController::class, 'webhook'])->middleware('throttle:300,1')->name('facebook.webhook');

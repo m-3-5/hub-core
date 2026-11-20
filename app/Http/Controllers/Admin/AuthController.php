@@ -133,6 +133,11 @@ class AuthController extends Controller
 
     public function redirectAfterLogin(User $user): RedirectResponse
     {
+        // Chi è arrivato per riscattare un buono o pubblicare un annuncio torna lì dopo l'accesso.
+        if ($back = \App\Support\EmailLogin::pullAfterLogin()) {
+            return redirect()->to($back);
+        }
+
         $tenants = $user->accessibleTenants();
 
         if ($tenants->count() === 1) {

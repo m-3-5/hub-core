@@ -133,4 +133,12 @@ return [
         ],
     ],
 
+    // Buoni credito vinti ai giochi di piramide35.com: M35G-{centesimi}-{AAMMGG}-{6 casuali}-{firma HMAC}.
+    // Il segreto è lo stesso nel .env dei due siti (lo scrive Max). Senza segreto i buoni sono spenti.
+    'game_vouchers' => [
+        'secret' => env('GIOCO_BUONI_SEGRETO'),
+        'monthly_limit' => (int) env('GIOCO_BUONI_MAX_MESE', 3),   // buoni per utente/attività al mese
+        'max_cents' => (int) env('GIOCO_BUONI_MAX_CENTESIMI', 500), // un buono non vale più di così
+    ],
+
 ];
