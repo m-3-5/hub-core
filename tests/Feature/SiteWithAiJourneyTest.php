@@ -162,7 +162,7 @@ class SiteWithAiJourneyTest extends TestCase
         Notification::fake();
         [$tenant, $user] = $this->tenantWithOwner();
         $this->mock(ContentModerator::class, fn ($m) => $m->shouldReceive('check')->andReturn(['allowed' => true, 'unavailable' => false, 'category' => 'ok', 'reason' => '']));
-        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate')->andReturn(null));
+        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate', 'illustration')->andReturn(null));
 
         $extras = json_encode([
             'service_details' => [['name' => 'Taglio', 'line' => 'Su misura per te', 'icon' => '✂️']],
@@ -217,7 +217,7 @@ class SiteWithAiJourneyTest extends TestCase
                 return ['allowed' => true, 'unavailable' => false, 'category' => 'ok', 'reason' => ''];
             });
         });
-        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate')->andReturn(null));
+        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate', 'illustration')->andReturn(null));
 
         $payload = [
             'tagline' => 'Il tuo taglio', 'services' => 'Taglio', 'cta_label' => 'Chiamaci', 'phone' => '333 123 4567', 'more' => '1',
@@ -272,7 +272,7 @@ class SiteWithAiJourneyTest extends TestCase
         Notification::fake();
         [$tenant, $user] = $this->tenantWithOwner();
         $this->mock(ContentModerator::class, fn ($m) => $m->shouldReceive('check')->andReturn(['allowed' => true, 'unavailable' => false, 'category' => 'ok', 'reason' => '']));
-        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate')->andReturn(null));
+        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate', 'illustration')->andReturn(null));
 
         \App\Models\Promo::create(['tenant_id' => $tenant->id, 'title' => 'Sconto autunno', 'slug' => 'sconto-autunno', 'status' => 'published', 'always_active' => true, 'published_at' => now()]);
         \App\Models\Promo::create(['tenant_id' => $tenant->id, 'title' => 'Bozza segreta', 'slug' => 'bozza', 'status' => 'draft', 'always_active' => true]);

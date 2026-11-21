@@ -153,6 +153,14 @@
                 <a class="btn ghost" href="https://wa.me/?text={{ rawurlencode($tenant->name.' — '.$siteUrl) }}" target="_blank" rel="noopener">Invia su WhatsApp</a>
                 <button type="button" class="btn ghost" data-goto="describe">✨ Rifallo con l'IA</button>
             </div>
+            @if ($site?->isPublished())
+            <div class="box">
+                <p><b>🎨 Il disegno in alto</b> · lo crea l'IA a tema, coi colori del tuo sito. Non ti piace? Fanne un altro, è gratis.</p>
+                <form method="POST" action="{{ route('admin.sitebuilder.art', $tenant) }}" data-art>@csrf
+                    <button type="submit" class="btn alt" style="width:100%">{{ $site?->hero_svg_path && str_contains($site->hero_svg_path, '/art-') ? 'Fai un altro disegno' : 'Crea il disegno in alto' }}</button>
+                </form>
+            </div>
+            @endif
             <div class="box langs-box">
                 @php
                     $Tr = \M35\HubSitebuilder\Services\SiteTranslations::class;
@@ -172,7 +180,7 @@
                 </div>
                 @if (count($activeLangs) < count($Tr::LANGS))
                     <button type="submit" class="btn main" style="width:100%;margin-top:12px" form="f-langs" id="b-langs" disabled data-cents="{{ $langCents }}">Scegli una o più lingue</button>
-                    <p style="margin:8px 0 0;font-size:.85rem">Non paghi niente adesso: l'addebito arriva dopo {{ (int) config('services.hub_billing.pay_per_use.bill_after_days', 30) }} giorni.</p>
+                    <p style="margin:8px 0 0;font-size:.85rem">Si scala dal tuo credito (la prima volta 15 € in regalo).</p>
                 @endif
             </div>
             <div class="box">
@@ -621,6 +629,7 @@
     }
     document.querySelectorAll('[data-addon]').forEach((b) => b.addEventListener('click', () => { setTimeout(() => { b.disabled = true; b.textContent = 'Un attimo…'; }, 0); }));
     if (bLangs) {
+        document.querySelectorAll('[data-art]').forEach(f => f.addEventListener('submit', () => { const b = f.querySelector('button'); b.disabled = true; b.textContent = "L'IA sta disegnando… (circa 30 secondi)"; }));
         $('f-langs').addEventListener('submit', () => { bLangs.disabled = true; bLangs.textContent = 'L\'IA sta traducendo…'; });
     }
     form.addEventListener('keydown', (e) => {

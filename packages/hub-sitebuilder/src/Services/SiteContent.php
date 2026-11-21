@@ -10,6 +10,51 @@ use M35\HubSitebuilder\Models\GeneratedSite;
 /** Testi del sito: regole di validazione, trasformazione e salvataggio condivisi da area riservata e link segreto. */
 class SiteContent
 {
+    /**
+     * Quanto è «piena di dettagli» una foto (insegne, scritte, vetrine): media della differenza tra pixel vicini,
+     * sulla foto rimpicciolita in grigio. Sotto 18 è calma (va bene come sfondo del titolo), sopra è meglio in cornice.
+     */
+    public static function photoBusy(string $path): float
+    {
+        if (! is_file($path) || ! function_exists('imagecreatefromstring')) {
+            return 0.0;
+        }
+
+        return (float) \Illuminate\Support\Facades\Cache::rememberForever('photo_busy:'.md5($path.'|'.@filemtime($path)), function () use ($path) {
+            $src = @imagecreatefromstring((string) file_get_contents($path));
+            if (! $src) {
+                return 0.0;
+            }
+            $w = imagesx($src);
+            $h = imagesy($src);
+            $sw = 160;
+            $sh = max(2, (int) round($h * $sw / max(1, $w)));
+            $small = imagecreatetruecolor($sw, $sh);
+            imagecopyresampled($small, $src, 0, 0, 0, 0, $sw, $sh, $w, $h);
+            imagedestroy($src);
+
+            $gray = [];
+            for ($y = 0; $y < $sh; $y++) {
+                for ($x = 0; $x < $sw; $x++) {
+                    $c = imagecolorat($small, $x, $y);
+                    $gray[$y][$x] = (int) round(0.299 * (($c >> 16) & 255) + 0.587 * (($c >> 8) & 255) + 0.114 * ($c & 255));
+                }
+            }
+            imagedestroy($small);
+
+            $total = 0;
+            $n = 0;
+            for ($y = 0; $y < $sh - 1; $y++) {
+                for ($x = 0; $x < $sw - 1; $x++) {
+                    $total += abs($gray[$y][$x + 1] - $gray[$y][$x]) + abs($gray[$y + 1][$x] - $gray[$y][$x]);
+                    $n++;
+                }
+            }
+
+            return $n ? round($total / $n, 1) : 0.0;
+        });
+    }
+
     /** @return array<string, array<int, string>> */
     public static function rules(): array
     {
@@ -352,6 +397,18 @@ class SiteContent
         $site->save();
 
         return $site;
+    }
+
+    /** Mette il nuovo disegno in alto e cancella dal disco quello vecchio (e l'eventuale video di sfondo). */
+    public static function replaceArt(GeneratedSite $site, string $path): void
+    {
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        foreach (array_filter([$site->hero_svg_path, $site->hero_video_path]) as $old) {
+            if ($old !== $path) {
+                $disk->delete($old);
+            }
+        }
+        $site->forceFill(['hero_svg_path' => $path, 'hero_video_path' => null])->save();
     }
 
     public static function heroDir(Tenant $tenant): string

@@ -137,7 +137,7 @@ class SiteTranslationsTest extends TestCase
         $this->actingAs($user)->post(route('admin.sitebuilder.languages', $tenant), ['langs' => ['en']]);
 
         $this->mock(ContentModerator::class, fn ($m) => $m->shouldReceive('check')->andReturn(['allowed' => true, 'unavailable' => false, 'category' => 'ok', 'reason' => '']));
-        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate')->andReturn(null));
+        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate', 'illustration')->andReturn(null));
 
         $this->post(route('admin.sitebuilder.generate', $tenant), ['tagline' => 'Novità ogni settimana', 'services' => 'Utensili, Vernici', 'cta_label' => 'Chiamaci'])
             ->assertRedirect(route('admin.sitebuilder.show', $tenant));

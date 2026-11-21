@@ -72,6 +72,70 @@ PROMPT;
         return $svg ? $this->save($svg, $directory) : null;
     }
 
+    /**
+     * Disegno moderno a tema per la parte in alto (accanto al titolo), uguale per tutti i siti:
+     * oggetti riconoscibili del settore, colori del sito, sfondo trasparente, nessun testo.
+     * Gratis (Gemini testo). Restituisce il percorso dell'SVG salvato, o null.
+     *
+     * @param  array<string, mixed>  $answers
+     */
+    public function illustration(Tenant $tenant, array $answers, string $directory): ?string
+    {
+        if (! config('services.gemini.api_key')) {
+            return null;
+        }
+
+        if (function_exists('set_time_limit')) {
+            set_time_limit(150);
+        }
+
+        $color = $tenant->primary_color ?: '#6366f1';
+        $services = implode(', ', array_slice(array_map('strval', (array) ($answers['services'] ?? [])), 0, 6));
+        $tagline = Str::limit((string) ($answers['tagline'] ?? ''), 160);
+        $about = Str::limit((string) ($answers['about'] ?? ''), 300);
+
+        $prompt = <<<PROMPT
+Genera SOLO il codice SVG (nessun markdown, nessuna spiegazione, inizia direttamente con <svg) di un'illustrazione SEMPLICE e moderna in stile flat (poche forme pulite, come le icone grandi delle app), per la parte in alto del sito di "{$tenant->name}".
+Cosa fa l'attività: {$tagline}. {$about}
+Servizi: {$services}.
+Regole:
+- Attributi obbligatori: xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 640". Sfondo TRASPARENTE: nessun rettangolo che copre tutto.
+- Composizione semplice: UNA grande forma morbida di sfondo (cerchio o blob) e sopra 3 o 4 oggetti del settore, grandi e ben riconoscibili, disegnati con poche forme geometriche (es. autoscuola: auto, segnale stradale, tessera patente; dentista: dente sorridente, spazzolino; parrucchiere: forbici, phon, pettine; ufficio pratiche: cartella, timbro, chiavi dell'auto). Al massimo 4-5 puntini o scintille decorative. Niente dettagli minuti. Tutto deve stare DENTRO il viewBox con almeno 40 px di margine (niente forme tagliate ai bordi) e gli oggetti non si sovrappongono troppo.
+- Palette: il colore del sito {$color} con 2-3 sue varianti più chiare e più scure, bianco, e UN colore accento caldo che stia bene con {$color}. Gradienti morbidi (linearGradient), ombre leggere con opacity, angoli arrotondati, contorni puliti.
+- NESSUN testo, lettera, numero, logo, marchio o persona. Niente <image>, <foreignObject>, <script>, link esterni, font.
+- Codice compatto (massimo circa 8 KB), solo forme: path, rect, circle, ellipse, polygon, g, defs, linearGradient, radialGradient, stop.
+PROMPT;
+
+        try {
+            $text = $this->gemini->generate($prompt, temperature: 0.8, timeout: 70, maxModels: 2);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return null;
+        }
+
+        $svg = $this->extractSvg($text);
+        if (! $svg || strlen($svg) > 120_000 || preg_match('/<image|<foreignObject|url\(\s*["\']?https?:/i', $svg) || ! $this->wellFormed($svg)) {
+            return null;
+        }
+
+        Storage::disk('public')->makeDirectory($directory);
+        $path = $directory.'/art-'.Str::random(20).'.svg';
+        Storage::disk('public')->put($path, $svg);
+
+        return $path;
+    }
+
+    private function wellFormed(string $svg): bool
+    {
+        $previous = libxml_use_internal_errors(true);
+        $doc = simplexml_load_string($svg, 'SimpleXMLElement', LIBXML_NONET);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previous);
+
+        return $doc !== false && strtolower($doc->getName()) === 'svg';
+    }
+
     private function extractSvg(string $raw): ?string
     {
         $raw = trim($raw);

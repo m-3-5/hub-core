@@ -88,10 +88,13 @@ class SiteBuilderController extends Controller
             $tenant->update(['address' => SiteCopyWriter::clean($validated['address'] ?? '', 200) ?: null]);
         }
 
-        // Con foto vere la prima fa da sfondo in alto: inutile (e lento) disegnarne uno con l'IA.
-        $hero = empty($answers['media']['photos'] ?? ($tenant->generatedSite?->answers['media']['photos'] ?? []))
-            ? $heroGenerator->generate($tenant, SiteContent::heroDir($tenant), $answers['extras']['style'] ?? null)
-            : null;
+        // Il disegno moderno in alto (a tema, coi colori del sito) si crea una volta sola, alla prima messa online:
+        // le foto vere vanno in «Chi siamo» e nella galleria. Si può rifare gratis dal riepilogo.
+        $hero = null;
+        if (! $tenant->generatedSite?->hero_svg_path) {
+            $art = $heroGenerator->illustration($tenant, $answers, SiteContent::heroDir($tenant));
+            $hero = $art ? ['svg_path' => $art, 'video_path' => null] : null;
+        }
         // «Paghi quello che pubblichi»: il sito costa 1 € una volta sola, alla prima messa online (le modifiche no).
         $firstTime = ! $tenant->generatedSite?->published_at;
         $site = SiteContent::save($tenant, $answers, $hero);
@@ -210,6 +213,22 @@ class SiteBuilderController extends Controller
         }
 
         return back()->with('success', $msg);
+    }
+
+    /** Nuovo disegno in alto creato dall'IA (gratis): se non piace, se ne fa un altro. */
+    public function art(Tenant $tenant, SiteBuilderHeroGenerator $heroGenerator): RedirectResponse
+    {
+        $site = $tenant->generatedSite;
+        abort_unless($site && $site->isPublished(), 404);
+
+        $path = $heroGenerator->illustration($tenant, $site->answers ?? [], SiteContent::heroDir($tenant));
+        if (! $path) {
+            return back()->withErrors(['tagline' => 'L\'IA non è riuscita a disegnare adesso: riprova tra un minuto.']);
+        }
+
+        SiteContent::replaceArt($site, $path);
+
+        return back()->with('success', 'Fatto! Nuovo disegno in alto sul tuo sito.');
     }
 
     /** Opzioni del sito a 1 € l'una (SEO, IA, indicizza): automatiche. Senza carta si chiede la carta e poi si attiva da sola. */

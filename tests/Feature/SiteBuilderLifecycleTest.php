@@ -24,7 +24,7 @@ class SiteBuilderLifecycleTest extends TestCase
         $this->mock(ContentModerator::class, fn ($m) => $m->shouldReceive('check')->andReturn([
             'allowed' => $allowed, 'unavailable' => $unavailable, 'category' => $allowed ? 'ok' : 'truffa', 'reason' => $reason,
         ]));
-        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate')->andReturn(null));
+        $this->mock(SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate', 'illustration')->andReturn(null));
     }
 
     /** @return array{0: Tenant, 1: User} */

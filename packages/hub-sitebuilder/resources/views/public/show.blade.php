@@ -37,12 +37,31 @@
         $heroVisual = $photos[0] ?? ($site->hero_video_path
             ? $disk->url($site->hero_video_path)
             : ($site->hero_svg_path ? $disk->url($site->hero_svg_path) : null));
-        // Foto in alto non abbastanza larga (verticale, quadrata, volantino): si mostra intera in cornice, sfocata dietro.
-        $heroFramed = false;
+        // Come mostrare la parte in alto (sceglie da solo, così non viene mai brutta):
+        //  bg    = foto larga e «calma» come sfondo;
+        //  split = foto piena di dettagli (insegne, vetrine) o non larga: colori del sito a sinistra, foto in cornice a destra
+        //          (con 4+ foto, un piccolo mosaico);
+        //  brand = senza foto: colori del sito, logo e i servizi come etichette.
+        $heroMode = 'brand';
         if (! empty($media['photos'][0]) && $disk->exists($media['photos'][0])) {
             $size = @getimagesize($disk->path($media['photos'][0]));
-            $heroFramed = $size && $size[1] > 0 && $size[0] / $size[1] < 1.6;
+            $ratio = $size && $size[1] > 0 ? $size[0] / $size[1] : 1;
+            $heroMode = $ratio >= 1.6 && \M35\HubSitebuilder\Services\SiteContent::photoBusy($disk->path($media['photos'][0])) < 18 ? 'bg' : 'split';
         }
+        if (in_array($extras['hero_mode'] ?? null, ['bg', 'split', 'brand'], true) && (($extras['hero_mode'] === 'brand') || count($photos))) {
+            $heroMode = $extras['hero_mode'];
+        }
+        // Il disegno moderno a tema creato dall'IA (uguale per tutti i siti) vince: in alto c'è lui, le foto vanno sotto.
+        $heroArt = $site->hero_svg_path && str_contains($site->hero_svg_path, '/art-') && $disk->exists($site->hero_svg_path) ? $disk->url($site->hero_svg_path) : null;
+        if ($heroArt && empty($extras['hero_mode'])) {
+            $heroMode = 'art';
+        }
+        $heroFramed = $heroMode === 'split';
+        $heroCollage = $heroFramed && count($photos) >= 4 ? [$photos[2], $photos[3]] : [];
+        if ($heroMode !== 'bg') {
+            $heroVisual = null; // sfondo pulito con i colori del sito: niente foto confuse dietro al titolo
+        }
+        $ratingCount = count($info['reviews'] ?? []);
         $aboutPhoto = $photos[1] ?? null;
         // Forma di ogni foto (verticale, larga o quadrata): la card la segue, così la foto la riempie tagliata il meno possibile.
         $shapes = array_map(function ($p) use ($disk) {
@@ -87,7 +106,14 @@
         $lead = $about ? \Illuminate\Support\Str::limit(\Illuminate\Support\Str::before($about.' ', '. ').'.', 140) : null;
         $siteUrl = $lang === 'it' ? route('site.public.show', $tenant) : route('site.public.lang', [$tenant, $lang]);
         $langUrl = fn (string $l) => $l === 'it' ? route('site.public.show', $tenant) : route('site.public.lang', [$tenant, $l]);
-        $description = \Illuminate\Support\Str::limit($tagline.($about ? ' — '.$about : ''), 160);
+        // Descrizione per Google: frase intera, tagliata su una parola (mai «sbrighi pa...»).
+        $description = trim($tagline.($about ? ' — '.$about : ''));
+        if (mb_strlen($description) > 158) {
+            $description = rtrim(mb_substr($description, 0, mb_strrpos(mb_substr($description, 0, 156), ' ') ?: 156), ' ,;:—-').'…';
+        }
+        // Immagine quando si condivide il sito (WhatsApp, Facebook): la foto, se no il logo; mai quella di Hub Core se c'è altro.
+        $shareImage = $photos[0] ?? $logo ?? asset('images/og-hub-core.png');
+        $favicon = $logo ?: 'data:image/svg+xml,'.rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="'.$primary.'"/><text x="32" y="44" font-family="Arial,sans-serif" font-size="36" font-weight="700" fill="#fff" text-anchor="middle">'.e($initial).'</text></svg>');
     @endphp
     @php
         // Opzioni a 1 €: SEO (titolo, descrizione, parole, testi delle foto) e «Fatti trovare dall'IA».
@@ -112,10 +138,15 @@
     <meta property="og:type" content="website">
     <meta property="og:locale" content="{{ $lang === 'it' ? 'it_IT' : (\M35\HubSitebuilder\Services\SiteTranslations::LANGS[$lang][3] ?? 'it_IT') }}">
     <meta property="og:url" content="{{ $siteUrl }}">
-    <meta property="og:image" content="{{ $photos[0] ?? asset('images/og-hub-core.png') }}">
-    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:image" content="{{ $shareImage }}">
+    <meta property="og:image:alt" content="{{ $tenant->name }}">
+    <meta property="og:site_name" content="{{ $tenant->name }}">
+    <meta name="twitter:card" content="{{ count($photos) ? 'summary_large_image' : 'summary' }}">
+    <meta name="twitter:description" content="{{ $description }}">
+    <link rel="icon" href="{{ $favicon }}">
+    <link rel="apple-touch-icon" href="{{ $logo ?: asset('pwa/apple-touch-icon.png') }}">
     <meta name="twitter:title" content="{{ $tenant->name }}">
-    <meta name="twitter:image" content="{{ $photos[0] ?? asset('images/og-hub-core.png') }}">
+    <meta name="twitter:image" content="{{ $shareImage }}">
     <meta name="theme-color" content="{{ $primary }}">
     <script type="application/ld+json">{!! json_encode(array_filter([
         '@'.'context' => 'https://schema.org',
@@ -123,6 +154,8 @@
         'name' => $tenant->name,
         'description' => $tagline,
         'url' => $siteUrl,
+        'areaServed' => $info['area'] ?? null,
+        'openingHours' => $hours ?: null,
         'telephone' => $tenant->phone,
         'address' => $tenant->address,
         'image' => $photos[0] ?? $logo,
@@ -193,11 +226,47 @@
         /* Foto in alto sempre intera: sul telefono in cornice sotto il titolo; al computer anche come sfondo se è larga. */
         .hero.has-photo .hero-bg { filter: blur(26px) saturate(1.1); transform: scale(1.15); opacity: .75; }
         .hero-shot { position: relative; display: block; margin: 30px auto 0; width: auto; height: auto; max-width: 100%; max-height: 380px; border-radius: 22px; border: 4px solid rgba(255,255,255,.85); box-shadow: 0 24px 60px rgba(0,0,0,.35); cursor: zoom-in; }
+        /* Senza foto confuse dietro: sfondo coi colori del sito, luci morbide e una trama leggera. */
+        .hm-split, .hm-brand { background: radial-gradient(circle at 85% 20%, color-mix(in srgb, var(--primary) 55%, transparent), transparent 45%), radial-gradient(circle at 10% 90%, color-mix(in srgb, var(--primary) 35%, transparent), transparent 50%), linear-gradient(135deg, var(--primary-dark), #0b0d12); }
+        .hm-split .hero-scrim, .hm-brand .hero-scrim { background: radial-gradient(rgba(255,255,255,.07) 1px, transparent 1px) 0 0 / 22px 22px; }
+        .hero-media { position: relative; margin: 30px auto 0; max-width: 520px; }
+        .hero-media .hero-shot { margin: 0 auto; }
+        .hm-split .hero-shot { width: 100%; max-height: none; aspect-ratio: 4 / 3; object-fit: cover; }
+        .hm-split .hero-media:not(.collage) .hero-shot { aspect-ratio: auto; max-height: 420px; width: auto; }
+        .hero-mini { display: none; }
+        .hero-badge { position: absolute; left: -10px; bottom: 18px; background: #fff; color: #14161a; font-weight: 800; font-size: .88rem; padding: 10px 14px; border-radius: 14px; box-shadow: 0 14px 30px rgba(0,0,0,.25); }
+        .hero-trust { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 18px; font-size: .92rem; opacity: .95; }
+        .hero-trust a { text-decoration: none; }
+        .hero-stars { color: #fbbf24; letter-spacing: 1px; }
+        .hero-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+        .hero-chips span { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 99px; padding: 8px 14px; font-weight: 600; font-size: .9rem; backdrop-filter: blur(6px); }
+        .hero-card { display: none; }
+        /* Disegno a tema: parte in alto chiara e moderna, testo scuro, disegno grande accanto al titolo. */
+        .hm-art { color: var(--ink); background: radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 45%), linear-gradient(170deg, var(--primary-soft), var(--paper) 85%); }
+        .hm-art .hero-scrim { background: radial-gradient(color-mix(in srgb, var(--primary) 14%, transparent) 1px, transparent 1px) 0 0 / 24px 24px; opacity: .7; }
+        .hm-art .eyebrow, .hm-art .hero-open { background: var(--card); border-color: color-mix(in srgb, var(--primary) 25%, var(--line)); color: var(--primary-dark); }
+        .hm-art h1 { color: var(--ink); }
+        .hm-art p.lead { color: var(--muted); opacity: 1; }
+        .hm-art .btn.ghost { background: var(--card); color: var(--ink); border-color: var(--line); }
+        .hm-art .hero-trust { color: var(--muted); }
+        .hero-art { margin: 26px auto 0; max-width: min(320px, 86vw); }
+        .hero-art img { width: 100%; height: auto; filter: drop-shadow(0 24px 40px color-mix(in srgb, var(--primary) 22%, transparent)); animation: heroFloat 7s ease-in-out infinite; }
+        @keyframes heroFloat { 50% { transform: translateY(-10px); } }
+        @media (prefers-reduced-motion: reduce) { .hero-art img { animation: none; } }
         @media (min-width: 900px) {
-            .hero.has-photo:not(.framed) .hero-bg { filter: none; transform: none; opacity: .9; }
-            .hero.has-photo:not(.framed) .hero-shot { display: none; }
-            .hero.framed .hero-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 48px; align-items: center; }
-            .hero.framed .hero-shot { margin: 0; max-width: 380px; max-height: 460px; }
+            .hm-bg .hero-bg { filter: none; transform: none; opacity: .9; }
+            .hero:not(.framed) .hero-media { display: none; }
+            .hm-art .hero-art { margin: 0; max-width: none; }
+            .hero.framed .hero-inner, .hm-brand .hero-inner, .hm-art .hero-inner { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 56px; align-items: center; }
+            .hero.framed .hero-media { margin: 0; max-width: none; }
+            .hero.framed .hero-media:not(.collage) .hero-shot { max-width: 100%; max-height: 460px; }
+            .hero-media.collage { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; }
+            .hero-media.collage .hero-shot { grid-row: span 2; height: 100%; aspect-ratio: auto; min-height: 340px; }
+            .hero-media.collage .hero-mini { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 18px; border: 3px solid rgba(255,255,255,.85); cursor: zoom-in; }
+            .hero-card { display: grid; place-items: center; gap: 18px; justify-self: center; width: min(360px, 100%); aspect-ratio: 1; border-radius: 32px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); backdrop-filter: blur(10px); box-shadow: 0 30px 70px rgba(0,0,0,.35); padding: 34px; text-align: center; }
+            .hero-card img { max-width: 70%; max-height: 60%; object-fit: contain; border-radius: 18px; background: #fff; padding: 14px; }
+            .hero-card b { font-family: var(--font-display); font-size: 7rem; line-height: 1; }
+            .hero-card span { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; }
         }
         .wave { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 70px; z-index: 3; display: block; }
 
@@ -277,6 +346,9 @@
         /* Foto sempre intere e tutte della stessa misura: lo spazio che avanza è la stessa foto, sfocata. */
         /* Foto piene nella card. La card segue la forma della foto (mosaico sfalsato): grandi e poco tagliate. */
         .about-art.photo { cursor: zoom-in; }
+        .about-art.logo { background: var(--card); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(16,18,24,.10); padding: 14%; }
+        .about-art.logo img { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 1; }
+        .about-art.logo::before { border-color: var(--primary-soft); } .about-art.logo::after { background: var(--primary-soft); border-color: transparent; }
         .about-art.photo img { width: 100%; height: 100%; object-fit: cover; }
         .about-art.photo.wide { aspect-ratio: 4 / 3; max-width: min(480px, 100%); }
         .about-art.photo.tall { aspect-ratio: 3 / 4; max-width: min(360px, 80vw); }
@@ -375,7 +447,7 @@
     </div>
 </header>
 
-<section class="hero{{ count($photos) ? ' has-photo' : '' }}{{ $heroFramed ? ' framed' : '' }}" id="top">
+<section class="hero hm-{{ $heroMode }}{{ count($photos) ? ' has-photo' : '' }}{{ $heroFramed ? ' framed' : '' }}" id="top">
     @if ($heroVisual)
         <img class="hero-bg" src="{{ $heroVisual }}" alt="">
     @endif
@@ -391,8 +463,32 @@
             @if ($waUrl && $ctaUrl !== $waUrl)<a class="btn ghost" href="{{ $waUrl }}" target="_blank" rel="noopener">WhatsApp</a>@endif
             @if (count($services))<a class="btn ghost" href="#servizi">{{ $t('Cosa offriamo') }}</a>@endif
         </div>
+        @if ($ratingCount || $tenant->address)
+            <div class="hero-trust">
+                @if ($ratingCount)<a href="#recensioni"><b class="hero-stars">★★★★★</b> {{ $ratingCount }} {{ $t($ratingCount === 1 ? 'recensione' : 'recensioni') }}</a>@endif
+                @if ($tenant->address)<span>📍 {{ \Illuminate\Support\Str::limit(\Illuminate\Support\Str::afterLast(trim(preg_replace('/\d{5}/', '', $tenant->address)), ','), 40) ?: $tenant->address }}</span>@endif
+            </div>
+        @endif
+        @if ($heroMode === 'brand' && count($services))
+            <div class="hero-chips" aria-hidden="true">
+                @foreach (array_slice($services, 0, 4) as $sv)<span>{{ $sv['icon'] }} {{ \Illuminate\Support\Str::limit($sv['name'], 28) }}</span>@endforeach
+            </div>
+        @endif
         </div>
-        @if (count($photos))<img class="hero-shot" src="{{ $photos[0] }}" alt="{{ $alt(0) }}" data-full="{{ $photos[0] }}">@endif
+        @if (count($photos) && in_array($heroMode, ['bg', 'split'], true))
+            <div class="hero-media{{ $heroCollage ? ' collage' : '' }}">
+                <img class="hero-shot" src="{{ $photos[0] }}" alt="{{ $alt(0) }}" data-full="{{ $photos[0] }}">
+                @foreach ($heroCollage as $ci => $cp)<img class="hero-mini m{{ $ci }}" src="{{ $cp }}" alt="{{ $alt($ci + 2) }}" data-full="{{ $cp }}" loading="lazy">@endforeach
+                @if ($ratingCount)<span class="hero-badge">⭐ {{ $t('Clienti soddisfatti') }}</span>@endif
+            </div>
+        @elseif ($heroMode === 'art')
+            <div class="hero-art"><img src="{{ $heroArt }}" alt="" width="800" height="640"></div>
+        @elseif ($heroMode === 'brand')
+            <div class="hero-card" aria-hidden="true">
+                @if ($logo)<img src="{{ $logo }}" alt="">@else<b>{{ $initial }}</b>@endif
+                <span>{{ $tenant->name }}</span>
+            </div>
+        @endif
     </div>
     <svg class="wave" viewBox="0 0 1440 70" preserveAspectRatio="none" aria-hidden="true"><path fill="{{ count($strengths) ? ($dark ? '#0d0f14' : '#ffffff') : ($dark ? '#0d0f14' : '#ffffff') }}" d="M0,40 C240,80 480,0 720,24 C960,48 1200,70 1440,30 L1440,70 L0,70 Z"/></svg>
 </section>
@@ -429,7 +525,7 @@
 @if ($about)
 <section class="section" id="chi-siamo">
     <div class="wrap about">
-        @if ($aboutPhoto)<div class="about-art photo {{ $shapes[1] ?? 'square' }} rv" data-full="{{ $aboutPhoto }}"><img src="{{ $aboutPhoto }}" alt="{{ $alt(1) }}" loading="lazy"></div>@else<div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>@endif
+        @if ($aboutPhoto)<div class="about-art photo {{ $shapes[1] ?? 'square' }} rv" data-full="{{ $aboutPhoto }}"><img src="{{ $aboutPhoto }}" alt="{{ $alt(1) }}" loading="lazy"></div>@elseif ($logo)<div class="about-art logo rv" aria-hidden="true"><img src="{{ $logo }}" alt="" loading="lazy"></div>@else<div class="about-art rv" aria-hidden="true"><b>{{ $initial }}</b></div>@endif
         <div class="about-text rv"><span class="kicker">{{ $t('Chi siamo') }}</span><h2>{{ $tenant->name }}</h2><p>{{ $about }}</p></div>
     </div>
 </section>
@@ -535,7 +631,7 @@
 @endif
 
 @if (count($reviews))
-<section class="section" aria-label="{{ $t('Cosa dicono i clienti') }}">
+<section class="section" id="recensioni" aria-label="{{ $t('Cosa dicono i clienti') }}">
     <div class="wrap">
         <div class="head rv"><span class="kicker">{{ $t('Dicono di noi') }}</span><h2>{{ $t('Parola ai clienti') }}</h2></div>
         <div class="reviews">

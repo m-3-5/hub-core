@@ -265,7 +265,7 @@ class PayPerUseTest extends TestCase
     private function makeSite(Tenant $tenant, User $user)
     {
         $this->mock(\App\Services\ContentModerator::class, fn ($m) => $m->shouldReceive('check')->andReturn(['allowed' => true, 'unavailable' => false, 'category' => 'ok', 'reason' => '']));
-        $this->mock(\M35\HubSitebuilder\Services\SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate')->andReturn(null));
+        $this->mock(\M35\HubSitebuilder\Services\SiteBuilderHeroGenerator::class, fn ($m) => $m->shouldReceive('generate', 'illustration')->andReturn(null));
         \Illuminate\Support\Facades\Notification::fake();
 
         return $this->actingAs($user)->post(route('admin.sitebuilder.generate', $tenant), [
