@@ -29,6 +29,7 @@ class HubSitebuilderServiceProvider extends ServiceProvider
                 Route::post('/sitebuilder', [SiteBuilderController::class, 'generate'])->middleware('throttle:10,1')->name('sitebuilder.generate');
                 Route::post('/sitebuilder/scrivi', [SiteBuilderController::class, 'suggest'])->middleware('throttle:8,1')->name('sitebuilder.suggest');
                 Route::post('/sitebuilder/opzione/{name}', [SiteBuilderController::class, 'addon'])->where('name', 'seo|ai|index')->middleware('throttle:6,1')->name('sitebuilder.addon');
+                Route::post('/sitebuilder/visibilita', [SiteBuilderController::class, 'visibility'])->middleware('throttle:10,1')->name('sitebuilder.visibility');
                 Route::post('/sitebuilder/disegno', [SiteBuilderController::class, 'art'])->middleware('throttle:4,1')->name('sitebuilder.art');
                 Route::post('/sitebuilder/lingue', [SiteBuilderController::class, 'languages'])->middleware('throttle:6,1')->name('sitebuilder.languages');
                 Route::post('/sitebuilder/link', [SiteBuilderController::class, 'editLink'])->middleware('throttle:5,10')->name('sitebuilder.edit-link');

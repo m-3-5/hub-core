@@ -82,8 +82,14 @@ class GeneratedSite extends Model
     }
 
     /** Il sito è visibile al pubblico solo se pubblicato E l'attività ha confermato una email vera. */
+    /** Messo offline dal titolare: resta salvato, lo vede solo lui in anteprima. */
+    public function isOffline(): bool
+    {
+        return ! empty($this->answers['offline_at']);
+    }
+
     public function isLive(): bool
     {
-        return $this->isPublished() && $this->tenant && ! $this->tenant->isGuestPending();
+        return $this->isPublished() && ! $this->isOffline() && $this->tenant && ! $this->tenant->isGuestPending();
     }
 }

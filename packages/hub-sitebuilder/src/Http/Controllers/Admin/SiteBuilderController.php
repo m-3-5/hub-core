@@ -215,6 +215,25 @@ class SiteBuilderController extends Controller
         return back()->with('success', $msg);
     }
 
+    /** Sito online / offline con un tasto: offline resta salvato e lo vede solo il titolare. */
+    public function visibility(Tenant $tenant): RedirectResponse
+    {
+        $site = $tenant->generatedSite;
+        abort_unless($site && $site->isPublished(), 404);
+
+        $answers = $site->answers ?? [];
+        if ($site->isOffline()) {
+            unset($answers['offline_at']);
+            $msg = 'Il tuo sito è di nuovo online.';
+        } else {
+            $answers['offline_at'] = now()->toIso8601String();
+            $msg = 'Il tuo sito è offline: lo vedi solo tu. Lo rimetti online quando vuoi.';
+        }
+        $site->forceFill(['answers' => $answers])->save();
+
+        return back()->with('success', $msg);
+    }
+
     /** Nuovo disegno in alto creato dall'IA (gratis): se non piace, se ne fa un altro. */
     public function art(Tenant $tenant, SiteBuilderHeroGenerator $heroGenerator): RedirectResponse
     {

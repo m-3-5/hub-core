@@ -112,4 +112,23 @@ class SiteHeroModesTest extends TestCase
         $this->actingAs($user)->post(route('admin.sitebuilder.art', $tenant))->assertRedirect()->assertSessionHas('success');
         $this->assertSame('sites/ufficio-pratiche/y/art-new.svg', $tenant->generatedSite->fresh()->hero_svg_path);
     }
+
+    public function test_owner_can_put_the_site_offline_and_back_online(): void
+    {
+        $tenant = $this->site();
+        $user = User::factory()->create();
+        $user->tenants()->attach($tenant, ['role' => 'admin']);
+
+        $this->actingAs($user)->post(route('admin.sitebuilder.visibility', $tenant))->assertRedirect();
+        $this->assertTrue($tenant->generatedSite->fresh()->isOffline());
+        $this->get(route('site.public.show', $tenant))->assertOk(); // il titolare lo vede in anteprima
+        $this->get(route('admin.sitebuilder.show', $tenant))->assertSee('Il tuo sito è offline')->assertSee('Rimetti online');
+
+        auth()->logout();
+        $this->get(route('site.public.show', $tenant))->assertNotFound();
+
+        $this->actingAs($user)->post(route('admin.sitebuilder.visibility', $tenant));
+        auth()->logout();
+        $this->get(route('site.public.show', $tenant))->assertOk();
+    }
 }

@@ -139,9 +139,16 @@
 
         {{-- Sito già online --}}
         <section class="wz-step" data-step="done">
+            @if ($site?->isOffline())
+            <div class="done-ico">⏸️</div>
+            <h1>Il tuo sito è offline</h1>
+            <p class="sub">Nessuno lo vede tranne te. I testi e le foto restano salvati.</p>
+            @else
             <div class="done-ico">🎉</div>
             <h1>Il tuo sito è online</h1>
-            @if ($tenant->isGuestPending())
+            @endif
+            @if ($site?->isOffline())
+            @elseif ($tenant->isGuestPending())
                 <p class="sub">Lo vedi solo tu finché non confermi la tua email.</p>
             @else
                 <p class="sub">Mandalo ai clienti, mettilo su WhatsApp e sui social.</p>
@@ -154,6 +161,14 @@
                 <button type="button" class="btn ghost" data-goto="describe">✨ Rifallo con l'IA</button>
             </div>
             @if ($site?->isPublished())
+            @if ($site?->isPublished())
+            <div class="box">
+                <p><b>{{ $site->isOffline() ? '⏸️ Sito offline' : '🟢 Sito online' }}</b> · {{ $site->isOffline() ? 'nessuno lo vede tranne te.' : 'lo vedono tutti.' }} Puoi cambiarlo quando vuoi, gratis.</p>
+                <form method="POST" action="{{ route('admin.sitebuilder.visibility', $tenant) }}" @unless ($site->isOffline()) onsubmit="return confirm('Mettere il sito offline? Nessuno lo vedrà finché non lo rimetti online.')" @endunless>@csrf
+                    <button type="submit" class="btn {{ $site->isOffline() ? 'main' : 'ghost' }}" style="width:100%">{{ $site->isOffline() ? 'Rimetti online' : 'Metti offline' }}</button>
+                </form>
+            </div>
+            @endif
             <div class="box">
                 <p><b>🎨 Il disegno in alto</b> · lo crea l'IA a tema, coi colori del tuo sito. Non ti piace? Fanne un altro, è gratis.</p>
                 <form method="POST" action="{{ route('admin.sitebuilder.art', $tenant) }}" data-art>@csrf
