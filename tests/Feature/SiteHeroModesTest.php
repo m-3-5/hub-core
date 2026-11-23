@@ -131,4 +131,19 @@ class SiteHeroModesTest extends TestCase
         auth()->logout();
         $this->get(route('site.public.show', $tenant))->assertOk();
     }
+
+    public function test_a_broken_drawing_is_asked_again_once(): void
+    {
+        config(['services.gemini.api_key' => 'test-key']);
+        $tenant = $this->site();
+        $this->mock(\App\Services\GeminiTextClient::class, fn ($m) => $m->shouldReceive('generate')->twice()->andReturn(
+            '<svg xmlns="http://www.w3.org/2000/svg"><circle r="5"', // tagliato a metà
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 640"><circle cx="400" cy="320" r="200" fill="#1d4e89"/></svg>',
+        ));
+
+        $path = app(SiteBuilderHeroGenerator::class)->illustration($tenant, ['tagline' => 'Barbiere'], 'sites/ufficio-pratiche/z');
+
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
+    }
 }

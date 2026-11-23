@@ -86,7 +86,7 @@ PROMPT;
         }
 
         if (function_exists('set_time_limit')) {
-            set_time_limit(150);
+            set_time_limit(300);
         }
 
         $color = $tenant->primary_color ?: '#6366f1';
@@ -106,16 +106,26 @@ Regole:
 - Codice compatto (massimo circa 8 KB), solo forme: path, rect, circle, ellipse, polygon, g, defs, linearGradient, radialGradient, stop.
 PROMPT;
 
-        try {
-            $text = $this->gemini->generate($prompt, temperature: 0.8, timeout: 70, maxModels: 2);
-        } catch (\Throwable $e) {
-            report($e);
+        // Due tentativi; in ognuno si provano tutti i modelli (quelli occupati o senza quota rispondono subito di no).
+        $svg = null;
+        for ($attempt = 1; $attempt <= 2 && ! $svg; $attempt++) {
+            try {
+                $text = $this->gemini->generate($prompt, temperature: 0.8, timeout: 45);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Disegno del sito: IA non disponibile', ['tenant' => $tenant->slug, 'message' => $e->getMessage()]);
 
-            return null;
+                continue;
+            }
+
+            $candidate = $this->extractSvg($text);
+            if ($candidate && strlen($candidate) <= 120_000 && ! preg_match('/<image|<foreignObject|url\(\s*["\']?https?:/i', $candidate) && $this->wellFormed($candidate)) {
+                $svg = $candidate;
+            } else {
+                \Illuminate\Support\Facades\Log::warning('Disegno del sito: SVG non valido, riprovo', ['tenant' => $tenant->slug, 'attempt' => $attempt]);
+            }
         }
 
-        $svg = $this->extractSvg($text);
-        if (! $svg || strlen($svg) > 120_000 || preg_match('/<image|<foreignObject|url\(\s*["\']?https?:/i', $svg) || ! $this->wellFormed($svg)) {
+        if (! $svg) {
             return null;
         }
 
