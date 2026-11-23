@@ -326,7 +326,9 @@
 
         /* Footer */
         footer { background: #0f1117; color: #c8ccd6; padding: 56px 0 calc(28px + env(safe-area-inset-bottom)); }
-        .foot { display: grid; gap: 32px; }
+        .foot { display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr); }
+        .foot .brand span:last-child { white-space: normal; overflow: visible; }
+        .foot li, .foot p { overflow-wrap: anywhere; }
         .foot .brand { color: #fff; margin-bottom: 12px; }
         .foot p { color: #9aa0ad; font-size: .95rem; max-width: 340px; }
         .foot h4 { color: #fff; font-size: .82rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 12px; }
@@ -337,7 +339,7 @@
         .legal a { color: #c8ccd6; }
         .made { display: inline-flex; align-items: center; gap: 6px; }
         .made b { color: #fff; }
-        @media (min-width: 760px) { .foot { grid-template-columns: 1.4fr 1fr 1fr; } }
+        @media (min-width: 760px) { .foot { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); } }
 
         /* Logo, foto, galleria, recensioni, dove e quando */
         .mono.logo { object-fit: contain; background: #fff; padding: 3px; border: 1px solid var(--line); }
