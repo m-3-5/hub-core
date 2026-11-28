@@ -79,7 +79,7 @@
                 elseif ($p['langs'] > 0) $l[] = $p['langs'].' lingue del sito';
                 if ($p['done_for_you']) $l[] = '«Lo facciamo noi»: sito e prime promo';
                 if ($p['priority']) $l[] = 'Assistenza prioritaria';
-                if ($p['flyers'] > 0) $l[] = $p['flyers'].' volantino'.($p['flyers'] > 1 ? 'i' : '').' con l\'IA al mese <small>(in arrivo)</small>';
+                if ($p['flyers'] > 0) $l[] = $p['flyers'].($p['flyers'] > 1 ? ' volantini' : ' volantino').' con l\'IA al mese <small>(in arrivo)</small>';
                 if ($p['featured_weeks'] > 0) $l[] = $p['featured_weeks'].' settiman'.($p['featured_weeks'] > 1 ? 'e' : 'a').' «In evidenza» al mese <small>(in arrivo)</small>';
                 return $l;
             };
