@@ -7,7 +7,7 @@
         $ppuDays = (int) config('services.hub_billing.pay_per_use.bill_after_days', 30);
         $ppuIncl = (int) config('services.hub_billing.pay_per_use.included_with_site', 3);
         $title = 'Crea il tuo sito con l\'IA a 1 € | Hub Core';
-        $desc = 'Scrivi in due righe cosa fa la tua attività: l\'intelligenza artificiale prepara il sito, pronto per il telefono, con pulsante per chiamare e WhatsApp. Costa 1 € e lo paghi dopo '.$ppuDays.' giorni.';
+        $desc = 'Scrivi in due righe cosa fa la tua attività: l\'intelligenza artificiale prepara il sito, pronto per il telefono, con pulsante per chiamare e WhatsApp. Costa 1 € e lo paghi con i 15 € di credito che ti regaliamo.';
     @endphp
     <title>{{ $title }}</title>
     <meta name="description" content="{{ $desc }}">
@@ -91,7 +91,7 @@
         <h1>Il tuo sito, scritto dall'IA in 5 minuti</h1>
         <p>Racconti in due righe cosa fai. L'IA scrive i testi, tu controlli e lo metti online.</p>
         <a class="ss-btn" href="{{ $startUrl }}">{{ $loggedIn ? 'Crea il mio sito' : 'Crea il mio sito a 1 €' }} →</a>
-        <span class="ss-note">1 € · lo paghi dopo {{ $ppuDays }} giorni · niente abbonamento</span>
+        <span class="ss-note">1 € dal credito in regalo · niente carta · niente abbonamento</span>
 
         <div class="ss-phone" aria-hidden="true">
             <div class="ss-phone__hero"><small>Salone Anna</small><b>Il tuo prossimo taglio, come lo hai sempre immaginato</b><span>Prenota ora</span></div>

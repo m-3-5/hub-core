@@ -51,7 +51,7 @@
         <label class="q" for="contact">E tu come ti chiami? <small style="font-weight:400;color:var(--muted)">(facoltativo)</small></label>
         <input class="field" id="contact" name="contact_name" type="text" maxlength="120" autocomplete="name" value="{{ old('contact_name') }}" placeholder="Es. Anna Rossi">
 
-        <p class="hint" style="margin-top:18px">{{ $forSite ? 'I primi giorni sono gratis, senza carta.' : 'La prova è gratis, senza carta.' }} Usiamo i tuoi dati solo per gestire il tuo account.</p>
+        <p class="hint" style="margin-top:18px">Hai 15 € di credito in regalo, senza carta. Usiamo i tuoi dati solo per gestire il tuo account.</p>
 
         <div class="wz-bar" style="margin:0 -16px">
             <div class="wz-bar-in"><button type="submit" class="btn main">{{ $forSite ? 'Crea il mio spazio e il sito' : 'Entra' }}</button></div>

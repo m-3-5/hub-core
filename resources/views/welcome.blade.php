@@ -265,7 +265,7 @@
 
 <section class="wl-sec">
     <h2>Prezzi semplici</h2>
-    <p>Paghi solo quello che pubblichi, dopo {{ (int) config('services.hub_billing.pay_per_use.bill_after_days', 30) }} giorni.</p>
+    <p>Paghi solo quello che pubblichi, col credito: 15 € in regalo per iniziare.</p>
     <div class="wl-price">
         <div class="wl-plan"><b>Annunci</b><strong>Gratis</strong> <small>per tutti</small></div>
         <div class="wl-plan wl-plan--hot"><b>Promo, prodotti, servizi</b><strong>1 €</strong> <small>l'uno · meno se pubblichi di più</small></div>
