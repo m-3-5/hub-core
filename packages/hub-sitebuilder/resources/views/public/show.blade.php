@@ -293,6 +293,10 @@
         .service .ico { flex: none; margin: 0; width: 50px; height: 50px; font-size: 1.5rem; }
         .service h3 { font-size: 1.08rem; margin-bottom: 4px; }
         .service p { color: var(--muted); font-size: .95rem; }
+        .brands { margin-top: 26px; text-align: center; }
+        .brands h3 { font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+        .brands ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .brands li { background: var(--card); border: 1px solid var(--line); border-radius: 99px; padding: 8px 16px; font-weight: 700; max-width: 100%; overflow-wrap: anywhere; }
 
         .about { display: grid; gap: 28px; align-items: center; }
         .about-art { position: relative; aspect-ratio: 1; max-width: min(340px, 60vw); width: 100%; margin: 0 auto; border-radius: 32px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); display: grid; place-items: center; color: #fff; overflow: hidden; }
@@ -520,6 +524,17 @@
                 </div>
             @endforeach
         </div>
+        @php($brandNames = (array) ($site->answers['brands'] ?? $answers['brands'] ?? []))
+        @if (count($brandNames))
+            <div class="brands rv">
+                <h3>{{ $t('Marchi trattati') }}</h3>
+                <ul>
+                    @foreach ($brandNames as $brandName)
+                        <li>{{ $brandName }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
     </div>
 </section>
 @endif

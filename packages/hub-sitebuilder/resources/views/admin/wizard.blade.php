@@ -132,6 +132,7 @@
 
         <input type="hidden" name="tagline" id="f-tagline" value="{{ old('tagline', $answers['tagline'] ?? '') }}">
         <input type="hidden" name="services" id="f-services" value="{{ old('services', implode(', ', $answers['services'] ?? [])) }}">
+        <input type="hidden" name="brands" id="f-brands" value="{{ old('brands', implode(', ', $answers['brands'] ?? [])) }}">
         <input type="hidden" name="cta_label" id="f-cta" value="{{ old('cta_label', $answers['cta_label'] ?? '') }}">
         <input type="hidden" name="extra" id="f-extra" value="{{ old('extra', $answers['extra'] ?? '') }}">
         <input type="hidden" name="phone" id="f-phone" value="{{ old('phone', $tenant->phone) }}">
@@ -260,6 +261,8 @@
             <p class="sub">Servizi o prodotti principali: uno per riga.</p>
             <textarea class="field" id="in-services" maxlength="1000" placeholder="Taglio&#10;Colore&#10;Acconciatura sposa"></textarea>
             <div class="err" id="err-services"></div>
+            <p class="sub" style="margin-top:18px"><b>Marchi trattati</b> (facoltativo): uno per riga.</p>
+            <textarea class="field" id="in-brands" maxlength="600" style="min-height:90px" placeholder="Es. Bticino&#10;Urmet&#10;Comelit"></textarea>
         </section>
 
         <section class="wz-step" data-step="about">
@@ -409,6 +412,7 @@
     const state = {
         tagline: $('f-tagline').value,
         services: $('f-services').value.split(',').map(s => s.trim()).filter(Boolean),
+        brands: $('f-brands').value.split(',').map(s => s.trim()).filter(Boolean),
         about: $('f-extra').value,
         cta: $('f-cta').value || 'Chiamaci',
         phone: $('f-phone').value,
@@ -432,7 +436,7 @@
         $('b-back').hidden = i <= 0;
         $('b-next').textContent = id === 'review' ? 'Metti online' : 'Avanti';
         if (id === 'tagline') $('in-tagline').value = state.tagline;
-        if (id === 'services') $('in-services').value = state.services.join('\n');
+        if (id === 'services') { $('in-services').value = state.services.join('\n'); $('in-brands').value = state.brands.join('\n'); }
         if (id === 'about') $('in-about').value = state.about;
         if (id === 'cta') { $('in-cta').value = state.cta; markCta(); }
         if (id === 'phone') $('in-phone').value = state.phone;
@@ -458,6 +462,7 @@
         }
         if (id === 'services') {
             state.services = $('in-services').value.split(/\n|,/).map(s => s.trim()).filter(Boolean).slice(0, 20);
+            state.brands = $('in-brands').value.split(/\n|,/).map(s => s.trim()).filter(Boolean).slice(0, 30);
             return err('services', state.services.length ? '' : 'Scrivi almeno un servizio o prodotto.');
         }
         if (id === 'about') { state.about = $('in-about').value.trim(); return true; }
@@ -538,6 +543,7 @@
         const row = (label, value, step) => rows.push(`<div class="row"><span>${label}</span><b>${esc(value || '—')}</b><a data-go="${step}">Modifica</a></div>`);
         row('Frase', state.tagline, 'tagline');
         row('Offri', state.services.join(', '), 'services');
+        if (state.brands.length) row('Marchi', state.brands.join(', '), 'services');
         row('Chi siete', state.about ? state.about.slice(0, 60) + (state.about.length > 60 ? '…' : '') : '', 'about');
         row('Pulsante', state.cta, 'cta');
         row('Telefono', state.phone, 'phone');
@@ -595,6 +601,7 @@
         busy = true;
         $('f-tagline').value = state.tagline;
         $('f-services').value = state.services.map(s => s.replace(/,/g, ' ')).join(', ');
+        $('f-brands').value = state.brands.map(s => s.replace(/,/g, ' ')).join(', ');
         $('f-extra').value = state.about;
         $('f-cta').value = state.cta;
         $('f-phone').value = state.phone;

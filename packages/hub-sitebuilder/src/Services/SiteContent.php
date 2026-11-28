@@ -61,6 +61,7 @@ class SiteContent
         return [
             'tagline' => ['required', 'string', 'max:200'],
             'services' => ['required', 'string', 'max:1000'],
+            'brands' => ['nullable', 'string', 'max:600'],
             'cta_label' => ['nullable', 'string', 'max:60'],
             'extra' => ['nullable', 'string', 'max:1000'],
             // Testi in più scritti dall'IA (punti di forza, servizi spiegati, domande, stile), in JSON.
@@ -277,6 +278,17 @@ class SiteContent
             'extra' => trim(strip_tags((string) ($validated['extra'] ?? ''))) ?: null,
         ];
 
+        // Marchi trattati (facoltativi): solo se il modulo li manda.
+        if (array_key_exists('brands', $validated)) {
+            $answers['brands'] = collect(explode(',', strip_tags((string) $validated['brands'])))
+                ->map(fn ($s) => Str::limit(trim($s), 40, ''))
+                ->filter()
+                ->unique()
+                ->take(30)
+                ->values()
+                ->all();
+        }
+
         // Solo se il modulo li manda (la creazione guidata sì, il link segreto no: lì restano quelli di prima).
         if (array_key_exists('extras', $validated)) {
             $decoded = json_decode((string) $validated['extras'], true);
@@ -366,7 +378,7 @@ class SiteContent
         $site = $tenant->generatedSite ?: new GeneratedSite(['tenant_id' => $tenant->id]);
 
         // Il link segreto non manda testi in più, foto e dati facoltativi: si tengono quelli già salvati.
-        foreach (['extras', 'info', 'media'] as $key) {
+        foreach (['extras', 'info', 'media', 'brands'] as $key) {
             if (! array_key_exists($key, $answers) && isset($site->answers[$key])) {
                 $answers[$key] = $site->answers[$key];
             }

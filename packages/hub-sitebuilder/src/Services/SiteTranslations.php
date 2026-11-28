@@ -280,6 +280,7 @@ PROMPT;
         'Contatti' => ['en' => 'Contact', 'de' => 'Kontakt', 'fr' => 'Contact', 'es' => 'Contacto'],
         'Sezioni' => ['en' => 'Sections', 'de' => 'Bereiche', 'fr' => 'Sections', 'es' => 'Secciones'],
         'Cosa offriamo' => ['en' => 'What we offer', 'de' => 'Was wir anbieten', 'fr' => 'Ce que nous proposons', 'es' => 'Qué ofrecemos'],
+        'Marchi trattati' => ['en' => 'Brands we work with', 'de' => 'Unsere Marken', 'fr' => 'Marques traitées', 'es' => 'Marcas que trabajamos'],
         'Perché sceglierci' => ['en' => 'Why choose us', 'de' => 'Warum wir', 'fr' => 'Pourquoi nous choisir', 'es' => 'Por qué elegirnos'],
         'Offerte del momento' => ['en' => 'Current offers', 'de' => 'Aktuelle Angebote', 'fr' => 'Offres du moment', 'es' => 'Ofertas del momento'],
         'Approfittane adesso' => ['en' => 'Grab them now', 'de' => 'Jetzt zugreifen', 'fr' => 'Profitez-en maintenant', 'es' => 'Aprovéchalas ahora'],

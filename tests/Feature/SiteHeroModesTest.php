@@ -101,6 +101,19 @@ class SiteHeroModesTest extends TestCase
         $this->assertStringNotContainsString(' …', html_entity_decode($m[1]));
     }
 
+    public function test_brands_are_cleaned_and_shown_under_the_services(): void
+    {
+        $answers = SiteContent::answers(['tagline' => 'Impianti', 'services' => 'Videocitofonia, Domotica', 'brands' => 'Bticino, <b>Urmet</b>, , Bticino']);
+        $this->assertSame(['Bticino', 'Urmet'], $answers['brands']);
+        $this->assertArrayNotHasKey('brands', SiteContent::answers(['tagline' => 'Impianti', 'services' => 'Domotica']));
+
+        $tenant = $this->site();
+        $this->get(route('site.public.show', $tenant))->assertDontSee('Marchi trattati');
+
+        $tenant->generatedSite->update(['answers' => array_merge($tenant->generatedSite->answers, ['brands' => ['Bticino', 'Urmet']])]);
+        $this->get(route('site.public.show', $tenant))->assertSee('Marchi trattati')->assertSee('Urmet');
+    }
+
     public function test_owner_can_ask_for_a_new_drawing_for_free(): void
     {
         $tenant = $this->site();
