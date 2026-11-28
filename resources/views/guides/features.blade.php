@@ -42,7 +42,7 @@
 <div class="box ok">
     <p>📌 <strong>Annunci: gratis.</strong> 🎯 Promo, prodotti e servizi: <strong>1 € l'uno</strong>, meno se ne pubblichi di più. 🌐 Sito: <strong>1 €</strong>.</p>
     <p>🎁 La prima volta hai <strong>15 € di credito in regalo</strong>. Poi ricarichi da 5 € (carta, bonifico o contanti) o vinci credito ai giochi di <a href="https://piramide35.com" target="_blank" rel="noopener">piramide35.com</a>. Niente abbonamento.</p>
-    @if (\App\Support\PayPerUse::premiumEnabled())<p>⭐ Pubblichi tantissimo? Con <strong>Premium</strong> ({{ \App\Support\PayPerUse::euro(\App\Support\PayPerUse::premiumCents()) }} al mese dal credito) è tutto illimitato, e lo fermi quando vuoi.</p>@endif
+    @if (\App\Support\Packages::enabled())<p>⭐ Pubblichi tantissimo? Scegli un <strong>pacchetto</strong>: Base 9 €, Premium 19 €, Business 39 € al mese dal credito, con tante pubblicazioni incluse. Lo fermi quando vuoi.</p>@endif
     <p class="small"><a href="{{ route('pricing.show') }}">Tutti i prezzi</a></p>
 </div>
 

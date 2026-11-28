@@ -162,12 +162,22 @@
             <ul><li>Fatto con l'IA in pochi minuti</li><li><b>{{ $included }} promo, {{ $included }} prodotti e {{ $included }} servizi inclusi</b></li><li>Ogni lingua in più: 1 €</li><li>SEO per Google: 1 €</li><li>Fatti trovare da ChatGPT e Gemini: 1 €</li><li>Segnalazione a Google e Bing: 1 €</li></ul>
             <a class="cta ghost" href="{{ route('site.start') }}">Sito web a 1 €</a>
         </div>
-        @if (\App\Support\PayPerUse::premiumEnabled())
-        <div class="plan">
-            <h3>⭐ Premium</h3>
-            <div class="price">{{ $eur(\App\Support\PayPerUse::premiumCents()) }} <small>al mese, dal credito</small></div>
-            <ul><li><b>Tutto illimitato</b>: promo, prodotti, servizi, sito, lingue e opzioni</li><li>Si rinnova da solo, lo fermi quando vuoi</li><li>Quando esci: {{ $eur((int) config('services.hub_billing.pay_per_use.premium.exit_cents', 80)) }} a pubblicazione per un mese, poi 1 €</li></ul>
-        </div>
+        @if (\App\Support\Packages::enabled())
+            @foreach (\App\Support\Packages::plans() as $pk => $plan)
+            <div class="plan">
+                <h3>{{ $plan['stars'] }} {{ $plan['label'] }} <small>(facoltativo)</small></h3>
+                <div class="price">{{ $eur($plan['cents']) }} <small>al mese, dal credito</small></div>
+                <ul>
+                    <li><b>{{ $plan['items'] }}</b> promo, prodotti e servizi al mese, poi {{ $eur(\App\Support\Packages::overCents()) }} l'una</li>
+                    <li>Sito web incluso</li>
+                    @if ($plan['addons'])<li>SEO, IA e segnalazione a Google e Bing incluse</li>@endif
+                    @if ($plan['langs'] >= 99)<li>Tutte le lingue del sito</li>@elseif ($plan['langs'] > 0)<li>{{ $plan['langs'] }} lingue del sito</li>@endif
+                    @if ($plan['done_for_you'])<li>«Lo facciamo noi»: sito e prime promo</li>@endif
+                    @if ($plan['priority'])<li>Assistenza prioritaria</li>@endif
+                </ul>
+            </div>
+            @endforeach
+            <p class="small" style="margin:4px 0 0;color:#64748b">Pacchetti per 3, 6 o 12 mesi: −10%, −15%, −20%. Si rinnovano da soli e li fermi quando vuoi; uscendo paghi {{ $eur(\App\Support\Packages::exitCents()) }} a pubblicazione per un mese, poi 1 €.</p>
         @endif
     </div>
 
@@ -209,7 +219,7 @@
     <div class="group-title">Domande frequenti</div>
     <details><summary>Devo pagare per registrarmi?</summary><p>No. Ti registri gratis e prepari tutto quello che vuoi. Paghi solo quando pubblichi una promo, un prodotto o un servizio.</p></details>
     <details><summary>Come pago?</summary><p>Solo con il credito: la prima volta ti regaliamo 15 €, poi ricarichi da 5 € con la carta, con bonifico o in contanti. Puoi anche vincere credito ai giochi di piramide35.com: i primi {{ \App\Support\PayPerUse::euro(\App\Support\PayPerUse::gameFreeCents()) }} si usano subito, il resto dopo la prima ricarica da 5 €. Se il credito finisce mentre lavori non ti blocchiamo: puoi andare avanti fino a 5 € e saldi con la ricarica. A ogni acquisto ricevi la ricevuta per email; nella pagina «Pagamenti» dell'app vedi sempre credito e movimenti.</p></details>
-    <details><summary>C'è un abbonamento?</summary><p>No. Niente canone e niente da disdire: se un mese non pubblichi niente, non paghi niente. Solo se pubblichi tantissimo puoi scegliere <b>Premium</b>: un importo al mese scalato dal credito e tutto illimitato; lo fermi quando vuoi.</p></details>
+    <details><summary>C'è un abbonamento?</summary><p>No. Niente canone e niente da disdire: se un mese non pubblichi niente, non paghi niente. Solo se pubblichi tantissimo puoi scegliere un <b>pacchetto</b> (Base 9 €, Premium 19 €, Business 39 € al mese, scalati dal credito) con tante pubblicazioni incluse; lo fermi quando vuoi.</p></details>
     <details><summary>Quanto mi trattiene Stripe quando vendo?</summary><p>Su ogni pagamento con carta Stripe applica una commissione, indicativamente {{ \M35\HubPayments\Support\StripeFees::rateLabel() }} (di più per carte extra-UE). È un costo di Stripe e viene sottratto dall'incasso: nel pannello vedi sempre quanto ricevi netto.</p></details>
     <details><summary>Posso vendere anche direttamente, senza Hub Core?</summary><p>Sì. Sul tuo sito puoi continuare a incassare con il tuo conto Stripe. I pagamenti protetti valgono per le vendite fatte tramite inm35.it, dove chi compra e chi vende sono tutelati.</p></details>
     <details><summary>Sono un privato: pago qualcosa?</summary><p>Gli annunci sono sempre gratis. Se pubblichi una promo paghi come tutti: {{ $eur($steps[1] ?? 100) }}, dopo {{ $billDays }} giorni.</p></details>

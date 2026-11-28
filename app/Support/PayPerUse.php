@@ -100,9 +100,9 @@ class PayPerUse
     /** Prezzo della prossima pubblicazione di questo tipo, in centesimi (0 = inclusa). */
     public static function priceCents(Tenant $tenant, string $kind): int
     {
-        // Premium attivo: tutto illimitato.
-        if (self::premiumActive($tenant)) {
-            return 0;
+        // Pacchetto attivo (Base, Premium, Business): incluso, o 0,50 € oltre il tetto.
+        if (($packagePrice = Packages::priceFor($tenant, $kind)) !== null) {
+            return $packagePrice;
         }
 
         if ($kind === self::SITE || str_starts_with($kind, 'lang_') || str_starts_with($kind, 'addon_')) {
@@ -131,8 +131,8 @@ class PayPerUse
         }
 
         // Appena uscito da Premium: prezzo di favore per un po', poi il normale.
-        if (self::premiumExitActive($tenant)) {
-            $price = min($price, max(0, (int) config('services.hub_billing.pay_per_use.premium.exit_cents', 80)));
+        if (Packages::exitActive($tenant)) {
+            $price = min($price, Packages::exitCents());
         }
 
         return $price;
@@ -207,112 +207,34 @@ class PayPerUse
         });
     }
 
-    /* ---------- Premium: un tot al mese dal credito, tutto illimitato ---------- */
+    /* ---------- Pacchetti Base / Premium / Business (logica in App\Support\Packages) ---------- */
 
     public static function premiumEnabled(): bool
     {
-        return self::enabled() && (bool) config('services.hub_billing.pay_per_use.premium.enabled', true);
+        return Packages::enabled();
     }
 
+    /** Prezzo al mese del pacchetto Premium (per i testi). */
     public static function premiumCents(): int
     {
-        return max(0, (int) config('services.hub_billing.pay_per_use.premium.monthly_cents', 1900));
+        return Packages::monthlyCents('premium');
     }
 
-    /** @return array{until?: string, renew?: bool, started_at?: string, ended_at?: string} */
+    /** @return array<string, mixed> */
     public static function premium(Tenant $tenant): array
     {
-        return (array) ($tenant->settings['ppu_premium'] ?? []);
+        return Packages::state($tenant);
     }
 
+    /** Un pacchetto (qualsiasi) è attivo. */
     public static function premiumActive(Tenant $tenant): bool
     {
-        $until = self::premium($tenant)['until'] ?? null;
-
-        return $until !== null && now()->lt(\Illuminate\Support\Carbon::parse($until));
+        return Packages::active($tenant);
     }
 
-    /** Uscito da Premium da poco: pubblicazioni al prezzo di favore (exit_cents) per exit_days giorni. */
     public static function premiumExitActive(Tenant $tenant): bool
     {
-        $p = self::premium($tenant);
-        if (self::premiumActive($tenant) || empty($p['until'])) {
-            return false;
-        }
-
-        $days = max(0, (int) config('services.hub_billing.pay_per_use.premium.exit_days', 30));
-
-        return now()->lt(\Illuminate\Support\Carbon::parse($p['until'])->addDays($days));
-    }
-
-    /**
-     * Attiva (o rinnova) Premium scalando il mese dal credito spendibile. false = credito non basta.
-     * Se è già attivo, il nuovo mese si aggiunge in coda.
-     */
-    public static function startPremium(Tenant $tenant, bool $renewal = false): bool
-    {
-        if (! self::premiumEnabled()) {
-            return false;
-        }
-
-        $entry = DB::transaction(function () use ($tenant, $renewal) {
-            Tenant::whereKey($tenant->id)->lockForUpdate()->first();
-            $tenant = $tenant->fresh();
-            $price = self::premiumCents();
-
-            if (self::spendableCents($tenant) < $price) {
-                return null;
-            }
-
-            self::moveCredit($tenant, -$price);
-            $tenant = $tenant->fresh();
-            $p = self::premium($tenant);
-            $from = self::premiumActive($tenant) ? \Illuminate\Support\Carbon::parse($p['until']) : now();
-            $until = $from->copy()->addDays(max(1, (int) config('services.hub_billing.pay_per_use.premium.days', 30)));
-
-            $settings = $tenant->settings ?? [];
-            $settings['ppu_premium'] = [
-                'until' => $until->toIso8601String(),
-                'renew' => true,
-                'started_at' => $p['started_at'] ?? now()->toIso8601String(),
-            ];
-            $tenant->forceFill(['settings' => $settings])->save();
-
-            return TenantUsageEntry::create([
-                'tenant_id' => $tenant->id,
-                'amount_cents' => $price,
-                'reason' => 'premium_fee',
-                'status' => 'credit',
-                'description' => ($renewal ? 'Rinnovo' : 'Attivazione').' Premium fino al '.$until->timezone(config('app.timezone'))->format('d/m/Y'),
-                'user_id' => auth()->id(),
-            ]);
-        });
-
-        if ($entry) {
-            CreditNotices::receipt($tenant->fresh(), $entry);
-        }
-
-        return (bool) $entry;
-    }
-
-    /** Il cliente non vuole rinnovare: Premium resta fino alla scadenza, poi prezzi di favore e infine normali. */
-    public static function stopPremiumRenewal(Tenant $tenant): void
-    {
-        $settings = $tenant->settings ?? [];
-        if (isset($settings['ppu_premium'])) {
-            $settings['ppu_premium']['renew'] = false;
-            $tenant->forceFill(['settings' => $settings])->save();
-        }
-    }
-
-    public static function resumePremiumRenewal(Tenant $tenant): void
-    {
-        $settings = $tenant->settings ?? [];
-        if (self::premiumActive($tenant)) {
-            $settings['ppu_premium']['renew'] = true;
-            unset($settings['ppu_premium']['ended_at']);
-            $tenant->forceFill(['settings' => $settings])->save();
-        }
+        return Packages::exitActive($tenant);
     }
 
     /* ---------- Credito prepagato ---------- */
@@ -468,7 +390,8 @@ class PayPerUse
         });
     }
 
-    private static function moveCredit(Tenant $tenant, int $cents): void
+    /** Sposta il credito (+ ricarica, - spesa). Usato anche da Packages. */
+    public static function moveCredit(Tenant $tenant, int $cents): void
     {
         $settings = $tenant->fresh()->settings ?? [];
         $settings['ppu_credit']['cents'] = (int) ($settings['ppu_credit']['cents'] ?? 0) + $cents;
@@ -479,7 +402,6 @@ class PayPerUse
     public static function canPay(Tenant $tenant, int $cents = 100): bool
     {
         return self::exempt($tenant)
-            || self::premiumActive($tenant)
             || self::hasCard($tenant)
             || self::spendableCents($tenant) - $cents >= -self::overdraftCents();
     }

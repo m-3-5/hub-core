@@ -103,7 +103,13 @@
     <li>💳 <strong>Ricarica</strong> da 5 € in «Pagamenti»: con la carta (pagina sicura di Stripe), con bonifico o in contanti.</li>
     <li>🎮 <strong>Buoni dei giochi</strong> di <a href="https://piramide35.com" target="_blank" rel="noopener">piramide35.com</a>: scrivi il codice in «Pagamenti» → «Hai un codice buono?». I primi {{ \App\Support\PayPerUse::euro(\App\Support\PayPerUse::gameFreeCents()) }} li usi subito, il resto dopo la prima ricarica da 5 €.</li>
     <li>⏳ Credito finito? Puoi andare avanti fino a 5 € e saldi con la prossima ricarica.</li>
-    <li>⭐ <strong>Premium</strong>, per chi pubblica tanto: {{ \App\Support\PayPerUse::euro(\App\Support\PayPerUse::premiumCents()) }} al mese scalati dal credito e <strong>tutto illimitato</strong>. Si rinnova da solo; in «Pagamenti» premi «Non rinnovare» quando vuoi. Dopo, per un mese paghi {{ \App\Support\PayPerUse::euro((int) config('services.hub_billing.pay_per_use.premium.exit_cents', 80)) }} a pubblicazione, poi 1 €.</li>
+    <li>⭐ <strong>Pacchetti</strong>, facoltativi, per chi pubblica tanto (in «Pagamenti»), scalati dal credito:
+        <ul>
+            @foreach (\App\Support\Packages::plans() as $plan)
+                <li>{{ $plan['stars'] }} <strong>{{ $plan['label'] }}</strong> {{ \App\Support\PayPerUse::euro($plan['cents']) }} al mese: {{ $plan['items'] }} pubblicazioni al mese incluse{{ $plan['addons'] ? ', SEO, IA e Google/Bing' : '' }}{{ $plan['langs'] >= 99 ? ', tutte le lingue' : ($plan['langs'] > 0 ? ', '.$plan['langs'].' lingue' : '') }}{{ $plan['done_for_you'] ? ', lo facciamo noi' : '' }}.</li>
+            @endforeach
+        </ul>
+        Per 3, 6 o 12 mesi costano meno (−10%, −15%, −20%). Oltre il tetto: {{ \App\Support\PayPerUse::euro(\App\Support\Packages::overCents()) }} l'una. Si rinnovano da soli; «Non rinnovare» quando vuoi. Dopo, per un mese paghi {{ \App\Support\PayPerUse::euro(\App\Support\Packages::exitCents()) }} a pubblicazione, poi 1 €.</li>
     <li>Niente abbonamento obbligatorio: se un mese non pubblichi niente, non paghi niente.</li>
     <li>🧾 A ogni acquisto e ricarica ti arriva la ricevuta per email.</li>
 </ul>

@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
 /**
- * Premium (vedi PayPerUse::startPremium): ogni giorno rinnova chi è in scadenza e vuole continuare,
+ * Pacchetti Base/Premium/Business (vedi App\Support\Packages): ogni giorno rinnova chi è in scadenza e vuole continuare,
  * scalando il mese dal credito. Se il credito non basta Premium finisce da solo: poi prezzi di favore
  * (premium.exit_cents per premium.exit_days giorni) e infine quelli normali. Promemoria: docs/FUNZIONI-INM35.md
  */
@@ -35,7 +35,7 @@ class RenewPremium extends Command
                 return; // non ancora in scadenza
             }
 
-            if (PayPerUse::startPremium($tenant, renewal: true)) {
+            if (\App\Support\Packages::renew($tenant)) {
                 $renewed++;
 
                 return;
@@ -49,7 +49,7 @@ class RenewPremium extends Command
             $ended++;
         });
 
-        $this->info("Premium rinnovati: {$renewed}, non rinnovati per credito: {$ended}");
+        $this->info("Pacchetti rinnovati: {$renewed}, non rinnovati per credito: {$ended}");
 
         return self::SUCCESS;
     }

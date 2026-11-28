@@ -70,14 +70,39 @@
     @endif
 
     @if ($premiumOn)
-        @php $premiumUntil = !empty($premium['until']) ? \Illuminate\Support\Carbon::parse($premium['until'])->timezone(config('app.timezone'))->format('d/m/Y') : null; @endphp
-        <div class="cr-premium" style="border-radius:18px;padding:16px;margin-bottom:18px;background:{{ $premiumActive ? 'linear-gradient(135deg,#f59e0b,#f97316)' : '#fff7e6' }};color:{{ $premiumActive ? '#fff' : '#7c2d12' }}">
-            @if ($premiumActive)
-                <b style="font-size:1.15rem">⭐ Premium attivo fino al {{ $premiumUntil }}</b>
-                <p style="margin:6px 0 10px">Pubblichi quanto vuoi: promo, prodotti, servizi, sito, lingue e opzioni senza pagare niente in più.</p>
+        @php
+            $premiumUntil = ! empty($premium['until']) ? \Illuminate\Support\Carbon::parse($premium['until'])->timezone(config('app.timezone'))->format('d/m/Y') : null;
+            $perks = function (array $p) use ($eur) {
+                $l = ['<b>'.$p['items'].'</b> promo, prodotti e servizi al mese', 'Sito web incluso'];
+                if ($p['addons']) $l[] = 'SEO, «Fatti trovare dall\'IA» e segnalazione a Google e Bing';
+                if ($p['langs'] >= 99) $l[] = 'Tutte le lingue del sito';
+                elseif ($p['langs'] > 0) $l[] = $p['langs'].' lingue del sito';
+                if ($p['done_for_you']) $l[] = '«Lo facciamo noi»: sito e prime promo';
+                if ($p['priority']) $l[] = 'Assistenza prioritaria';
+                if ($p['flyers'] > 0) $l[] = $p['flyers'].' volantino'.($p['flyers'] > 1 ? 'i' : '').' con l\'IA al mese <small>(in arrivo)</small>';
+                if ($p['featured_weeks'] > 0) $l[] = $p['featured_weeks'].' settiman'.($p['featured_weeks'] > 1 ? 'e' : 'a').' «In evidenza» al mese <small>(in arrivo)</small>';
+                return $l;
+            };
+        @endphp
+        <style>
+            .pk-grid { display: grid; gap: 10px; margin-bottom: 18px; }
+            .pk { border: 2px solid #fde4b0; background: #fffaf0; border-radius: 18px; padding: 14px; }
+            .pk.best { border-color: #f59e0b; }
+            .pk h3 { margin: 0; font-size: 1.1rem; }
+            .pk .pr { font-size: 1.3rem; font-weight: 800; margin: 2px 0 6px; }
+            .pk ul { margin: 0 0 10px 18px; padding: 0; font-size: .92rem; display: grid; gap: 3px; }
+            .pk form { display: flex; gap: 8px; }
+            .pk select { flex: 1; min-width: 0; min-height: 46px; border: 2px solid #e2e3ea; border-radius: 12px; padding: 6px 10px; font-size: .95rem; background: #fff; }
+            .pk-on { border-radius: 18px; padding: 16px; margin-bottom: 18px; background: linear-gradient(135deg,#f59e0b,#f97316); color: #fff; }
+        </style>
+
+        @if ($package)
+            <div class="pk-on">
+                <b style="font-size:1.15rem">{{ $package['stars'] }} {{ $package['label'] }} attivo fino al {{ $premiumUntil }}</b>
+                <p style="margin:6px 0">Questo mese ti restano <b>{{ $packageItemsLeft }}</b> pubblicazioni incluse su {{ $package['items'] }}; dopo, {{ $eur($overCents) }} l'una.</p>
                 <form method="POST" action="{{ route('admin.credit.premium.renewal', $tenant) }}">@csrf
                     @if (! empty($premium['renew']))
-                        <p style="margin:0 0 8px;font-size:.9rem">Si rinnova da solo dal credito ({{ $eur($premiumCents) }} al mese).</p>
+                        <p style="margin:0 0 8px;font-size:.9rem">Si rinnova da solo dal credito.</p>
                         <button type="submit" class="btn btn-secondary" style="width:100%;min-height:46px">Non rinnovare</button>
                     @else
                         <input type="hidden" name="renew" value="1">
@@ -85,16 +110,33 @@
                         <button type="submit" class="btn btn-secondary" style="width:100%;min-height:46px">Rinnova da solo</button>
                     @endif
                 </form>
-            @else
-                <b style="font-size:1.1rem">⭐ Premium: tutto illimitato a {{ $eur($premiumCents) }} al mese</b>
-                <p style="margin:6px 0 10px">Per chi pubblica tanto. Si scala dal credito, si rinnova da solo e lo fermi quando vuoi. Quando esci paghi {{ $eur($exitCents) }} a pubblicazione per un mese, poi 1 €.</p>
-                @if ($premiumExit)<p style="margin:0 0 10px;font-weight:700">Adesso paghi {{ $eur($exitCents) }} a pubblicazione (uscito da Premium).</p>@endif
-                <form method="POST" action="{{ route('admin.credit.premium', $tenant) }}">@csrf
-                    <button type="submit" class="btn cr-cta" data-busy="Attivo…" @disabled($credit < $premiumCents)>⭐ Attiva Premium</button>
-                </form>
-                @if ($credit < $premiumCents)<p class="cr-note" style="margin:8px 0 0">Ti servono {{ $eur($premiumCents) }} di credito: ricarica qui sotto.</p>@endif
-            @endif
-        </div>
+            </div>
+        @endif
+
+        <details class="cr-more" @if (! $package) open @endif>
+            <summary>⭐ {{ $package ? 'Cambia o allunga il pacchetto' : 'Pubblichi tanto? Scegli un pacchetto' }}</summary>
+            <p class="cr-note" style="margin-top:8px">Facoltativo: senza pacchetto paghi solo quello che pubblichi. Si scala dal credito, si rinnova da solo e lo fermi quando vuoi. Più mesi insieme costano meno.@if ($package) Se cambi pacchetto, la parte non usata di quello di adesso torna nel credito.@endif</p>
+            @if ($premiumExit)<p style="font-weight:700">Adesso paghi {{ $eur($exitCents) }} a pubblicazione (sei uscito da un pacchetto da poco).</p>@endif
+            <div class="pk-grid">
+                @foreach ($plans as $key => $p)
+                    <div class="pk {{ $key === 'premium' ? 'best' : '' }}">
+                        <h3>{{ $p['stars'] }} {{ $p['label'] }}</h3>
+                        <div class="pr">{{ $eur($p['cents']) }} <small style="font-size:.8rem;font-weight:600">al mese</small></div>
+                        <ul>@foreach ($perks($p) as $perk)<li>{!! $perk !!}</li>@endforeach</ul>
+                        <form method="POST" action="{{ route('admin.credit.premium', $tenant) }}">@csrf
+                            <input type="hidden" name="plan" value="{{ $key }}">
+                            <select name="months" aria-label="Per quanti mesi">
+                                @foreach ($monthOptions as $m => $disc)
+                                    <option value="{{ $m }}">{{ $m }} {{ $m === 1 ? 'mese' : 'mesi' }} · {{ $eur(\App\Support\Packages::priceCents($key, $m)) }}{{ $disc ? ' (−'.$disc.'%)' : '' }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="btn" data-busy="Attivo…">Attiva</button>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+            <p class="cr-note">Oltre le pubblicazioni del mese: {{ $eur($overCents) }} l'una. Gli annunci sono sempre gratis.</p>
+        </details>
     @endif
 
     <h2 style="font-size:1rem;margin:0 0 8px">Ricarica il credito</h2>
@@ -171,7 +213,7 @@
                     <b>
                         @if ($e->reason === 'included') Incluso
                         @elseif ($e->reason === 'premium') ⭐ Premium
-                        @elseif (in_array($e->reason, ['topup', 'gift', 'voucher'], true)) <span style="color:#16a34a">+ {{ $eur($e->amount_cents) }}</span>
+                        @elseif (in_array($e->reason, ['topup', 'gift', 'voucher', 'premium_refund'], true)) <span style="color:#16a34a">+ {{ $eur($e->amount_cents) }}</span>
                         @elseif ($e->status === 'credit') − {{ $eur($e->amount_cents) }}
                         @elseif ($e->status === 'owed') − {{ $eur($e->amount_cents) }} <small>(fido)</small>
                         @elseif ($e->status === 'billed') ✓ {{ $eur($e->amount_cents) }}

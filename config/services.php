@@ -118,15 +118,24 @@ return [
             // Credito vinto ai giochi di piramide35.com: se ne spende al massimo questo finché
             // l'attività non fa una ricarica vera (almeno topup_min_cents); poi si sblocca tutto.
             'game_free_cents' => (int) env('HUB_PPU_GAME_FREE_CENTS', 300),
-            // Premium (Max 28/11/2026): per chi usa tantissimo l'app. Un tot al mese scalato dal credito,
-            // tutto illimitato (promo, prodotti, servizi, sito, lingue, opzioni). Si rinnova da solo finché il cliente vuole
-            // e c'è credito. Chi esce paga exit_cents a pubblicazione per exit_days giorni, poi il prezzo normale.
+            // Pacchetti facoltativi Base / Premium / Business (Max 28/11/2026), logica in App\Support\Packages:
+            // dal credito, 1/3/6/12 mesi con sconto, tetto di pubblicazioni al mese (poi over_cents), rinnovo da solo,
+            // cambio con rimborso della parte non usata. Chi esce paga exit_cents per exit_days giorni, poi il prezzo normale.
             'premium' => [
                 'enabled' => (bool) env('HUB_PPU_PREMIUM', true),
-                'monthly_cents' => (int) env('HUB_PPU_PREMIUM_CENTS', 1900),
-                'days' => (int) env('HUB_PPU_PREMIUM_DAYS', 30),
+                'days' => 30,                       // un «mese» di pacchetto
+                'over_cents' => 50,                 // oltre il tetto del mese: 0,50 € a pubblicazione
                 'exit_cents' => (int) env('HUB_PPU_PREMIUM_EXIT_CENTS', 80),
                 'exit_days' => (int) env('HUB_PPU_PREMIUM_EXIT_DAYS', 30),
+                // mesi comprati insieme => sconto in %
+                'months' => [1 => 0, 3 => 10, 6 => 15, 12 => 20],
+                // Pacchetti (Max 28/11/2026). items = promo+prodotti+servizi al mese; addons = SEO, IA, indicizza inclusi;
+                // langs = lingue del sito incluse (99 = tutte); flyers/featured_weeks = in arrivo; done_for_you = lo facciamo noi.
+                'plans' => [
+                    'base' => ['label' => 'Base', 'stars' => '⭐', 'cents' => (int) env('HUB_PACK_BASE_CENTS', 900), 'items' => 15, 'addons' => false, 'langs' => 0, 'flyers' => 0, 'featured_weeks' => 0, 'done_for_you' => false, 'priority' => false],
+                    'premium' => ['label' => 'Premium', 'stars' => '⭐⭐', 'cents' => (int) env('HUB_PPU_PREMIUM_CENTS', 1900), 'items' => 50, 'addons' => true, 'langs' => 2, 'flyers' => 1, 'featured_weeks' => 1, 'done_for_you' => false, 'priority' => false],
+                    'business' => ['label' => 'Business', 'stars' => '⭐⭐⭐', 'cents' => (int) env('HUB_PACK_BUSINESS_CENTS', 3900), 'items' => 150, 'addons' => true, 'langs' => 99, 'flyers' => 3, 'featured_weeks' => 4, 'done_for_you' => true, 'priority' => true],
+                ],
             ],
         ],
         // Un solo abbonamento, due livelli. Silver = tutto il necessario; Premium = in più sito web con Max, quote molto più alte, assistenza prioritaria.

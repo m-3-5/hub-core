@@ -12,7 +12,7 @@ Quando cambi, aggiungi o accendi una funzione per i clienti, aggiorna **nello st
 | `/guida/app` | `resources/views/guides/app.blade.php` | Passo passo, con i **nomi veri dei tasti** dell'app |
 | `/guida/facebook` | `resources/views/guides/facebook.blade.php` | Collegamento della pagina Facebook e hashtag |
 | `/prezzi` | `resources/views/pricing.blade.php` | Prezzi e come si paga |
-| Max in chat | prompt in `app/Http/Controllers/MaxChatController.php` | Le stesse regole, scritte per l'IA. Dentro ci sono i prezzi scritti a mano, come i 19 € di Premium: aggiornali se cambi la config |
+| Max in chat | prompt in `app/Http/Controllers/MaxChatController.php` | Le stesse regole, scritte per l'IA. Dentro ci sono i prezzi scritti a mano, come i prezzi e i tetti dei pacchetti: aggiornali se cambi la config |
 | Questo file | `docs/FUNZIONI-INM35.md` | Promemoria per chi lavora sul codice |
 
 Le pagine pubbliche sono anche in `SitemapController` e in `LlmsController` (llms.txt). Stile delle pagine:
@@ -73,15 +73,31 @@ Funzioni in arrivo (`active => false`): Vendi (negozio completo), Agenda, Affitt
 - Le voci già `pending` vengono comunque addebitate.
 - Per riaccenderla basta `HUB_PPU_CARD=true`, poi si riaggiornano le guide.
 
-**Premium** (decisione di Max del 28/11/2026, per chi usa tantissimo l'app):
-- **Prezzo:** `premium.monthly_cents` (19 €, `HUB_PPU_PREMIUM_CENTS`) per `premium.days` (30) giorni, **scalati dal credito spendibile** (`PayPerUse::startPremium`).
-- **Cosa copre:** con Premium attivo `priceCents()` vale 0 per tutto (promo, prodotti, servizi, sito, lingue, opzioni). I movimenti hanno `reason = premium` e non consumano gli inclusi del sito.
-- **Rinnovo:** si rinnova da solo con `hub:renew-premium` (ogni giorno alle 08:30), finché `renew` è vero e il credito basta. Il cliente lo ferma o lo riprende in «Pagamenti» (`admin.credit.premium.renewal`). I dati stanno in `settings.ppu_premium` (`until`, `renew`, `started_at`, `ended_at`).
-- **Uscita:** per `premium.exit_days` (30) giorni il prezzo è `premium.exit_cents` (0,80 €), poi quello normale (`premiumExitActive`).
+**Pacchetti facoltativi Base / Premium / Business** (Max, 28/11/2026). Codice in `App\Support\Packages`, configurazione in `services.hub_billing.pay_per_use.premium`.
+
+| | Base | Premium | Business |
+|---|---|---|---|
+| Prezzo al mese | 9 € | 19 € | 39 € |
+| Promo + prodotti + servizi al mese | 15 | 50 | 150 |
+| Sito | incluso | incluso | incluso |
+| SEO, «Fatti trovare dall'IA», «Indicizza» | — | inclusi | inclusi |
+| Lingue del sito | — | 2 | tutte |
+| «Lo facciamo noi» e assistenza prioritaria | — | — | sì |
+| Volantini IA e «In evidenza» | — | in arrivo (solo testo) | in arrivo (solo testo) |
+
+- **Pagamento:** dal credito spendibile (`Packages::buy`), per 1, 3, 6 o 12 mesi, con sconto del 0, 10, 15 o 20% (prezzo arrotondato ai 10 centesimi).
+- **Tetto mensile:** il «mese» dura 30 giorni dall'acquisto (`periodStart`). Oltre il tetto si paga `over_cents` (0,50 €).
+- **Movimenti:** quelli dentro il pacchetto hanno `reason = premium` e contano per il tetto. Le lingue si contano dall'inizio del pacchetto (`started_at`).
+- **Allungare:** stesso pacchetto, i mesi si aggiungono in coda.
+- **Cambiare pacchetto:** la parte non usata del vecchio torna nel credito come movimento `premium_refund`.
+- **Rinnovo:** `hub:renew-premium` ogni giorno alle 08:30, stesso pacchetto e stessi mesi, finché `renew` è vero e c'è credito. Il cliente lo ferma o lo riprende in «Pagamenti».
+- **Uscita:** per `exit_days` (30) giorni si paga `exit_cents` (0,80 €), poi il prezzo normale.
+- **Stato salvato** in `settings.ppu_premium`: `plan`, `months`, `paid_cents`, `bought_at`, `until`, `renew`, `started_at`, `ended_at`.
 - **Non è un abbonamento obbligatorio.** Max: «non si pagherà mai un euro al mese». Nelle guide va scritto sempre così: se un mese non pubblichi niente, non paghi niente.
 - **Menu:** dal 28/11 la voce «Abbonamento» non c'è più; si usa solo «Pagamenti» (`admin.credit.show`). Il vecchio abbonamento Stripe (`admin.billing.show`) resta solo per chi lo aveva già.
+- **Da collegare quando ci saranno:** i volantini con l'IA da mettere in pagamento (oggi «in arrivo» in `PromoController`) e la pubblicità «In evidenza».
 
-**Servizi in più del sito** (`SiteAddons`, `SiteTranslations`). Costano 1 € l'uno, una volta sola; con Premium sono gratis.
+**Servizi in più del sito** (`SiteAddons`, `SiteTranslations`). Costano 1 € l'uno, una volta sola; nei pacchetti Premium e Business sono inclusi.
 
 | Servizio | Cosa fa |
 |---|---|
