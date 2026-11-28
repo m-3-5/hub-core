@@ -69,6 +69,34 @@
         </div>
     @endif
 
+    @if ($premiumOn)
+        @php $premiumUntil = !empty($premium['until']) ? \Illuminate\Support\Carbon::parse($premium['until'])->timezone(config('app.timezone'))->format('d/m/Y') : null; @endphp
+        <div class="cr-premium" style="border-radius:18px;padding:16px;margin-bottom:18px;background:{{ $premiumActive ? 'linear-gradient(135deg,#f59e0b,#f97316)' : '#fff7e6' }};color:{{ $premiumActive ? '#fff' : '#7c2d12' }}">
+            @if ($premiumActive)
+                <b style="font-size:1.15rem">⭐ Premium attivo fino al {{ $premiumUntil }}</b>
+                <p style="margin:6px 0 10px">Pubblichi quanto vuoi: promo, prodotti, servizi, sito, lingue e opzioni senza pagare niente in più.</p>
+                <form method="POST" action="{{ route('admin.credit.premium.renewal', $tenant) }}">@csrf
+                    @if (! empty($premium['renew']))
+                        <p style="margin:0 0 8px;font-size:.9rem">Si rinnova da solo dal credito ({{ $eur($premiumCents) }} al mese).</p>
+                        <button type="submit" class="btn btn-secondary" style="width:100%;min-height:46px">Non rinnovare</button>
+                    @else
+                        <input type="hidden" name="renew" value="1">
+                        <p style="margin:0 0 8px;font-size:.9rem">Non si rinnova: dopo il {{ $premiumUntil }} paghi {{ $eur($exitCents) }} a pubblicazione per un mese, poi 1 €.</p>
+                        <button type="submit" class="btn btn-secondary" style="width:100%;min-height:46px">Rinnova da solo</button>
+                    @endif
+                </form>
+            @else
+                <b style="font-size:1.1rem">⭐ Premium: tutto illimitato a {{ $eur($premiumCents) }} al mese</b>
+                <p style="margin:6px 0 10px">Per chi pubblica tanto. Si scala dal credito, si rinnova da solo e lo fermi quando vuoi. Quando esci paghi {{ $eur($exitCents) }} a pubblicazione per un mese, poi 1 €.</p>
+                @if ($premiumExit)<p style="margin:0 0 10px;font-weight:700">Adesso paghi {{ $eur($exitCents) }} a pubblicazione (uscito da Premium).</p>@endif
+                <form method="POST" action="{{ route('admin.credit.premium', $tenant) }}">@csrf
+                    <button type="submit" class="btn cr-cta" data-busy="Attivo…" @disabled($credit < $premiumCents)>⭐ Attiva Premium</button>
+                </form>
+                @if ($credit < $premiumCents)<p class="cr-note" style="margin:8px 0 0">Ti servono {{ $eur($premiumCents) }} di credito: ricarica qui sotto.</p>@endif
+            @endif
+        </div>
+    @endif
+
     <h2 style="font-size:1rem;margin:0 0 8px">Ricarica il credito</h2>
     <div class="cr-top">
         @foreach ([5, 10, 20] as $amount)
@@ -142,6 +170,7 @@
                     <span>{{ $e->description }}<br><small style="color:#94a3b8">{{ $e->created_at->timezone(config('app.timezone'))->format('d/m/Y') }}</small></span>
                     <b>
                         @if ($e->reason === 'included') Incluso
+                        @elseif ($e->reason === 'premium') ⭐ Premium
                         @elseif (in_array($e->reason, ['topup', 'gift', 'voucher'], true)) <span style="color:#16a34a">+ {{ $eur($e->amount_cents) }}</span>
                         @elseif ($e->status === 'credit') − {{ $eur($e->amount_cents) }}
                         @elseif ($e->status === 'owed') − {{ $eur($e->amount_cents) }} <small>(fido)</small>

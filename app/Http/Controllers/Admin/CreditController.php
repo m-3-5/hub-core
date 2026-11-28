@@ -29,6 +29,12 @@ class CreditController extends Controller
             'cardEnabled' => PayPerUse::cardEnabled(),
             'gameLocked' => PayPerUse::gameLockedCents($tenant),
             'gameFree' => PayPerUse::gameFreeCents(),
+            'premiumOn' => PayPerUse::premiumEnabled(),
+            'premium' => PayPerUse::premium($tenant),
+            'premiumActive' => PayPerUse::premiumActive($tenant),
+            'premiumExit' => PayPerUse::premiumExitActive($tenant),
+            'premiumCents' => PayPerUse::premiumCents(),
+            'exitCents' => (int) config('services.hub_billing.pay_per_use.premium.exit_cents', 80),
             'overdraft' => PayPerUse::overdraftCents(),
             'topUpMin' => PayPerUse::topUpMinCents(),
             'canPayPending' => $pending ? PayPerUse::canPay($tenant, PayPerUse::priceCents($tenant, $pending['kind'])) : false,
@@ -138,6 +144,39 @@ class CreditController extends Controller
         PayPerUse::topUp($tenant, (int) round(((float) $data['amount']) * 100), $data['method'], 'manual-'.now()->format('YmdHis').'-'.$request->user()->id);
 
         return back()->with('status', 'Credito aggiunto: ora '.PayPerUse::euro(PayPerUse::creditCents($tenant->fresh())).'. Ricevuta inviata al cliente e a te.');
+    }
+
+    /** Attiva Premium: il mese si scala dal credito; da lì tutto illimitato. */
+    public function premium(Tenant $tenant): RedirectResponse
+    {
+        abort_unless(PayPerUse::premiumEnabled(), 404);
+
+        if (! PayPerUse::startPremium($tenant)) {
+            return back()->withErrors(['credit' => 'Per Premium servono '.PayPerUse::euro(PayPerUse::premiumCents()).' di credito: ricarica qui sotto e riprova.']);
+        }
+
+        if ($done = PendingPublication::resume($tenant->fresh())) {
+            return $done;
+        }
+
+        $until = \Illuminate\Support\Carbon::parse(PayPerUse::premium($tenant->fresh())['until'])->timezone(config('app.timezone'))->format('d/m/Y');
+
+        return back()->with('status', '⭐ Premium attivo fino al '.$until.': pubblica quanto vuoi. Si rinnova da solo dal credito, lo fermi quando vuoi.');
+    }
+
+    /** Ferma o riprende il rinnovo di Premium. */
+    public function premiumRenewal(Request $request, Tenant $tenant): RedirectResponse
+    {
+        if ($request->boolean('renew')) {
+            PayPerUse::resumePremiumRenewal($tenant);
+
+            return back()->with('status', 'Premium si rinnoverà da solo dal credito.');
+        }
+
+        PayPerUse::stopPremiumRenewal($tenant);
+        $exit = PayPerUse::euro((int) config('services.hub_billing.pay_per_use.premium.exit_cents', 80));
+
+        return back()->with('status', 'Fatto: Premium resta attivo fino alla scadenza, poi per un mese paghi '.$exit.' a pubblicazione.');
     }
 
     /** Pubblica subito ciò che aspettava, se ora si può. */

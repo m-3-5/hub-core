@@ -20,7 +20,8 @@
         ['🛍️', 'Prodotti', 'La tua vetrina con prezzo e foto, anche nel tuo sito.', 'prodotti-servizi'],
         ['✂️', 'Servizi', 'Trattamenti, lavori, lezioni: prezzo, durata e link di pagamento.', 'prodotti-servizi'],
         ['🧾', 'Preventivi', 'Scrivi l\'importo e mandi al cliente il link per pagare.', 'preventivi'],
-        ['🌐', 'Sito web con l\'IA', 'Pronto in pochi minuti: servizi, marchi trattati, mappa, orari, WhatsApp, lingue.', 'sito'],
+        ['🌐', 'Sito web con l\'IA', 'Pronto in pochi minuti: servizi, marchi trattati, mappa, orari, WhatsApp.', 'sito'],
+        ['🌍', 'Lingue, SEO e Google', 'Traduzioni, parole chiave, scheda per ChatGPT e Gemini, segnalazione a Google e Bing: 1 € l\'uno.', 'sito'],
         ['📌', 'Annunci', 'Vendo, cerco, lavoro, affitti: gratis per tutti, anche per i privati.', 'annunci'],
         ['📘', 'Pubblica da Facebook', 'Scrivi il post con #promo, #prodotto, #servizio… e va da solo su inm35.it e nel tuo sito.', 'facebook'],
         ['🛡️', 'Pagamenti protetti', 'Chi compra paga tramite inm35.it, tu ricevi i soldi dopo la consegna.', 'pagamenti'],
@@ -41,6 +42,7 @@
 <div class="box ok">
     <p>📌 <strong>Annunci: gratis.</strong> 🎯 Promo, prodotti e servizi: <strong>1 € l'uno</strong>, meno se ne pubblichi di più. 🌐 Sito: <strong>1 €</strong>.</p>
     <p>🎁 La prima volta hai <strong>15 € di credito in regalo</strong>. Poi ricarichi da 5 € (carta, bonifico o contanti) o vinci credito ai giochi di <a href="https://piramide35.com" target="_blank" rel="noopener">piramide35.com</a>. Niente abbonamento.</p>
+    @if (\App\Support\PayPerUse::premiumEnabled())<p>⭐ Pubblichi tantissimo? Con <strong>Premium</strong> ({{ \App\Support\PayPerUse::euro(\App\Support\PayPerUse::premiumCents()) }} al mese dal credito) è tutto illimitato, e lo fermi quando vuoi.</p>@endif
     <p class="small"><a href="{{ route('pricing.show') }}">Tutti i prezzi</a></p>
 </div>
 

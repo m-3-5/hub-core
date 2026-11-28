@@ -26,8 +26,9 @@
         $uiMore = [];
         $uiMore[] = ['Profilo', 'user', route('admin.profile.edit', $uiTenant), request()->routeIs('admin.profile.*')];
         if (\App\Services\FacebookPages::enabled()) $uiMore[] = ['Facebook', 'globe', route('admin.facebook.show', $uiTenant), request()->routeIs('admin.facebook.*')];
+        // Niente più «Abbonamento» (Max 28/11/2026): c'è solo «Pagamenti» (credito e Premium). I vecchi abbonati vanno alla loro pagina.
         if (\App\Support\PayPerUse::enabled() && ! $uiTenant->hasActiveSubscription()) $uiMore[] = ['Pagamenti', 'card', route('admin.credit.show', $uiTenant), request()->routeIs('admin.credit.*')];
-        elseif (in_array('billing', $uiActive, true)) $uiMore[] = ['Abbonamento', 'card', route('admin.billing.show', $uiTenant), request()->routeIs('admin.billing.*') || request()->routeIs('admin.module-billing.*')];
+        elseif (in_array('billing', $uiActive, true)) $uiMore[] = ['Pagamenti', 'card', route('admin.billing.show', $uiTenant), request()->routeIs('admin.billing.*') || request()->routeIs('admin.module-billing.*')];
 
         // Barra in basso: Home + le prime sezioni di lavoro + Messaggi (max 5)
         $work = collect($uiItems)->reject(fn ($i) => in_array($i[0], ['Home', 'Messaggi', 'Ordini'], true))->take(3)->all();

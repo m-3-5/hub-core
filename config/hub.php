@@ -160,7 +160,7 @@ return [
         ],
         'billing' => [
             'key' => 'billing',
-            'label' => 'Abbonamento',
+            'label' => 'Pagamenti',
             'description' => 'Stato demo e pagamento Hub Core',
             'emoji' => '🧾',
             'active' => true,

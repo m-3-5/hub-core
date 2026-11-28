@@ -12,7 +12,7 @@ Quando cambi, aggiungi o accendi una funzione per i clienti, aggiorna **nello st
 | `/guida/app` | `resources/views/guides/app.blade.php` | Passo passo, con i **nomi veri dei tasti** dell'app |
 | `/guida/facebook` | `resources/views/guides/facebook.blade.php` | Collegamento della pagina Facebook e hashtag |
 | `/prezzi` | `resources/views/pricing.blade.php` | Prezzi e come si paga |
-| Max in chat | prompt in `app/Http/Controllers/MaxChatController.php` | Le stesse regole, scritte per l'IA |
+| Max in chat | prompt in `app/Http/Controllers/MaxChatController.php` | Le stesse regole, scritte per l'IA. Dentro ci sono i prezzi scritti a mano, come i 19 € di Premium: aggiornali se cambi la config |
 | Questo file | `docs/FUNZIONI-INM35.md` | Promemoria per chi lavora sul codice |
 
 Le pagine pubbliche sono anche in `SitemapController` e in `LlmsController` (llms.txt). Stile delle pagine:
@@ -72,6 +72,25 @@ Funzioni in arrivo (`active => false`): Vendi (negozio completo), Agenda, Affitt
 - Il codice c'è ancora: `CardSetup`, `hub:bill-usage`, e i test la accendono in `phpunit.xml`.
 - Le voci già `pending` vengono comunque addebitate.
 - Per riaccenderla basta `HUB_PPU_CARD=true`, poi si riaggiornano le guide.
+
+**Premium** (decisione di Max del 28/11/2026, per chi usa tantissimo l'app):
+- **Prezzo:** `premium.monthly_cents` (19 €, `HUB_PPU_PREMIUM_CENTS`) per `premium.days` (30) giorni, **scalati dal credito spendibile** (`PayPerUse::startPremium`).
+- **Cosa copre:** con Premium attivo `priceCents()` vale 0 per tutto (promo, prodotti, servizi, sito, lingue, opzioni). I movimenti hanno `reason = premium` e non consumano gli inclusi del sito.
+- **Rinnovo:** si rinnova da solo con `hub:renew-premium` (ogni giorno alle 08:30), finché `renew` è vero e il credito basta. Il cliente lo ferma o lo riprende in «Pagamenti» (`admin.credit.premium.renewal`). I dati stanno in `settings.ppu_premium` (`until`, `renew`, `started_at`, `ended_at`).
+- **Uscita:** per `premium.exit_days` (30) giorni il prezzo è `premium.exit_cents` (0,80 €), poi quello normale (`premiumExitActive`).
+- **Non è un abbonamento obbligatorio.** Max: «non si pagherà mai un euro al mese». Nelle guide va scritto sempre così: se un mese non pubblichi niente, non paghi niente.
+- **Menu:** dal 28/11 la voce «Abbonamento» non c'è più; si usa solo «Pagamenti» (`admin.credit.show`). Il vecchio abbonamento Stripe (`admin.billing.show`) resta solo per chi lo aveva già.
+
+**Servizi in più del sito** (`SiteAddons`, `SiteTranslations`). Costano 1 € l'uno, una volta sola; con Premium sono gratis.
+
+| Servizio | Cosa fa |
+|---|---|
+| Lingue | Traduzione con l'IA. Si ritraduce gratis quando il sito cambia |
+| SEO | Titolo, descrizione, parole chiave e testo alternativo delle foto, scritti dall'IA. Si riscrive gratis quando il sito cambia |
+| «Fatti trovare dall'IA» | `llms.txt` del sito e dati strutturati |
+| «Indicizza» | Il sito entra nella sitemap di inm35.it (che Google legge da Search Console) e viene segnalato con IndexNow a Bing e agli altri motori |
+
+Sono tutti nelle guide (`/guida/app#sito`) e nei prezzi.
 
 **Abbonamenti vecchi:** chi ha un abbonamento attivo e lo staff non pagano (`exempt`).
 
@@ -134,6 +153,8 @@ Funzioni in arrivo (`active => false`): Vendi (negozio completo), Agenda, Affitt
 - Non esiste un ticket aperto da Max verso il cliente: per scrivere per primo si usa l'email.
 
 ## Da fare dopo (idee di Max)
+
+- **Pubblicità a pagamento (ads)**: comparire subito in alto nella bacheca degli annunci, delle promo o nella home. Non è ancora fatta; quando arriva va messa nei prezzi e nelle guide.
 
 - Una chat per creare manifesti, volantini e biglietti da visita per l'offerta «1 €».
 - Una pagina «Cosa puoi fare» su misura per i settori, se serve.

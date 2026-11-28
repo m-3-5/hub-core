@@ -71,7 +71,14 @@
         <li><strong>Cambiare il sito:</strong> «✨ Rifallo con l'IA» e ripassi i passi; quello che hai scritto resta. Modificare non costa.</li>
         <li><strong>Disegno in alto:</strong> l'IA crea un disegno a tema; «Fai un altro disegno» se non ti piace (gratis).</li>
         <li><strong>Online o offline:</strong> «Metti offline» lo nasconde a tutti tranne a te; «Rimetti online» quando vuoi.</li>
-        <li><strong>Lingue e opzioni</strong> (inglese, tedesco…, SEO per Google, IA): 1 € ciascuna.</li>
+        <li><strong>Servizi in più, 1 € ciascuno, una volta sola</strong> (nel riepilogo del sito):
+            <ul>
+                <li>🌍 <strong>Lingue</strong>: inglese, tedesco, francese, spagnolo… tradotte dall'IA, si aggiornano gratis se cambi il sito;</li>
+                <li>🔎 <strong>SEO e parole chiave</strong>: l'IA sceglie le ricerche che fa la gente e scrive titolo e descrizione per Google;</li>
+                <li>🤖 <strong>Fatti trovare dall'IA</strong>: una scheda chiara per ChatGPT, Gemini e gli altri assistenti;</li>
+                <li>📡 <strong>Indicizza il sito</strong>: entra nella mappa di inm35.it letta da Google e viene segnalato subito a Bing.</li>
+            </ul>
+        </li>
         <li>Nel sito compaiono da sole le tue promo, prodotti e servizi, e i post di Facebook con #novita, #evento, #blog, #lavori.</li>
     </ul>
 </details>
@@ -96,6 +103,8 @@
     <li>💳 <strong>Ricarica</strong> da 5 € in «Pagamenti»: con la carta (pagina sicura di Stripe), con bonifico o in contanti.</li>
     <li>🎮 <strong>Buoni dei giochi</strong> di <a href="https://piramide35.com" target="_blank" rel="noopener">piramide35.com</a>: scrivi il codice in «Pagamenti» → «Hai un codice buono?». I primi {{ \App\Support\PayPerUse::euro(\App\Support\PayPerUse::gameFreeCents()) }} li usi subito, il resto dopo la prima ricarica da 5 €.</li>
     <li>⏳ Credito finito? Puoi andare avanti fino a 5 € e saldi con la prossima ricarica.</li>
+    <li>⭐ <strong>Premium</strong>, per chi pubblica tanto: {{ \App\Support\PayPerUse::euro(\App\Support\PayPerUse::premiumCents()) }} al mese scalati dal credito e <strong>tutto illimitato</strong>. Si rinnova da solo; in «Pagamenti» premi «Non rinnovare» quando vuoi. Dopo, per un mese paghi {{ \App\Support\PayPerUse::euro((int) config('services.hub_billing.pay_per_use.premium.exit_cents', 80)) }} a pubblicazione, poi 1 €.</li>
+    <li>Niente abbonamento obbligatorio: se un mese non pubblichi niente, non paghi niente.</li>
     <li>🧾 A ogni acquisto e ricarica ti arriva la ricevuta per email.</li>
 </ul>
 <p class="small"><a href="{{ route('pricing.show') }}">Tutti i prezzi</a></p>

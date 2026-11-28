@@ -35,7 +35,7 @@
     </div>
     <div class="chips" style="margin-top:12px">
         <a class="btn btn-secondary" href="{{ route('admin.wizard.show', [$tenant, 'promo']) }}">＋ Nuova promo</a>
-        <a class="btn btn-secondary" href="{{ route('admin.billing.show', $tenant) }}">Abbonamento</a>
+        <a class="btn btn-secondary" href="{{ route('admin.credit.show', $tenant) }}">Credito e Premium</a>
         @unless ($isPrivate)<a class="btn btn-secondary" href="{{ route('admin.module-billing.show', $tenant) }}">Costi e pagamenti</a>@endunless
         <a class="btn btn-secondary" href="{{ route('admin.profile.edit', $tenant) }}">Profilo</a>
         <a class="btn btn-secondary" href="{{ route('classifieds.tenant-board', $tenant) }}" target="_blank">Bacheca pubblica ↗</a>

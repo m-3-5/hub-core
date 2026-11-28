@@ -225,6 +225,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/tenants/{tenant}/credito/ricarica', [\App\Http\Controllers\Admin\CreditController::class, 'topUp'])->name('credit.topup')->middleware('throttle:10,1');
         Route::get('/tenants/{tenant}/credito/ricarica/fatto', [\App\Http\Controllers\Admin\CreditController::class, 'topUpReturn'])->name('credit.topup.return');
         Route::post('/tenants/{tenant}/credito/manuale', [\App\Http\Controllers\Admin\CreditController::class, 'manualTopUp'])->name('credit.manual');
+        Route::post('/tenants/{tenant}/premium', [\App\Http\Controllers\Admin\CreditController::class, 'premium'])->name('credit.premium')->middleware('throttle:10,1');
+        Route::post('/tenants/{tenant}/premium/rinnovo', [\App\Http\Controllers\Admin\CreditController::class, 'premiumRenewal'])->name('credit.premium.renewal');
 
         Route::get('/tenants/{tenant}/billing', [BillingController::class, 'show'])->name('billing.show');
         Route::post('/tenants/{tenant}/billing/checkout', [BillingController::class, 'checkout'])->name('billing.checkout');

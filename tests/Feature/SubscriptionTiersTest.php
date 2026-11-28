@@ -143,6 +143,6 @@ class SubscriptionTiersTest extends TestCase
             ->assertSee('Annunci')->assertSee('Gratis')
             ->assertSee('Promo, prodotti e servizi')->assertSee('Dal 6° nel mese')->assertSee('0,80 €')->assertSee('0,50 €')
             ->assertSee('3 promo, 3 prodotti e 3 servizi inclusi')
-            ->assertDontSee('Silver')->assertDontSee('Premium')->assertDontSee('giorni gratis')->assertDontSee('offerta di lancio');
+            ->assertDontSee('Silver')->assertDontSee('giorni gratis')->assertDontSee('offerta di lancio');
     }
 }

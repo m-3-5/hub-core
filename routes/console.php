@@ -13,6 +13,8 @@ Artisan::command('inspire', function () {
 Schedule::command('hub:charge-pending-module-charges')->daily();
 // Paghi quello che pubblichi: addebito dopo un mese, tutto insieme.
 Schedule::command('hub:bill-usage')->dailyAt('09:00')->withoutOverlapping();
+// Premium: rinnovo mensile dal credito (Max 28/11/2026).
+Schedule::command('hub:renew-premium')->dailyAt('08:30')->withoutOverlapping();
 
 // Finita la prima settimana gratuita: una email che chiede l'euro dell'offerta di lancio.
 Schedule::command('hub:launch-offer-reminders')->dailyAt('10:00');

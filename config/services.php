@@ -118,6 +118,16 @@ return [
             // Credito vinto ai giochi di piramide35.com: se ne spende al massimo questo finché
             // l'attività non fa una ricarica vera (almeno topup_min_cents); poi si sblocca tutto.
             'game_free_cents' => (int) env('HUB_PPU_GAME_FREE_CENTS', 300),
+            // Premium (Max 28/11/2026): per chi usa tantissimo l'app. Un tot al mese scalato dal credito,
+            // tutto illimitato (promo, prodotti, servizi, sito, lingue, opzioni). Si rinnova da solo finché il cliente vuole
+            // e c'è credito. Chi esce paga exit_cents a pubblicazione per exit_days giorni, poi il prezzo normale.
+            'premium' => [
+                'enabled' => (bool) env('HUB_PPU_PREMIUM', true),
+                'monthly_cents' => (int) env('HUB_PPU_PREMIUM_CENTS', 1900),
+                'days' => (int) env('HUB_PPU_PREMIUM_DAYS', 30),
+                'exit_cents' => (int) env('HUB_PPU_PREMIUM_EXIT_CENTS', 80),
+                'exit_days' => (int) env('HUB_PPU_PREMIUM_EXIT_DAYS', 30),
+            ],
         ],
         // Un solo abbonamento, due livelli. Silver = tutto il necessario; Premium = in più sito web con Max, quote molto più alte, assistenza prioritaria.
         // Durante prova gratuita e lancio ogni cliente ha tutto (anche il sito web).
