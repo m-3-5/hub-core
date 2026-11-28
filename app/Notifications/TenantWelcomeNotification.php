@@ -46,7 +46,7 @@ class TenantWelcomeNotification extends Notification
             $mail->subject('Benvenuto su Hub Core')
                 ->line('Grazie per aver registrato **'.$this->tenant->name.'** su Hub Core.')
                 ->line('Niente abbonamento: paghi solo quello che pubblichi. Gli annunci sono gratis; promo, prodotti e servizi costano **1 €** l\'uno, e meno se ne pubblichi di più.')
-                ->line('Quando pubblichi salvi una carta, senza addebito: paghi tutto insieme dopo **'.$billDays.' giorni**.');
+                ->line('Ti regaliamo **15 € di credito**: quello che pubblichi si scala da lì. Poi ricarichi da 5 € (carta, bonifico o contanti) o vinci credito ai giochi di piramide35.com.');
         } else {
             $launch = config('services.hub_billing.launch_offer_price_eur', 1);
             $freeDays = config('services.hub_billing.free_days', 30);

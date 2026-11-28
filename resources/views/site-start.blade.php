@@ -124,7 +124,7 @@
         </ul>
         <details class="ss-more">
             <summary>Scopri di più</summary>
-            <p>Alla prima volta ti regaliamo 15 € di credito: sito, lingue, opzioni, promo, prodotti e servizi a 1 € si scalano da lì. Finito il credito ricarichi da 5 € (carta, bonifico o contanti) oppure salvi la carta e paghi dopo {{ $ppuDays }} giorni. A ogni acquisto ti arriva la ricevuta per email.</p>
+            <p>Alla prima volta ti regaliamo 15 € di credito: sito, lingue, opzioni, promo, prodotti e servizi a 1 € si scalano da lì. Finito il credito ricarichi da 5 € (carta, bonifico o contanti) o usi il credito vinto ai giochi di piramide35.com. A ogni acquisto ti arriva la ricevuta per email.</p>
             <p>Il sito ha un indirizzo su inm35.it. Vuoi un dominio tuo e più pagine? Te lo facciamo noi su misura.</p>
         </details>
     </div>

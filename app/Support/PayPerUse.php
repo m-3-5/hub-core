@@ -14,8 +14,10 @@ use M35\HubSitebuilder\Models\GeneratedSite;
  * - Chi ha fatto il sito ha i primi N di ogni tipo inclusi.
  * - Si paga una volta per oggetto (ripubblicare o modificare non costa).
  * - Si paga col credito: 15 € in regalo la prima volta, poi ricariche da 5 € in su (carta, bonifico, contanti).
- * - In alternativa la carta salvata: si pubblica subito e l'addebito arriva dopo un mese, tutto insieme.
- * - Finito il credito, senza carta, c'è un piccolo fido: il lavoro non si ferma e si salda con la ricarica.
+ * - La carta salvata (addebito dopo un mese) è spenta di base (card_enabled): si paga solo con le ricariche.
+ * - Credito dai giochi di piramide35.com (buoni M35G): spendibile fino a game_free_cents; il resto si sblocca
+ *   con la prima ricarica vera da topup_min_cents in su (vedi gameLockedCents()).
+ * - Finito il credito c'è un piccolo fido: il lavoro non si ferma e si salda con la ricarica.
  * - A ogni acquisto e ricarica: ricevuta (non fiscale) per email al cliente e a Max.
  * Chi ha ancora un abbonamento attivo e lo staff non pagano.
  */
@@ -39,9 +41,19 @@ class PayPerUse
             || (bool) auth()->user()?->isSuperAdmin();
     }
 
-    /** Carta salvata e ultimo addebito andato a buon fine. */
+    /** Si può ancora scegliere la carta salvata (paghi dopo)? Spento di base: solo ricariche. */
+    public static function cardEnabled(): bool
+    {
+        return (bool) config('services.hub_billing.pay_per_use.card_enabled', false);
+    }
+
+    /** Carta salvata e ultimo addebito andato a buon fine (sempre false se la carta è spenta). */
     public static function hasCard(Tenant $tenant): bool
     {
+        if (! self::cardEnabled()) {
+            return false;
+        }
+
         $card = $tenant->settings['ppu_card'] ?? null;
 
         return is_array($card) && ! empty($card['payment_method']) && empty($card['failed']) && (bool) $tenant->stripe_customer_id;
@@ -141,7 +153,7 @@ class PayPerUse
 
             $tenant = $tenant->fresh();
             $price = self::priceCents($tenant, $kind);
-            $credit = self::creditCents($tenant);
+            $credit = self::spendableCents($tenant);
             $wasPositive = $credit >= 0;
 
             // Come si paga: 1) il credito (15 € in regalo la prima volta, poi le ricariche);
@@ -211,6 +223,41 @@ class PayPerUse
         self::grantWelcome($tenant);
 
         return (int) ($tenant->settings['ppu_credit']['cents'] ?? 0);
+    }
+
+    /** Credito che si può spendere adesso: il credito meno la parte dei giochi ancora bloccata (può essere negativo col fido). */
+    public static function spendableCents(Tenant $tenant): int
+    {
+        return self::creditCents($tenant) - self::gameLockedCents($tenant);
+    }
+
+    /** Quanto si può spendere del credito vinto ai giochi prima di una ricarica vera. */
+    public static function gameFreeCents(): int
+    {
+        return max(0, (int) config('services.hub_billing.pay_per_use.game_free_cents', 300));
+    }
+
+    /**
+     * Parte del credito dei giochi ancora bloccata: tutto quello vinto oltre gameFreeCents(),
+     * finché l'attività non ha fatto almeno una ricarica vera da topUpMinCents() in su (carta, bonifico, contanti; non i regali).
+     */
+    public static function gameLockedCents(Tenant $tenant): int
+    {
+        $won = (int) TenantUsageEntry::where('tenant_id', $tenant->id)->where('reason', 'voucher')->sum('amount_cents');
+        if ($won <= self::gameFreeCents() || self::hasRealTopUp($tenant)) {
+            return 0;
+        }
+
+        return $won - self::gameFreeCents();
+    }
+
+    /** Ha mai fatto una ricarica vera di almeno topUpMinCents()? (i «regali» segnati da Max non contano) */
+    public static function hasRealTopUp(Tenant $tenant): bool
+    {
+        return TenantUsageEntry::where('tenant_id', $tenant->id)->where('reason', 'topup')
+            ->where('amount_cents', '>=', self::topUpMinCents())
+            ->where('description', 'not like', '%(regalo)%')
+            ->exists();
     }
 
     public static function grantWelcome(Tenant $tenant): void
@@ -315,7 +362,7 @@ class PayPerUse
     {
         return self::exempt($tenant)
             || self::hasCard($tenant)
-            || self::creditCents($tenant) - $cents >= -self::overdraftCents();
+            || self::spendableCents($tenant) - $cents >= -self::overdraftCents();
     }
 
     public static function label(string $kind): string

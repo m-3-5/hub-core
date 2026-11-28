@@ -173,7 +173,7 @@ class FreeWeekOfferTest extends TestCase
         $this->assertStringContainsString('id="back-dock"', $html);
         $this->assertStringContainsString('1 · Pubblichi subito', $html);
         $this->assertStringContainsString('2 · Usi il credito', $html);
-        $this->assertStringContainsString('3 · Oppure la carta', $html);
+        $this->assertStringContainsString('3 · Ricarichi o giochi', $html);
         $this->assertStringContainsString(route('app.index'), $html);
         $this->assertStringContainsString('id="pmax-panel"', $html);
     }

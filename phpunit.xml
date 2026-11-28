@@ -35,5 +35,7 @@
         <env name="HUB_PAY_PER_USE" value="false"/>
         <env name="HUB_PPU_WELCOME_CREDIT_CENTS" value="0"/>
         <env name="HUB_PPU_OVERDRAFT_CENTS" value="0"/>
+        <!-- La carta in produzione è spenta; nei test resta accesa per provare anche quel percorso (si spegne nei test che lo dicono). -->
+        <env name="HUB_PPU_CARD" value="true"/>
     </php>
 </phpunit>

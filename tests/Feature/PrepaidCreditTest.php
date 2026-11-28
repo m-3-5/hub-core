@@ -124,6 +124,52 @@ class PrepaidCreditTest extends TestCase
         Notification::assertSentTo($user, UsageReceiptNotification::class);
     }
 
+    public function test_with_the_card_switched_off_only_credit_pays_even_if_a_card_was_saved(): void
+    {
+        config(['services.hub_billing.pay_per_use.card_enabled' => false, 'services.hub_billing.pay_per_use.overdraft_cents' => 0]);
+        [$tenant, $user] = $this->business();
+        $settings = $tenant->settings ?? [];
+        $settings['ppu_credit'] = ['cents' => 0, 'welcome_at' => now()->toIso8601String()];
+        $settings['ppu_card'] = ['payment_method' => 'pm_1', 'last4' => '4242'];
+        $tenant->forceFill(['settings' => $settings, 'stripe_customer_id' => 'cus_1'])->save();
+
+        $this->assertFalse(PayPerUse::hasCard($tenant->fresh()));
+        $this->assertSame('draft', $this->publish($tenant, $user, 'Senza credito')->status);
+        $this->assertSame(0, PayPerUse::pendingCents($tenant));
+
+        $this->get(route('admin.credit.show', $tenant))->assertOk()->assertDontSee('Salva la carta')->assertSee('Ricarica il credito');
+        $this->post(route('admin.credit.checkout', $tenant))->assertSessionHasErrors('credit');
+    }
+
+    public function test_game_credit_is_spendable_up_to_three_euro_until_a_real_top_up(): void
+    {
+        config(['services.hub_billing.pay_per_use.card_enabled' => false, 'services.hub_billing.pay_per_use.overdraft_cents' => 0, 'services.hub_billing.pay_per_use.game_free_cents' => 300]);
+        [$tenant, $user] = $this->business();
+        $settings = $tenant->settings ?? [];
+        $settings['ppu_credit'] = ['cents' => 0, 'welcome_at' => now()->toIso8601String()];
+        $tenant->forceFill(['settings' => $settings])->save();
+
+        PayPerUse::addVoucher($tenant, 500, 'M35G-A');
+        PayPerUse::addVoucher($tenant, 300, 'M35G-B');
+
+        $this->assertSame(800, PayPerUse::creditCents($tenant->fresh()));
+        $this->assertSame(500, PayPerUse::gameLockedCents($tenant));
+        $this->assertSame(300, PayPerUse::spendableCents($tenant->fresh()));
+
+        foreach (['Uno', 'Due', 'Tre'] as $title) {
+            $this->assertSame('published', $this->publish($tenant, $user, $title)->status);
+        }
+        $this->assertSame('draft', $this->publish($tenant, $user, 'Quattro')->status); // il resto è bloccato
+        $this->get(route('admin.credit.show', $tenant))->assertSee('si sblocca con una ricarica');
+
+        // un «regalo» segnato da Max non sblocca; una ricarica vera da 5 € sì
+        PayPerUse::topUp($tenant, 500, 'regalo', 'manual-1');
+        $this->assertSame(500, PayPerUse::gameLockedCents($tenant));
+        PayPerUse::topUp($tenant, 500, 'bonifico', 'manual-2');
+        $this->assertSame(0, PayPerUse::gameLockedCents($tenant));
+        $this->assertSame(1500, PayPerUse::spendableCents($tenant->fresh()));
+    }
+
     public function test_top_up_minimum_is_five_euro_and_only_staff_marks_bank_transfers(): void
     {
         [$tenant, $user] = $this->business();

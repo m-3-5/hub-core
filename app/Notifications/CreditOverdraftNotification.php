@@ -29,7 +29,6 @@ class CreditOverdraftNotification extends Notification
             ->line('Il credito di **'.$this->tenant->name.'** è finito. Per non fermarti abbiamo pubblicato lo stesso: stai usando il fido (credito ora **'.PayPerUse::euro($this->creditCents).'**, puoi andare avanti ancora per '.PayPerUse::euro(max(0, $left)).').')
             ->line('Per continuare scegli tu come:')
             ->line('• **Ricarica** da '.PayPerUse::euro(PayPerUse::topUpMinCents()).' in su con la carta (paghi subito, una volta);')
-            ->line('• **Salva la carta**: paghi quello che pubblichi dopo 30 giorni, tutto insieme;')
             ->line('• **Bonifico o contanti**: scrivi a '.config('company.email').' e lo segniamo noi.')
             ->action('Ricarica il credito', route('admin.credit.show', $this->tenant))
             ->salutation('Il team Hub Core');

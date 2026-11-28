@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Prezzi — Hub Core</title>
     @include('layouts.partials.favicon')
-    <meta name="description" content="Prezzi di Hub Core: annunci gratis; promo, prodotti e servizi 1 € l'uno, meno se pubblichi di più; paghi dopo 30 giorni, niente abbonamento. Sito web a 1 €.">
+    <meta name="description" content="Prezzi di Hub Core: annunci gratis; promo, prodotti e servizi 1 € l'uno, meno se pubblichi di più; paghi col credito (15 € in regalo), niente abbonamento. Sito web a 1 €.">
     <link rel="canonical" href="{{ route('pricing.show') }}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Prezzi — Hub Core">
-    <meta property="og:description" content="Prezzi di Hub Core: annunci gratis; promo, prodotti e servizi 1 € l'uno, meno se pubblichi di più; paghi dopo 30 giorni, niente abbonamento. Sito web a 1 €.">
+    <meta property="og:description" content="Prezzi di Hub Core: annunci gratis; promo, prodotti e servizi 1 € l'uno, meno se pubblichi di più; paghi col credito (15 € in regalo), niente abbonamento. Sito web a 1 €.">
     <meta property="og:url" content="{{ route('pricing.show') }}">
     <meta property="og:image" content="{{ asset('images/og-hub-core.png') }}">
     <meta name="theme-color" content="#6366f1">
@@ -132,8 +132,8 @@
             <div><b>2 · Usi il credito</b><span><span class="big">15 € in regalo</span> la prima volta, senza carta. Poi ricarichi da 5 €.</span></div>
         </div>
         <div class="tap">
-            <span class="ico">📅</span>
-            <div><b>3 · Oppure la carta</b><span>Se preferisci, salvi la carta e paghi dopo {{ $billDays }} giorni <span class="big">in un solo addebito</span>. Niente abbonamento.</span></div>
+            <span class="ico">🎮</span>
+            <div><b>3 · Ricarichi o giochi</b><span>Ricarichi da 5 € (carta, bonifico o contanti) oppure <span class="big">vinci credito</span> ai giochi di piramide35.com. Niente abbonamento.</span></div>
         </div>
     </div>
 
@@ -201,7 +201,7 @@
 
     <div class="group-title">Domande frequenti</div>
     <details><summary>Devo pagare per registrarmi?</summary><p>No. Ti registri gratis e prepari tutto quello che vuoi. Paghi solo quando pubblichi una promo, un prodotto o un servizio.</p></details>
-    <details><summary>Come pago?</summary><p>Con il credito: la prima volta ti regaliamo 15 €, poi ricarichi da 5 € con la carta, con bonifico o in contanti. Se preferisci salvi la carta e paghi dopo {{ $billDays }} giorni, tutto insieme. Se il credito finisce mentre lavori non ti blocchiamo: puoi andare avanti fino a 5 € e saldi con la ricarica. A ogni acquisto ricevi la ricevuta per email; nella pagina «Pagamenti» dell'app vedi sempre credito e movimenti.</p></details>
+    <details><summary>Come pago?</summary><p>Solo con il credito: la prima volta ti regaliamo 15 €, poi ricarichi da 5 € con la carta, con bonifico o in contanti. Puoi anche vincere credito ai giochi di piramide35.com: i primi {{ \App\Support\PayPerUse::euro(\App\Support\PayPerUse::gameFreeCents()) }} si usano subito, il resto dopo la prima ricarica da 5 €. Se il credito finisce mentre lavori non ti blocchiamo: puoi andare avanti fino a 5 € e saldi con la ricarica. A ogni acquisto ricevi la ricevuta per email; nella pagina «Pagamenti» dell'app vedi sempre credito e movimenti.</p></details>
     <details><summary>C'è un abbonamento?</summary><p>No. Niente canone e niente da disdire: se un mese non pubblichi niente, non paghi niente.</p></details>
     <details><summary>Quanto mi trattiene Stripe quando vendo?</summary><p>Su ogni pagamento con carta Stripe applica una commissione, indicativamente {{ \M35\HubPayments\Support\StripeFees::rateLabel() }} (di più per carte extra-UE). È un costo di Stripe e viene sottratto dall'incasso: nel pannello vedi sempre quanto ricevi netto.</p></details>
     <details><summary>Posso vendere anche direttamente, senza Hub Core?</summary><p>Sì. Sul tuo sito puoi continuare a incassare con il tuo conto Stripe. I pagamenti protetti valgono per le vendite fatte tramite inm35.it, dove chi compra e chi vende sono tutelati.</p></details>

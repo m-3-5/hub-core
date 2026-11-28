@@ -112,6 +112,12 @@ return [
             'welcome_credit_cents' => (int) env('HUB_PPU_WELCOME_CREDIT_CENTS', 1500),
             'topup_min_cents' => (int) env('HUB_PPU_TOPUP_MIN_CENTS', 500),
             'overdraft_cents' => (int) env('HUB_PPU_OVERDRAFT_CENTS', 500),
+            // Carta salvata con addebito dopo 30 giorni: SPENTA (Max 28/11/2026: si paga solo con le ricariche del credito).
+            // Le voci già «pending» di chi l'aveva salvata vengono comunque addebitate da hub:bill-usage.
+            'card_enabled' => (bool) env('HUB_PPU_CARD', false),
+            // Credito vinto ai giochi di piramide35.com: se ne spende al massimo questo finché
+            // l'attività non fa una ricarica vera (almeno topup_min_cents); poi si sblocca tutto.
+            'game_free_cents' => (int) env('HUB_PPU_GAME_FREE_CENTS', 300),
         ],
         // Un solo abbonamento, due livelli. Silver = tutto il necessario; Premium = in più sito web con Max, quote molto più alte, assistenza prioritaria.
         // Durante prova gratuita e lancio ogni cliente ha tutto (anche il sito web).

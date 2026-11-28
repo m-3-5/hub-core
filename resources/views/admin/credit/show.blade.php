@@ -50,6 +50,12 @@
         </small>
     </div>
 
+    @if ($gameLocked > 0)
+        <div class="cr-wait">
+            <p>🎮 Hai altri <strong>{{ $eur($gameLocked) }}</strong> vinti ai giochi di piramide35.com. Dei buoni dei giochi ne puoi usare {{ $eur($gameFree) }} subito: <strong>il resto si sblocca con una ricarica da {{ $eur($topUpMin) }}</strong>.</p>
+        </div>
+    @endif
+
     @if ($pending)
         <div class="cr-wait">
             <p>Per pubblicare <strong>«{{ $pending['title'] }}»</strong>: <strong>{{ $eur($pendingPrice) }}</strong>.</p>
@@ -86,10 +92,11 @@
         <button type="submit" class="btn btn-secondary">Usa</button>
     </form>
     @error('codice')<p class="error">{{ $message }}</p>@enderror
-    <p class="cr-note">I buoni vinti ai giochi di piramide35.com diventano credito.</p>
+    <p class="cr-note">I buoni vinti ai giochi di piramide35.com diventano credito: {{ $eur($gameFree) }} si usano subito, il resto dopo la prima ricarica da {{ $eur($topUpMin) }}.</p>
 
-    <details class="cr-more" @if (! $hasCard && $credit < 0) open @endif>
+    <details class="cr-more" @if ($credit < 0) open @endif>
         <summary>Altri modi per pagare</summary>
+        @if ($cardEnabled || $toBill > 0)
         <p><strong>💳 Carta salvata, paghi dopo:</strong> quando il credito finisce, quello che pubblichi lo paghi dopo {{ $billDays }} giorni, tutto insieme.</p>
         @if ($hasCard)
             <div class="cr-card"><span>💳 {{ ucfirst($card['brand'] ?? 'Carta') }} •••• {{ $card['last4'] ?? '' }}</span><span>✓</span></div>
@@ -100,11 +107,14 @@
         @if (! empty($card['failed']))
             <p class="error">L'ultimo addebito non è andato a buon fine: aggiungi un'altra carta.</p>
         @endif
+        @if ($cardEnabled)
         <form method="POST" action="{{ route('admin.credit.checkout', $tenant) }}" style="margin-bottom:12px">@csrf
             <button type="submit" class="btn btn-secondary" style="width:100%;min-height:48px" data-busy="Apro…">{{ $hasCard ? 'Cambia carta' : 'Salva la carta' }}</button>
         </form>
+        @endif
+        @endif
         <p><strong>🏦 Bonifico o contanti:</strong> scrivi a <a href="mailto:{{ config('company.email') }}?subject={{ rawurlencode('Ricarica credito '.$tenant->name) }}">{{ config('company.email') }}</a> con il nome dell'attività: segniamo noi la ricarica e ti arriva la ricevuta.</p>
-        <p><strong>⏳ Non hai la carta adesso?</strong> Finito il credito puoi andare avanti lo stesso fino a {{ $eur($overdraft) }} (fido): ti avvisiamo per email e saldi con la prossima ricarica.</p>
+        <p><strong>⏳ Credito finito?</strong> Puoi andare avanti lo stesso fino a {{ $eur($overdraft) }} (fido): ti avvisiamo per email e saldi con la prossima ricarica.</p>
     </details>
 
     @if (auth()->user()?->isSuperAdmin())

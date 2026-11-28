@@ -47,7 +47,7 @@
             <div class="fb-page">✅ Collegata: {{ $fb['page_name'] }}</div>
             <p style="margin-top:10px">Pubblica su questa pagina un post <b>con una foto</b> e con <b>{{ implode(' o ', $hashtags) }}</b> nel testo. Diventa una promo da sola:</p>
             <ul class="fb-steps">
-                <li>con il credito (o la carta salvata) va subito online, anche nel tuo sito (1 €, come ogni promo);</li>
+                <li>con il credito va subito online, anche nel tuo sito (1 €, come ogni promo);</li>
                 <li>se il credito non basta, o se il testo va controllato, resta una bozza e ti scriviamo per approvarla.</li>
             </ul>
         </div>

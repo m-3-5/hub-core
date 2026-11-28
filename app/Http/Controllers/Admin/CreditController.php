@@ -25,7 +25,10 @@ class CreditController extends Controller
         return view('admin.credit.show', [
             'tenant' => $tenant,
             'hasCard' => PayPerUse::hasCard($tenant),
-            'credit' => PayPerUse::creditCents($tenant),
+            'credit' => PayPerUse::spendableCents($tenant),
+            'cardEnabled' => PayPerUse::cardEnabled(),
+            'gameLocked' => PayPerUse::gameLockedCents($tenant),
+            'gameFree' => PayPerUse::gameFreeCents(),
             'overdraft' => PayPerUse::overdraftCents(),
             'topUpMin' => PayPerUse::topUpMinCents(),
             'canPayPending' => $pending ? PayPerUse::canPay($tenant, PayPerUse::priceCents($tenant, $pending['kind'])) : false,
@@ -43,6 +46,10 @@ class CreditController extends Controller
     /** Salva la carta su Stripe: nessun addebito adesso. */
     public function checkout(Tenant $tenant): RedirectResponse
     {
+        if (! PayPerUse::cardEnabled()) {
+            return back()->withErrors(['credit' => 'Si paga con il credito: ricarica da '.PayPerUse::euro(PayPerUse::topUpMinCents()).' in su.']);
+        }
+
         $secretKey = config('services.hub_billing.secret_key');
 
         if (! $secretKey) {
@@ -137,6 +144,6 @@ class CreditController extends Controller
     public function publishPending(Tenant $tenant): RedirectResponse
     {
         return PendingPublication::resume($tenant)
-            ?? redirect()->route('admin.credit.show', $tenant)->withErrors(['credit' => 'Prima ricarica il credito o aggiungi la carta.']);
+            ?? redirect()->route('admin.credit.show', $tenant)->withErrors(['credit' => 'Prima ricarica il credito.']);
     }
 }
