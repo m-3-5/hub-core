@@ -37,6 +37,9 @@ class SitemapController extends Controller
 
         // Guide su come ricevere i soldi + condizioni economiche.
         $urls[] = ['loc' => route('guides.index'), 'lastmod' => null, 'priority' => '0.6'];
+        foreach (['guides.features', 'guides.app', 'guides.facebook'] as $name) {
+            $urls[] = ['loc' => route($name), 'lastmod' => null, 'priority' => '0.6'];
+        }
         foreach (array_keys(\App\Http\Controllers\GuideController::guides()) as $slug) {
             $urls[] = ['loc' => route('guides.show', $slug), 'lastmod' => null, 'priority' => '0.5'];
         }

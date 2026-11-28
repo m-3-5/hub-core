@@ -50,6 +50,9 @@ class LlmsController extends Controller
             '## Hub Core',
             '- Presentazione e registrazione: '.url('/'),
             '- Prezzi: '.route('pricing.show'),
+            '- Cosa si può fare: '.route('guides.features'),
+            '- Guida passo passo all\'app: '.route('guides.app'),
+            '- Pubblicare da Facebook con gli hashtag: '.route('guides.facebook'),
             '- Promozioni attive di tutte le attività: '.route('promo.hub-archive'),
             '- Annunci (immobili, oggetti in vendita, servizi e lezioni): '.route('classifieds.board'),
         ]);

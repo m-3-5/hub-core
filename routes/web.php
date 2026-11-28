@@ -72,6 +72,9 @@ Route::get('/condizioni-economiche', [\App\Http\Controllers\GuideController::cla
 Route::get('/condizioni-acquisto', [\App\Http\Controllers\GuideController::class, 'buyerTerms'])->name('terms.buyer');
 Route::view('/privacy', 'guides.privacy')->name('privacy');
 Route::view('/guida/facebook', 'guides.facebook')->name('guides.facebook');
+// «Cosa puoi fare con inm35.it» (solo le cose già attive) e la guida passo passo dell'app. Promemoria per chi lavora sul codice: docs/FUNZIONI-INM35.md
+Route::view('/cosa-puoi-fare', 'guides.features')->name('guides.features');
+Route::view('/guida/app', 'guides.app')->name('guides.app');
 // Ritorno dal collegamento Facebook (l'attività viaggia cifrata nello «state»).
 Route::get('/facebook/ritorno', [\App\Http\Controllers\FacebookController::class, 'callback'])->middleware(['auth', 'throttle:20,1'])->name('facebook.callback');
 
